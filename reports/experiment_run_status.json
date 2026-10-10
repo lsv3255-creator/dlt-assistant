@@ -1,6 +1,6 @@
 {
   "status": "unavailable",
-  "generated_at": "2026-10-10 07:58:54",
+  "generated_at": "2026-10-10 18:00:59",
   "source": "/home/runner/work/dlt-assistant/dlt-assistant/data/experiment_runs.sqlite",
   "monitor_note": "运行记录库尚未生成（experiment_scheduler 未运行过）。实验自动化尚未产生运行数据，属正常初始状态。",
   "overall_status": "UNKNOWN",

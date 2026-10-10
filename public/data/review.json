@@ -1,116 +1,90 @@
 {
-  "updated_at": "2026-10-09 11:24:08",
+  "updated_at": "2026-10-10 18:00:58",
   "empty": false,
-  "issue": "26114",
+  "issue": "26115",
   "snapshot_status": "ok",
   "authoritative": true,
-  "snapshot_hash": "385de5e1642e25a563494bd302bc0312ad2373b5ddcb95b37ef21210d992e01d",
+  "snapshot_hash": "abc74c866531e3358162247463a57d8441c1582009d71b20d85e08d782093526",
   "recommendation": {
-    "strategy": "A-均衡统计型",
+    "strategy": "C-纯随机娱乐型",
     "front": [
-      5,
-      10,
-      24,
+      14,
       28,
-      35
+      31,
+      32,
+      34
     ],
     "back": [
-      4,
-      11
+      7,
+      12
     ],
-    "score_total": 42.02,
+    "score_total": 42.16,
     "model_version": null
   },
-  "reason": "均衡统计型：依据近 50 期频率与遗漏，前区混合热号 2 个、冷号 0 个并强制奇偶/大小均衡后生成；本组前区 奇偶比 2:3、大小比 3:2、和值 102、跨度 30。",
+  "reason": "本期候选由随机基线策略在合法规则下随机生成，作为与统计型策略对比的对照候选，不代表任何统计倾向或走势判断。",
   "explanation": {
     "explanation_version": "1.1",
-    "strategy_type": "balanced_statistical",
-    "strategy": "A-均衡统计型",
-    "target_issue": "26114",
-    "summary": "均衡统计型：依据近 50 期频率与遗漏，前区混合热号 2 个、冷号 0 个并强制奇偶/大小均衡后生成；本组前区 奇偶比 2:3、大小比 3:2、和值 102、跨度 30。",
+    "strategy_type": "random_baseline",
+    "strategy": "C-纯随机娱乐型",
+    "target_issue": "26115",
+    "summary": "本期候选由随机基线策略在合法规则下随机生成，作为与统计型策略对比的对照候选，不代表任何统计倾向或走势判断。",
     "factors": [
       {
-        "type": "hot_cold",
-        "label": "热冷混合",
-        "detail": "前区落在当前窗口热号集合 2 个、冷号集合 0 个。",
+        "type": "random",
+        "label": "随机基线",
+        "detail": "该组合为合法规则内随机抽取，非基于热冷/遗漏/趋势的统计构造。",
         "evidence": {
-          "front_hot": [
-            5,
-            10
-          ],
-          "front_cold": [],
-          "window": 50
-        }
-      },
-      {
-        "type": "frequency",
-        "label": "频率依据",
-        "detail": "前区号码取自近期基础频率与近期频率加权（0.5/0.5）的候选池。",
-        "evidence": {
-          "front_freq": {
-            "5": 8,
-            "10": 14,
-            "24": 7,
-            "28": 6,
-            "35": 5
-          }
-        }
-      },
-      {
-        "type": "balance",
-        "label": "奇偶/大小均衡",
-        "detail": "前区奇偶比 2:3、大小比 3:2（算法强制均衡到 2~3）。",
-        "evidence": {
-          "front_odd_even": [
-            2,
-            3
-          ],
-          "front_big_small": [
-            3,
-            2
-          ]
+          "is_random": true
         }
       },
       {
         "type": "structure",
-        "label": "结构分布",
-        "detail": "前区和值 102、跨度 30。",
+        "label": "结构分布（仅描述）",
+        "detail": "前区 奇偶比 1:4、大小比 4:1、和值 139、跨度 20。",
         "evidence": {
-          "front_sum": 102,
-          "front_span": 30
+          "front_odd_even": [
+            1,
+            4
+          ],
+          "front_big_small": [
+            4,
+            1
+          ],
+          "front_sum": 139,
+          "front_span": 20
         }
       }
     ],
     "generated_from": [
       "dlt_history.json",
       "window=50",
-      "strategy_type=balanced_statistical"
+      "strategy_type=random_baseline"
     ],
     "reason_status": "ok",
     "disclaimer": "本解释仅描述内部算法如何构造候选组合，不代表任何号码会中奖，亦不构成预测。",
-    "explanation_hash": "900d217e7a61b6fa"
+    "explanation_hash": "80f22c073e4cf941"
   },
   "actual_result": {
     "front": [
-      8,
       12,
-      15,
-      29,
-      30
+      20,
+      32,
+      33,
+      35
     ],
     "back": [
-      9,
-      12
+      6,
+      7
     ]
   },
   "hit_count": {
-    "front": 0,
-    "back": 0,
-    "total": 0,
-    "level": 0
+    "front": 1,
+    "back": 1,
+    "total": 2,
+    "level": 1
   },
   "analysis": {
-    "sum_diff": 8,
+    "sum_diff": 7,
     "factor_review": {}
   },
   "next_adjustment": [

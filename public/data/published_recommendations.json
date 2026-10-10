@@ -350,7 +350,88 @@
         "explanation_hash": "80f22c073e4cf941"
       },
       "snapshot_hash": "abc74c866531e3358162247463a57d8441c1582009d71b20d85e08d782093526"
+    },
+    {
+      "schema_version": "1.1",
+      "issue": "26116",
+      "published_at": "2026-10-10 18:00:58",
+      "primary_strategy": "C-纯随机娱乐型",
+      "numbers": {
+        "front": [
+          1,
+          2,
+          28,
+          29,
+          30
+        ],
+        "back": [
+          2,
+          10
+        ]
+      },
+      "reason": "本期候选由随机基线策略在合法规则下随机生成，作为与统计型策略对比的对照候选，不代表任何统计倾向或走势判断。",
+      "final_score": 42.27,
+      "final_breakdown": {
+        "base": 68.0,
+        "history": 16.77,
+        "recent": 11.43,
+        "structure": 50.0,
+        "risk": 0.0,
+        "weights": {
+          "base": 0.4,
+          "history": 0.2,
+          "recent": 0.15,
+          "structure": 0.2
+        },
+        "degraded": false,
+        "stage": "stable",
+        "effective_sample": 23
+      },
+      "model_version": null,
+      "explanation": {
+        "explanation_version": "1.1",
+        "strategy_type": "random_baseline",
+        "strategy": "C-纯随机娱乐型",
+        "target_issue": "26116",
+        "summary": "本期候选由随机基线策略在合法规则下随机生成，作为与统计型策略对比的对照候选，不代表任何统计倾向或走势判断。",
+        "factors": [
+          {
+            "type": "random",
+            "label": "随机基线",
+            "detail": "该组合为合法规则内随机抽取，非基于热冷/遗漏/趋势的统计构造。",
+            "evidence": {
+              "is_random": true
+            }
+          },
+          {
+            "type": "structure",
+            "label": "结构分布（仅描述）",
+            "detail": "前区 奇偶比 2:3、大小比 3:2、和值 90、跨度 29。",
+            "evidence": {
+              "front_odd_even": [
+                2,
+                3
+              ],
+              "front_big_small": [
+                3,
+                2
+              ],
+              "front_sum": 90,
+              "front_span": 29
+            }
+          }
+        ],
+        "generated_from": [
+          "dlt_history.json",
+          "window=50",
+          "strategy_type=random_baseline"
+        ],
+        "reason_status": "ok",
+        "disclaimer": "本解释仅描述内部算法如何构造候选组合，不代表任何号码会中奖，亦不构成预测。",
+        "explanation_hash": "5425c63d3fa10283"
+      },
+      "snapshot_hash": "372d0beb28924e78d48090349f0f9450faf41a4bc8fe65d06eb9974cd06142df"
     }
   ],
-  "updated_at": "2026-10-09 11:24:08"
+  "updated_at": "2026-10-10 18:00:58"
 }
