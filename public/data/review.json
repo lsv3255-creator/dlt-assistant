@@ -1,24 +1,24 @@
 {
-  "updated_at": "2026-10-12 21:52:27",
+  "updated_at": "2026-10-14 18:10:40",
   "empty": false,
-  "issue": "26116",
+  "issue": "26117",
   "snapshot_status": "ok",
   "authoritative": true,
-  "snapshot_hash": "372d0beb28924e78d48090349f0f9450faf41a4bc8fe65d06eb9974cd06142df",
+  "snapshot_hash": "0b88bbce72149804c01bc1b84c63545ab4820fd7d93795083005ab0ea4dd97c6",
   "recommendation": {
     "strategy": "C-纯随机娱乐型",
     "front": [
       1,
-      2,
-      28,
-      29,
-      30
+      11,
+      19,
+      26,
+      33
     ],
     "back": [
-      2,
-      10
+      9,
+      12
     ],
-    "score_total": 42.27,
+    "score_total": 42.68,
     "model_version": null
   },
   "reason": "本期候选由随机基线策略在合法规则下随机生成，作为与统计型策略对比的对照候选，不代表任何统计倾向或走势判断。",
@@ -26,7 +26,7 @@
     "explanation_version": "1.1",
     "strategy_type": "random_baseline",
     "strategy": "C-纯随机娱乐型",
-    "target_issue": "26116",
+    "target_issue": "26117",
     "summary": "本期候选由随机基线策略在合法规则下随机生成，作为与统计型策略对比的对照候选，不代表任何统计倾向或走势判断。",
     "factors": [
       {
@@ -40,18 +40,18 @@
       {
         "type": "structure",
         "label": "结构分布（仅描述）",
-        "detail": "前区 奇偶比 2:3、大小比 3:2、和值 90、跨度 29。",
+        "detail": "前区 奇偶比 4:1、大小比 3:2、和值 90、跨度 32。",
         "evidence": {
           "front_odd_even": [
-            2,
-            3
+            4,
+            1
           ],
           "front_big_small": [
             3,
             2
           ],
           "front_sum": 90,
-          "front_span": 29
+          "front_span": 32
         }
       }
     ],
@@ -62,31 +62,37 @@
     ],
     "reason_status": "ok",
     "disclaimer": "本解释仅描述内部算法如何构造候选组合，不代表任何号码会中奖，亦不构成预测。",
-    "explanation_hash": "5425c63d3fa10283"
+    "explanation_hash": "a1347163df0e2a8d"
   },
   "actual_result": {
     "front": [
-      9,
-      18,
-      22,
-      25,
-      35
+      4,
+      13,
+      19,
+      29,
+      31
     ],
     "back": [
-      1,
-      10
+      2,
+      12
     ]
   },
   "hit_count": {
-    "front": 0,
+    "front": 1,
     "back": 1,
-    "total": 1,
+    "total": 2,
     "level": 1
   },
   "analysis": {
-    "sum_diff": 19,
+    "sum_diff": 6,
     "factor_review": {}
   },
-  "next_adjustment": [],
+  "next_adjustment": [
+    {
+      "type": "keep",
+      "text": "维持和值区间",
+      "reason": "上期和值贴合历史高频区间"
+    }
+  ],
   "disclaimer": "复盘读取当期已发布不可变快照，仅为娱乐回顾，不代表预测中奖"
 }
