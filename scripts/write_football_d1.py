@@ -15,6 +15,54 @@ def sql_text(value) -> str:
     return "'" + value.replace("'", "''") + "'"
 
 
+TEAM_SCHEMA = [
+    "CREATE TABLE IF NOT EXISTS football_teams("
+    "team_key TEXT PRIMARY KEY, name TEXT NOT NULL, league TEXT, "
+    "first_seen_issue TEXT, last_seen_issue TEXT);",
+    "CREATE TABLE IF NOT EXISTS football_team_snapshots("
+    "team_key TEXT NOT NULL, issue TEXT NOT NULL, league TEXT, "
+    "rank INTEGER, form_json TEXT, rest_days INTEGER, last_match_date TEXT, "
+    "PRIMARY KEY(team_key, issue));",
+]
+
+
+def build_team_sql(data: dict) -> list[str]:
+    """Team archive lines: profiles upserted, one snapshot per team+issue.
+
+    Unlike the current-issue tables, team snapshots are never deleted:
+    team history accumulates across issues because forecasting uses it.
+    """
+    issue = str(data["issue"])
+    lines = list(TEAM_SCHEMA)
+    seen: set[str] = set()
+    for row in data["matches"]:
+        dynamics = row.get("dynamics") or {}
+        for slot, rank_key in (("home", "home_rank"), ("away", "away_rank")):
+            name = row[slot]
+            if name in seen:
+                continue
+            seen.add(name)
+            lines.append(
+                "INSERT INTO football_teams(team_key,name,league,first_seen_issue,last_seen_issue) "
+                f"VALUES({sql_text(name)},{sql_text(name)},{sql_text(row['league'])},{sql_text(issue)},{sql_text(issue)}) "
+                "ON CONFLICT(team_key) DO UPDATE SET league=excluded.league,"
+                "last_seen_issue=excluded.last_seen_issue;"
+            )
+            dyn = dynamics.get(slot) or {}
+            if dyn.get("form_last10"):
+                rank = row.get(rank_key)
+                rank_sql = "NULL" if rank is None else str(int(rank))
+                rest = dyn.get("rest_days")
+                rest_sql = "NULL" if rest is None else str(int(rest))
+                lines.append(
+                    "INSERT OR REPLACE INTO football_team_snapshots"
+                    "(team_key,issue,league,rank,form_json,rest_days,last_match_date) "
+                    f"VALUES({sql_text(name)},{sql_text(issue)},{sql_text(row['league'])},{rank_sql},"
+                    f"{sql_text(dyn['form_last10'])},{rest_sql},{sql_text(dyn.get('last_match_date'))});"
+                )
+    return lines
+
+
 def build_sql(data: dict) -> str:
     if len(data.get("matches", [])) != 14:
         raise ValueError("football snapshot must contain exactly 14 matches")
@@ -36,6 +84,8 @@ def build_sql(data: dict) -> str:
             "odds_json,probabilities_json,factors_json,primary_choice,secondary_choice,sfc_choices_json) VALUES(" +
             ",".join(values) + ");"
         )
+    # Team archive accumulates before the public snapshot is published.
+    lines.extend(build_team_sql(data))
     lines.append(
         "INSERT INTO football_current_analysis(slot,issue,plans_json,ai_json,review_json,updated_at) "
         f"VALUES(1,{sql_text(issue)},{sql_text(data['plans'])},{sql_text(data['ai'])},{sql_text(data['review'])},datetime('now')) "
@@ -62,3 +112,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
