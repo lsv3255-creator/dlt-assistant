@@ -67,6 +67,6 @@
       '<div class="ball-row" style="flex-wrap:wrap">'+balls(chosen.front,'front')+'</div><div class="ball-row" style="flex-wrap:wrap;margin-top:10px">'+balls(chosen.back,'back')+'</div>'+
       '<p><strong>'+tickets+' 注 · 基本投注 '+money(chosen.basic_yuan)+'</strong><br>如全部追加：'+money(chosen.additional_yuan)+'（含基本投注）</p>'+
       '<p>保留原正式单注全部号码，依据最近 '+esc(c.window)+' 期出现频率补足号码；同频按号码顺序处理。数据截止 '+esc(c.history_cutoff)+' 期。</p><ul>'+factors+'</ul>'+
-      '<p class="hint">复式是一组多注组合，预算明显高于单注。AI 参与方案选择与依据分析，不保证中奖，评分与频率不代表中奖概率。</p>';
+      '<p class="hint">复式是一组多注组合，预算明显高于单注。' + (ai ? 'AI 参与方案选择与依据分析；' : '本期由统计模型生成；') + '不保证中奖，评分与频率不代表中奖概率。</p>';
   }).catch(function () { compoundRoot.textContent = '本期组合推荐待发布或核验；原有正式单注推荐保持可用。'; });
 })();
