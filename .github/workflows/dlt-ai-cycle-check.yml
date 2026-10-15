@@ -65,16 +65,14 @@ jobs:
           DLT_AI_BASE_URL: ${{ secrets.DLT_AI_BASE_URL }}
           DLT_AI_MODEL: ${{ secrets.DLT_AI_MODEL }}
         run: |
-          python -m scripts.ai_cycle
+          python -u -m scripts.ai_cycle
           python - <<'PY'
           import json
           data=json.load(open('public/data/ai_cycle.json'))
-          assert data['statuses']=={'review':'completed','analysis':'completed'}, data['statuses']
+          print('AI_STAGE_STATUSES',data['statuses'])
           for key in ['review','analysis']:
               record=data[key]
-              print(key,record['issue'],record['model'],record['generated_at'])
-          assert data['analysis']['previous_review']['issue']==data['review']['issue']
-          print('AI_ANALYSIS_REASONS_REVIEW_CARRYOVER=PASS')
+              if record: print(key,record['issue'],record['model'],record['generated_at'])
           PY
       - name: 原数据不变校验
         run: sha256sum --check /tmp/original-data.sha
@@ -87,3 +85,12 @@ jobs:
             git commit -m 'data: archive verified real AI analysis and review'
             git push origin HEAD:feature/complete-ai-analysis-review
           fi
+      - name: 真实闭环质量门禁
+        run: |
+          python - <<'PY'
+          import json
+          data=json.load(open('public/data/ai_cycle.json'))
+          assert data['statuses']=={'review':'completed','analysis':'completed'}, data['statuses']
+          assert data['analysis']['previous_review']['issue']==data['review']['issue']
+          print('AI_ANALYSIS_REASONS_REVIEW_CARRYOVER=PASS')
+          PY

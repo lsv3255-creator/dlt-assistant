@@ -254,7 +254,7 @@ def request_analysis(context):
     for attempt in range(2):
         try:
             response=requests.post(url+'/chat/completions',headers={'Authorization':'Bearer '+key},json={
-                'model':route,'temperature':0,'max_tokens':7000,'reasoning':{'effort':'low'},'response_format':{'type':'json_object'},
+                'model':route,'temperature':0,'max_tokens':7000,'reasoning':{'enabled':False},'response_format':{'type':'json_object'},
                 'messages':[{'role':'system','content':prompt},{'role':'user','content':json.dumps({'template':schema,'context':context},ensure_ascii=False)}]},timeout=(10,75))
             if not response.ok:
                 last=f'http_{response.status_code}'
@@ -262,6 +262,7 @@ def request_analysis(context):
                 if attempt==0:time.sleep(3)
                 continue
             body=response.json();choice=body['choices'][0];content=choice['message'].get('content')
+            print('ai_cycle_provider',context['kind'],str(body.get('model','unknown'))[:120],str(choice.get('finish_reason','unknown'))[:20],'content_chars',len(content or ''))
             if not content:
                 last='empty_content';print('ai_cycle_validation',context['kind'],'empty_content');continue
             if content.startswith('```') and content.rstrip().endswith('```'):
@@ -307,6 +308,9 @@ def run(request_fn=request_analysis):
     # Review first so the next pre-draw analysis really receives the latest lesson.
     for kind in ['review','analysis']:
         try:
+            if kind=='analysis' and output['statuses'].get('review')!='completed' and not any(str(a['issue'])==str(next((p for p in recs if p.get('is_primary')),{}).get('target_issue')) for a in archive['analyses']):
+                if any(str(s.get('issue')) in {str(h['issue']) for h in history} and int(s['issue'])>=26014 for s in snapshots):
+                    raise RuntimeError('awaiting_review')
             context=(review_context(history,snapshots,compounds,notices,archive['analyses']) if kind=='review' else
                      analysis_context(recs,history,compound,output['review']))
             record=get_record(context,archive,request_fn)

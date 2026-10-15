@@ -102,7 +102,7 @@ class AICycleTests(unittest.TestCase):
 
     def test_failed_analysis_is_retried_not_frozen(self):
         def failed(ctx):raise RuntimeError('timeout')
-        a=m.run(failed);self.assertEqual(a['statuses']['analysis'],'timeout')
+        a=m.run(failed);self.assertEqual(a['statuses']['analysis'],'awaiting_review')
         self.assertIsNone(a['analysis'])
         b=m.run(fake_response);self.assertEqual(b['statuses']['analysis'],'completed')
 
