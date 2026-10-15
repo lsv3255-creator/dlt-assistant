@@ -18,7 +18,7 @@ def fake_response(context):
         result[key]={'text':TEXT,'evidence_ids':[ref]}
     m.validate_response(result,context)
     return {'status':'completed','model':'TEST-fixture','route':'openrouter/free','prompt_version':m.VERSION,
-            'generated_at':m.now(),'input_hash':m.digest(context),'sections':result,**copy.deepcopy(context)}
+            'generated_at':'2026-01-01T00:00:00+00:00','input_hash':m.digest(context),'sections':result,**copy.deepcopy(context)}
 
 
 def fixture_root(path):
@@ -40,7 +40,7 @@ class AICycleTests(unittest.TestCase):
         self.assertEqual(ctx['identity']['single'],m.numbers(p));self.assertTrue(ctx['created_before_draw'])
         self.assertEqual(ctx['history_cutoff'],self.h[-1]['issue'])
         self.assertTrue(any(x.startswith('single_') for x in ctx['evidence']))
-        self.assertIn('336',ctx['evidence']['compound_budget'])
+        self.assertIn(str(m.settlement_cost(ctx['identity']['compound'])['tickets']),ctx['evidence']['compound_budget'])
 
     def test_future_data_or_wrong_compound_rejected(self):
         with self.assertRaises(ValueError):m.analysis_context(self.recs,self.h+[{'issue':'99999'}],self.c,None)
@@ -83,6 +83,8 @@ class AICycleTests(unittest.TestCase):
         for text in ['出现了999次，未来走势会继续上升。','这个组合能够保证中奖，请放心购买。']:
             raw=copy.deepcopy(good);raw['overview']['text']=text
             with self.assertRaises(ValueError):m.validate_response(raw,ctx)
+        raw=copy.deepcopy(good);raw['risk']['text']='历史统计和模型分析不保证中奖，所有推荐仅供持续观察与复核。'
+        m.validate_response(raw,ctx)
         raw=copy.deepcopy(good);raw['single_reason']['evidence_ids']=['does_not_exist']
         with self.assertRaises(ValueError):m.validate_response(raw,ctx)
         raw=copy.deepcopy(good);raw['single_reason']['evidence_ids']=['compound_budget']

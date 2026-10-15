@@ -17,8 +17,8 @@
   function meta(r){return '<p class="hint" style="overflow-wrap:anywhere">在线 AI：'+esc(r.model)+' · 生成时间 '+esc(r.generated_at)+' · 分析版本 '+esc(r.prompt_version)+'</p>';}
   function currency(v){return v==null?'待官方奖金详情核验':esc(Number(v).toLocaleString('zh-CN',{maximumFractionDigits:2}))+' 元';}
   function payout(s,title){if(!s)return '<p>'+esc(title)+'：当期没有已冻结方案，未补造历史推荐。</p>';
-    return '<h4>'+esc(title)+' · 程序核算</h4><p>展开 '+esc(s.tickets)+' 注；基本成本 '+currency(s.basic_cost_yuan)+'；基本奖金 '+currency(s.basic_payout_yuan)+'</p>'+
-      '<p>命中分布：'+Object.keys(s.matches).map(function(k){return esc(k)+'（'+esc(s.matches[k])+'注）';}).join('、')+'</p>'+
+    return '<h4>'+esc(title)+' · 程序核算</h4><p>展开 '+esc(s.tickets)+' 注；基本成本 '+currency(s.basic_cost_yuan)+'；税前基本奖金 '+currency(s.basic_payout_yuan)+'</p>'+
+      '<p>命中分布（前区+后区）：'+Object.keys(s.matches).map(function(k){return esc(k)+'（'+esc(s.matches[k])+'注）';}).join('、')+'</p>'+
       '<p>中奖奖级：'+(s.prizes.length?s.prizes.map(function(p){return esc(p.tier)+' '+esc(p.tickets)+'注';}).join('、'):'未中奖')+'</p>'+
       '<details><summary>全部追加的假设结算</summary><p>成本 '+currency(s.all_additional_cost_yuan)+'；含基本奖金合计 '+currency(s.all_additional_payout_yuan)+'</p></details>';
   }
@@ -42,7 +42,7 @@
       if(!r||r.status!=='completed'||!review.authoritative||r.issue!==String(review.issue)||r.identity.snapshot_hash!==review.snapshot_hash||!ns(r.identity.single,review.recommendation)||!actual||!ns(r.identity.actual,actual))throw Error('stale review');
       set('ai-review','<h3>🤖 第 '+esc(r.issue)+' 期 AI 复盘</h3>'+(r.has_pre_draw_ai?'<p class="hint">对照当期已归档的开奖前 AI 分析进行核验。</p>':'<p class="hint">事后解读：当期尚无开奖前 AI 分析记录，不代表 AI 当时作出过这些预测。</p>')+
         payout(r.settlement.single,'正式单注')+payout(r.settlement.compound,'复式方案')+section(r,'summary','AI 结果解读')+section(r,'reason_check','推荐依据核验')+
-        section(r,'limitations','复盘局限')+section(r,'next_focus','带入下一期的复盘建议')+meta(r)+'<p class="hint">命中、奖级和奖金由程序计算。金额是假设投注结算，不代表客户真实投注或收益。</p>');
+        section(r,'limitations','复盘局限')+section(r,'next_focus','带入下一期的复盘建议')+meta(r)+'<p class="hint">命中、奖级和奖金由程序计算。金额是税前假设投注结算，不代表客户真实投注或收益。</p>');
     }catch(e){set('ai-review','<p class="hint">本期 AI 复盘待生成或核验，原有命中复盘保持可用。</p>');}
   }).catch(function(){ids.forEach(function(id){set(id,'<p class="hint">AI 数据暂不可用，原有功能不受影响。</p>');});});
 })();

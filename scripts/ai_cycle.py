@@ -123,6 +123,13 @@ def settlement(ns, actual, notice):
             'simulation':True}
 
 
+def settlement_evidence(s):
+    hits='、'.join(f'{key}命中{count}注' for key,count in s['matches'].items())
+    prizes='、'.join(f'{p["tier"]}{p["tickets"]}注' for p in s['prizes']) or '未中奖'
+    payout=s['basic_payout_yuan']+'元' if s['basic_payout_yuan'] is not None else '待官方奖金详情核验'
+    return f'展开{s["tickets"]}注，命中分布（前区+后区）：{hits}；奖级：{prizes}；基本成本{s["basic_cost_yuan"]}元，税前基本奖金{payout}。是假设投注结算，不是客户真实收益。'
+
+
 def evidence_for_numbers(prefix, ns, history):
     facts={}
     for zone in ['front','back']:
@@ -152,8 +159,9 @@ def analysis_context(recs, history, compound, previous_review):
            'uncertainty':'每期开奖相互独立；历史频率和评分不是中奖概率；不保证任何组合中奖。'}
     facts.update(evidence_for_numbers('single',ns,window))
     facts.update(evidence_for_numbers('compound',c,window))
-    facts['single_selection']=f'正式单注综合分{p.get("final_score")}，候选排名{p.get("final_rank")}；评分分量{json.dumps(p.get("final_breakdown"),ensure_ascii=False)}。'
-    facts['candidate_comparison']=json.dumps([{'strategy':r.get('strategy'),'front':r.get('front'),'back':r.get('back'),'score':r.get('final_score'),'rank':r.get('final_rank')} for r in recs],ensure_ascii=False)
+    b=p.get('final_breakdown') or {}
+    facts['single_selection']=f'正式单注综合分{p.get("final_score")}，候选排名{p.get("final_rank")}；策略基础{b.get("base")}、历史表现{b.get("history")}、近期表现{b.get("recent")}、结构贴合{b.get("structure")}。分数不是概率。'
+    facts['candidate_comparison']='；'.join(f'候选{i+1}：前区{r.get("front")}、后区{r.get("back")}，综合分{r.get("final_score")}，排名{r.get("final_rank")}' for i,r in enumerate(recs))
     cost=settlement_cost(c)
     facts['compound_budget']=f'复式{c["format"]}，展开{cost["tickets"]}注，基本投注{cost["basic_yuan"]}元，全部追加合计{cost["additional_yuan"]}元。'
     prior=None
@@ -182,22 +190,24 @@ def review_context(history, snapshots, compound_archive, notice_rows, analysis_a
     ns=numbers(snap['numbers']);actual=by_issue[issue];numbers(actual)
     notice=next((n for n in notice_rows if str(n.get('issue'))==issue),None)
     settled=settlement(ns,actual,notice)
-    facts={'single_outcome':json.dumps(settled,ensure_ascii=False),
+    facts={'single_outcome':settlement_evidence(settled),
            'draw':f'实际开奖前区{actual["front"]}，后区{actual["back"]}；期号{issue}，日期{actual["date"]}。',
-           'single_frozen':f'当期冻结单注前区{ns["front"]}，后区{ns["back"]}；当时评分{snap.get("final_score")}；发布快照hash={snap["snapshot_hash"]}。',
+           'single_frozen':f'当期冻结单注前区{ns["front"]}，后区{ns["back"]}；当时评分{snap.get("final_score")}；当期冻结记录完整性已校验。',
            'uncertainty':'本次结果不能证明预测能力或策略优势；不能把命中等级当作中奖奖级；成本与回报均为按公告结算的假设投注，不是客户真实投注。'}
+    facts['original_statistical_basis']=(snap.get('explanation') or {}).get('summary') or snap.get('reason') or '原统计构造理由缺失。'
+    facts['structure_comparison']=f'前区和值绝对偏差{abs(sum(ns["front"])-sum(actual["front"]))}；推荐前区奇数{sum(n%2 for n in ns["front"])}个，实际前区奇数{sum(n%2 for n in actual["front"])}个。结构贴合不等于号码命中。'
     c=next((x for x in compound_archive if str(x['target_issue'])==issue),None)
     compound_settled=None; compound_identity=None
     if c:
         p={'target_issue':issue,**ns}
         compound_identity=compound_numbers(c,p)
         compound_settled=settlement(compound_identity,actual,notice)
-        facts['compound_outcome']=json.dumps(compound_settled,ensure_ascii=False)
+        facts['compound_outcome']=settlement_evidence(compound_settled)
     else:facts['compound_outcome']='当期没有已发布复式记录，不能事后补造复式或推算其中奖表现。'
     cutoff=datetime.fromisoformat(actual['date']+'T21:00:00+08:00')
     old=next((a for a in analysis_archive if str(a['issue'])==issue and a['identity']['single']==ns and datetime.fromisoformat(a['generated_at'])<cutoff),None)
     if old:
-        facts['prior_analysis']=json.dumps(old['sections'],ensure_ascii=False)
+        facts['prior_analysis']='；'.join(f'{k}：{v["text"]}' for k,v in old['sections'].items())
         facts['reason_audit']='必须对照上述真实事前AI理由逐项核验；区分可观察的结构是否满足和未被证实的未来倾向，不得用事后走势编新理由。'
     else:
         facts['prior_analysis']='当期没有开奖前AI分析记录；本次仅为事后解读，无事前AI理由可核验，不得声称AI当时推荐或预测过。'
@@ -215,8 +225,12 @@ def validate_response(raw,context):
         if not isinstance(section,dict) or set(section)!= {'text','evidence_ids'}:raise ValueError('invalid section')
         text=section['text'];refs=section['evidence_ids']
         if not isinstance(text,str) or not 12<=len(text)<=400:raise ValueError('invalid text length')
-        if re.search(r'[0-9]|保证中奖|必中奖|稳赚|稳中|精准预测|提高中奖概率|提升中奖概率',text):raise ValueError('unverified numeric or promise')
+        assertion_text=re.sub(r'不能保证中奖|无法保证中奖|不保证中奖|不承诺中奖','',text)
+        if re.search(r'[%％]|保证中奖|必中奖|稳赚|稳中|精准预测|提高中奖概率|提升中奖概率',assertion_text):raise ValueError('unverified_promise')
         if not isinstance(refs,list) or not 1<=len(refs)<=4 or any(not isinstance(r,str) or r not in context['evidence'] for r in refs):raise ValueError('bad evidence refs')
+        cited=' '.join(context['evidence'][ref] for ref in refs)
+        allowed={Decimal(n) for n in re.findall(r'[0-9]+(?:\.[0-9]+)?',cited)}
+        if any(Decimal(n) not in allowed for n in re.findall(r'[0-9]+(?:\.[0-9]+)?',text)):raise ValueError('unverified_numeric')
         if key=='single_reason' and not any(r.startswith('single_') for r in refs):raise ValueError('single evidence required')
         if key=='compound_reason' and not any(r.startswith('compound_') for r in refs):raise ValueError('compound evidence required')
     return raw
@@ -240,20 +254,28 @@ def request_analysis(context):
     for attempt in range(2):
         try:
             response=requests.post(url+'/chat/completions',headers={'Authorization':'Bearer '+key},json={
-                'model':route,'temperature':0,'max_tokens':5000,'response_format':{'type':'json_object'},
+                'model':route,'temperature':0,'max_tokens':7000,'reasoning':{'effort':'low'},'response_format':{'type':'json_object'},
                 'messages':[{'role':'system','content':prompt},{'role':'user','content':json.dumps({'template':schema,'context':context},ensure_ascii=False)}]},timeout=(10,75))
             if not response.ok:
                 last=f'http_{response.status_code}'
                 if response.status_code in (400,401,402,403,404):break
                 if attempt==0:time.sleep(3)
                 continue
-            body=response.json();raw=json.loads(body['choices'][0]['message']['content'])
+            body=response.json();choice=body['choices'][0];content=choice['message'].get('content')
+            if not content:
+                last='empty_content';print('ai_cycle_validation',context['kind'],'empty_content');continue
+            if content.startswith('```') and content.rstrip().endswith('```'):
+                content='\n'.join(content.strip().splitlines()[1:-1])
+            raw=json.loads(content)
             sections=validate_response(raw,context)
             return {'status':'completed','model':str(body.get('model') or route)[:180], 'route':route,
                     'prompt_version':VERSION,'generated_at':now(), 'input_hash':digest(context),
                     'sections':sections, **copy.deepcopy(context)}
         except requests.Timeout:last='timeout'
-        except (ValueError,KeyError,TypeError,IndexError):last='invalid_response'
+        except (ValueError,KeyError,TypeError,IndexError) as exc:
+            last='invalid_response'
+            reason=str(exc) if re.fullmatch(r'[a-z_ ]{1,45}',str(exc)) else 'json_or_schema_error'
+            print('ai_cycle_validation',context['kind'],reason)
         except requests.RequestException:last='connection_error'
         if attempt==0:time.sleep(3)
     raise RuntimeError(last)
