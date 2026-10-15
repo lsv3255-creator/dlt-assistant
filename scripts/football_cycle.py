@@ -127,27 +127,41 @@ def _request_ai(plan: dict, review: dict | None = None) -> dict:
             },
         },
     }
-    models = [route] if route != "openrouter/free" else [
-        "dots-studio/dots-3-note-preview:free", "openrouter/free"
-    ]
+    # Attempt chain (all free routes). The first candidate historically
+    # works with reasoning explicitly disabled; the router and the other
+    # named models must NOT receive "reasoning: {enabled: false}" —
+    # some routed endpoints mandate reasoning and reject the request
+    # with HTTP 400 (observed 2026-10-15). Extra candidates also spread
+    # the per-model daily free quota (HTTP 429 free-models-per-day).
+    if route != "openrouter/free":
+        attempts = [(route, True, 2400)]
+    else:
+        attempts = [
+            ("dots-studio/dots-3-note-preview:free", True, 2400),
+            ("openrouter/free", False, 4000),
+            ("google/gemma-4-31b-it:free", False, 4000),
+            ("nvidia/nemotron-3-super-120b-a12b:free", False, 4000),
+        ]
     failures = []
-    for model in models:
+    for model, disable_reasoning, max_tokens in attempts:
         try:
+            payload = {
+                "model": model,
+                "temperature": 0,
+                "max_tokens": max_tokens,
+                "response_format": schema,
+                "provider": {"require_parameters": True},
+                "messages": [
+                    {"role": "system", "content": prompt},
+                    {"role": "user", "content": json.dumps(facts, ensure_ascii=False)},
+                ],
+            }
+            if disable_reasoning:
+                payload["reasoning"] = {"enabled": False}
             response = requests.post(
                 base + "/chat/completions",
                 headers={"Authorization": "Bearer " + key},
-                json={
-                    "model": model,
-                    "temperature": 0,
-                    "max_tokens": 2400,
-                    "reasoning": {"enabled": False},
-                    "response_format": schema,
-                    "provider": {"require_parameters": True},
-                    "messages": [
-                        {"role": "system", "content": prompt},
-                        {"role": "user", "content": json.dumps(facts, ensure_ascii=False)},
-                    ],
-                },
+                json=payload,
                 timeout=90,
             )
             if response.status_code >= 400:
