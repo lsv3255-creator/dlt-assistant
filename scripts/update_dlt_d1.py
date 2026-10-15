@@ -138,4 +138,12 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    _rc = main()
+    # 双色球同步（Phase 15）：追加到同一份 update_d1.sql，全程尽力而为。
+    try:
+        from scripts.update_ssq_d1 import append_ssq_updates
+
+        append_ssq_updates(OUT)
+    except Exception as _exc:  # never break the DLT pipeline
+        print(f"ssq hook failed: {type(_exc).__name__}: {str(_exc)[:160]}")
+    sys.exit(_rc)
