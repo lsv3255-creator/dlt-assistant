@@ -12,7 +12,7 @@
     var s=record.sections&&record.sections[key];
     if(!s||typeof s.text!=='string'||!Array.isArray(s.evidence_ids))throw Error('bad AI section');
     var facts=s.evidence_ids.map(function(id){if(typeof record.evidence[id]!=='string')throw Error('bad citation');return '<li>'+esc(record.evidence[id])+'</li>';}).join('');
-    return '<h3>'+esc(title)+'</h3><p>'+esc(s.text)+'</p><details><summary>查看数据依据</summary><ul style="overflow-wrap:anywhere">'+facts+'</ul></details>';
+    return '<h3>'+esc(title)+'</h3><p>'+esc(s.text)+'</p><details open><summary>本段数据依据</summary><ul style="overflow-wrap:anywhere">'+facts+'</ul></details>';
   }
   function meta(r){return '<p class="hint" style="overflow-wrap:anywhere">在线 AI：'+esc(r.model)+' · 生成时间 '+esc(r.generated_at)+' · 分析版本 '+esc(r.prompt_version)+'</p>';}
   function currency(v){return v==null?'待官方奖金详情核验':esc(Number(v).toLocaleString('zh-CN',{maximumFractionDigits:2}))+' 元';}
