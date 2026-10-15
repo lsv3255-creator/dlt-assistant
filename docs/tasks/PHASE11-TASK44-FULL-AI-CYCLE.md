@@ -23,3 +23,7 @@
 ## 验证与发布
 新增离线契约/结算/防错期/失败补试/归档/原文件不变测试，浏览器检查AI四区域及异常降级。GitHub分支CI真实免费调用并保存归档，发布前后验证。不得以mock代替真实调用验收。
 回滚：revert本任务提交，原号码与旧数据无需恢复；AI独立归档保留。
+
+## 真实模型格式问题诊断与修复
+免费路由首次真实测试暴露：旧json_object仅确保JSON语法，不能保证章节键和引用ID；部分推理模型耗尽输出而content为空。失败内容没有发布为AI结论。现改用OpenRouter官方json_schema严格模式、真实证据ID枚举及provider.require_parameters；保留应用层事实/承诺检查，并关闭额外推理输出。成功记录先归档，随后执行完整闭环质量门禁；无成功记录时保存摘要状态，允许没有归档文件。不会通过放宽事实校验来伪造成功。
+官方接口依据：https://openrouter.ai/docs/guides/features/structured-outputs 。

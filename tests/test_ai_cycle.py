@@ -106,6 +106,15 @@ class AICycleTests(unittest.TestCase):
         self.assertIsNone(a['analysis'])
         b=m.run(fake_response);self.assertEqual(b['statuses']['analysis'],'completed')
 
+    def test_chinese_quantities_and_unsupported_claims_rejected(self):
+        ctx=self.context()
+        for text in ['本注基本投入六百七十二元，扩大组合覆盖范围但无法证明预测能力。',
+                     '本方案由于号码回归均衡，显示一定分析优势但不保证中奖。',
+                     '本期号码无重合，说明结构分析存在局限，后续仅供参考。']:
+            raw=copy.deepcopy(fake_response(ctx)['sections'])
+            raw['overview']['text']=text
+            with self.assertRaises(ValueError):m.validate_response(raw,ctx)
+
     def test_free_route_only(self):
         env={'DLT_AI_API_KEY':'TEST','DLT_AI_BASE_URL':'https://openrouter.ai/api/v1','DLT_AI_MODEL':'paid/model'}
         with patch.dict('os.environ',env),patch.object(m.requests,'post') as post:
