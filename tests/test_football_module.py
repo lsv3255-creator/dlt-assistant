@@ -71,13 +71,21 @@ class FootballModuleTests(unittest.TestCase):
         self.assertIn("sections.review ||", script)
 
     def test_same_issue_published_recommendation_remains_frozen(self):
-        existing = json.loads((ROOT / "public/data/football/current.json").read_text())
+        # Build the "published" snapshot from the same plan so the test
+        # does not depend on which issue the working tree currently
+        # holds (the cycle may have switched issues before tests run).
+        existing = json.loads(json.dumps(self.plan))
+        for row in existing["matches"]:
+            row["primary"] = "1"
+            row["secondary"] = None
+            row["sfc_choices"] = ["1"]
+        existing["plans"] = {"frozen": True}
         upgraded = freeze_existing_recommendation(json.loads(json.dumps(self.plan)), existing)
         self.assertEqual(
             [row["sfc_choices"] for row in upgraded["matches"]],
-            [row["sfc_choices"] for row in existing["matches"]],
+            [["1"]] * 14,
         )
-        self.assertEqual(upgraded["plans"], existing["plans"])
+        self.assertEqual(upgraded["plans"], {"frozen": True})
 
     def test_public_page_hides_backend_metadata(self):
         page = (ROOT / "public/football.html").read_text()
