@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>双色球数据分析 - 全量历史开奖与统计推荐</title>
+  <meta name="description" content="双色球 2003 年至今全量历史开奖数据：最新开奖、频率遗漏统计与本期娱乐推荐。仅供娱乐，不保证中奖。">
+  <meta name="theme-color" content="#b91c1c">
+  <link rel="stylesheet" href="./style.css">
+  <link rel="stylesheet" href="./football.css">
+</head>
+<body class="football-page">
+  <header class="site-header football-header">
+    <div class="brand"><h1>双色球数据分析</h1><p class="brand-tag">红球 33 选 6 · 蓝球 16 选 1 · 全量历史入库</p></div>
+    <div class="risk-banner">⚠️ 本站仅作历史数据统计与娱乐分析，<strong>不保证中奖</strong>；请理性购彩。</div>
+  </header>
+  <nav class="site-nav" aria-label="彩种导航">
+    <a class="quick-item" href="./index.html"><span class="qi-ico">🔴</span><span class="qi-label">大乐透</span></a>
+    <a class="quick-item" href="./football.html"><span class="qi-ico">⚽</span><span class="qi-label">足彩</span></a>
+    <a class="quick-item" href="./jingcai.html"><span class="qi-ico">🏆</span><span class="qi-label">竞彩</span></a>
+    <a class="quick-item" href="./ssq.html" aria-current="page"><span class="qi-ico">🔵</span><span class="qi-label">双色球</span></a>
+  </nav>
+  <div id="ssq-error" class="error-box" hidden><p>⚠️ 双色球数据暂不可用。</p><p class="error-detail">系统不会在数据不完整时编造开奖信息，请稍后重试。</p></div>
+  <main id="ssq-content" hidden>
+    <section class="card"><h2>🎯 最新开奖</h2><div id="ssq-latest"></div></section>
+    <section class="card"><h2>🔮 本期推荐</h2><p class="hint">三组娱乐推荐在开奖前生成并锁定，不随后续数据变化改号。</p><div id="ssq-picks"></div></section>
+    <section class="card"><h2>📊 数据统计</h2><div id="ssq-stats"></div></section>
+    <section class="card"><h2>📜 历史开奖</h2><div id="ssq-history"></div></section>
+    <section class="card"><h2>🔎 数据依据</h2><div id="ssq-sources"></div></section>
+    <footer class="site-footer"><p>仅作公开数据分析与娱乐参考，不构成投注建议。开奖结果以中国福利彩票官方公告为准。</p></footer>
+  </main>
+  <script src="./ssq.js?v=phase15" defer></script>
+</body>
+</html>
