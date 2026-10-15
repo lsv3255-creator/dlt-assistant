@@ -16,7 +16,7 @@ from scripts.build_compound import fingerprint
 from src.publisher import snapshot_hash
 
 ROOT = Path(__file__).resolve().parent.parent
-VERSION = 'dlt-ai-cycle-v4'
+VERSION = 'dlt-ai-cycle-v5'
 FORBIDDEN = ['随机生成','随机基线','回归均衡','稳定性存疑','捕获能力','号码无重合','号码本身无重叠',r'预算.{0,8}合理','近期走势','市场环境','表现均衡','可接受范围']
 RULE_SOURCE = 'https://m.lottery.gov.cn/ksjz/m/yxgz_dlt/'
 SECTIONS = {
@@ -158,6 +158,8 @@ def analysis_context(recs, history, compound, previous_review):
     facts={'history_window':f'样本{len(window)}期，截止{window[-1]["issue"]}期，目标{target}期。',
            'selection_role':'号码由现有算法构造并已冻结；本次AI负责综合分析、候选评审和解释，不重新选号，不把候选的随机构造冒称为AI选号。',
            'uncertainty':'每期开奖相互独立；历史频率和评分不是中奖概率；不保证任何组合中奖。'}
+    facts['single_identity']=f'已冻结正式单注：前区{ns["front"]}，后区{ns["back"]}。'
+    facts['compound_identity']=f'已冻结复式：前区{c["front"]}，后区{c["back"]}。'
     facts.update(evidence_for_numbers('single',ns,window))
     facts.update(evidence_for_numbers('compound',c,window))
     b=p.get('final_breakdown') or {}
@@ -239,10 +241,10 @@ def validate_response(raw,context):
         section=raw[key]
         if not isinstance(section,dict) or set(section)!= {'text','evidence_ids'}:raise ValueError('invalid section')
         text=section['text'];refs=section['evidence_ids']
-        if not isinstance(text,str) or not 12<=len(text)<=400:raise ValueError('invalid text length')
+        if not isinstance(text,str) or not 12<=len(text)<=800:raise ValueError('invalid text length')
         assertion_text=re.sub(r'(?:不能|无法|不可能|不会|不代表|不意味着|不等于|并未|未能|不)(?:保证中奖|承诺中奖|提高中奖概率|提升中奖概率)','',text)
         if re.search(r'[%％]|保证中奖|必中奖|稳赚|稳中|精准预测|提高中奖概率|提升中奖概率',assertion_text):raise ValueError('unverified_promise')
-        if not isinstance(refs,list) or not 1<=len(refs)<=4 or any(not isinstance(r,str) or r not in context['evidence'] for r in refs):raise ValueError('bad evidence refs')
+        if not isinstance(refs,list) or not 1<=len(refs)<=8 or any(not isinstance(r,str) or r not in context['evidence'] for r in refs):raise ValueError('bad evidence refs')
         cited=' '.join(context['evidence'][ref] for ref in refs)
         allowed={Decimal(n) for n in re.findall(r'[0-9]+(?:\.[0-9]+)?',cited)}
         for token in re.findall(r'[0-9]+(?:\.[0-9]+)?',text):
@@ -301,10 +303,21 @@ def request_analysis(context):
             if content.startswith('```') and content.rstrip().endswith('```'):
                 content='\n'.join(content.strip().splitlines()[1:-1])
             raw=json.loads(content)
+            model_refs={name:copy.deepcopy(raw[name]['evidence_ids']) for name in SECTIONS[context['kind']]}
+            # Stable canonical facts accompany each model paragraph. This also
+            # supports period/identity claims when the model omits their citation.
+            canonical={'overview':['history_window','candidate_comparison','single_structure','compound_structure'],
+                       'single_reason':['single_identity','single_selection','single_structure'],
+                       'compound_reason':['compound_identity','compound_budget','compound_structure'],
+                       'risk':['uncertainty','history_window'],
+                       'next_focus':['previous_review','history_window']}
+            if context['kind']=='analysis':
+                for name,refs in canonical.items():
+                    raw[name]['evidence_ids']=list(dict.fromkeys(raw[name]['evidence_ids']+[r for r in refs if r in context['evidence']]))
             sections=validate_response(raw,context)
             return {'status':'completed','model':str(body.get('model') or route)[:180], 'route':route,
                     'prompt_version':VERSION,'generated_at':now(), 'input_hash':digest(context),
-                    'sections':sections, **copy.deepcopy(context)}
+                    'sections':sections,'model_evidence_ids':model_refs,'evidence_policy':'model-plus-canonical-v1', **copy.deepcopy(context)}
         except requests.Timeout:last='timeout'
         except (ValueError,KeyError,TypeError,IndexError) as exc:
             last='invalid_response'

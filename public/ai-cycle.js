@@ -8,11 +8,15 @@
   function sorted(a){return Array.isArray(a)?a.slice().sort(function(x,y){return x-y;}):[];}
   function same(a,b){return JSON.stringify(a)===JSON.stringify(b);}
   function ns(a,b){return a&&b&&same(sorted(a.front),sorted(b.front))&&same(sorted(a.back),sorted(b.back));}
+  function readable(text){
+    var labels={prior_analysis:'开奖前AI归档',reason_audit:'理由核验要求',uncertainty:'不确定性说明',single_outcome:'单注结算记录',compound_outcome:'复式结算记录',structure_comparison:'开奖结构对比',original_statistical_basis:'原统计依据',single_selection:'单注综合评分',single_structure:'单注结构',compound_structure:'复式结构',compound_budget:'复式注数与成本',candidate_comparison:'候选比较',history_window:'历史样本范围',selection_role:'AI与原算法分工',previous_review:'上期复盘','historical frequency':'历史频率',gap:'遗漏'};
+    return text.replace(/prior_analysis|reason_audit|uncertainty|single_outcome|compound_outcome|structure_comparison|original_statistical_basis|single_selection|single_structure|compound_structure|compound_budget|candidate_comparison|history_window|selection_role|previous_review|historical frequency|\bgap\b/g,function(key){return labels[key];});
+  }
   function section(record,key,title){
     var s=record.sections&&record.sections[key];
     if(!s||typeof s.text!=='string'||!Array.isArray(s.evidence_ids))throw Error('bad AI section');
     var facts=s.evidence_ids.map(function(id){if(typeof record.evidence[id]!=='string')throw Error('bad citation');return '<li>'+esc(record.evidence[id])+'</li>';}).join('');
-    return '<h3>'+esc(title)+'</h3><p>'+esc(s.text)+'</p><details open><summary>本段数据依据</summary><ul style="overflow-wrap:anywhere">'+facts+'</ul></details>';
+    return '<h3>'+esc(title)+'</h3><p>'+esc(readable(s.text))+'</p><details open><summary>本段数据依据</summary><ul style="overflow-wrap:anywhere">'+facts+'</ul></details>';
   }
   function meta(r){return '<p class="hint" style="overflow-wrap:anywhere">在线 AI：'+esc(r.model)+' · 生成时间 '+esc(r.generated_at)+' · 分析版本 '+esc(r.prompt_version)+'</p>';}
   function currency(v){return v==null?'待官方奖金详情核验':esc(Number(v).toLocaleString('zh-CN',{maximumFractionDigits:2}))+' 元';}

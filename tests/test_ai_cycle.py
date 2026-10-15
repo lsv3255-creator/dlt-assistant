@@ -128,6 +128,18 @@ class AICycleTests(unittest.TestCase):
             self.assertEqual(m.request_analysis(ctx)['status'],'completed')
             self.assertEqual(post.call_count,2)
 
+    def test_canonical_period_evidence_is_attached_without_editing_ai_text(self):
+        ctx=self.context();raw=fake_response(ctx)['sections']
+        text='本期目标'+ctx['issue']+'期，模型评审既定方案的评分排序与结构取舍，不保证中奖。'
+        raw['overview']={'text':text,'evidence_ids':['single_structure']}
+        response=Mock(ok=True);response.json.return_value={'model':'actual/free-model:free','choices':[{'message':{'content':json.dumps(raw)}}]}
+        env={'DLT_AI_API_KEY':'TEST','DLT_AI_BASE_URL':'https://openrouter.ai/api/v1','DLT_AI_MODEL':'openrouter/free'}
+        with patch.dict('os.environ',env),patch.object(m.requests,'post',return_value=response):
+            record=m.request_analysis(ctx)
+        self.assertEqual(record['sections']['overview']['text'],text)
+        self.assertIn('history_window',record['sections']['overview']['evidence_ids'])
+        self.assertEqual(record['model_evidence_ids']['overview'],['single_structure'])
+
     def test_free_route_only(self):
         env={'DLT_AI_API_KEY':'TEST','DLT_AI_BASE_URL':'https://openrouter.ai/api/v1','DLT_AI_MODEL':'paid/model'}
         with patch.dict('os.environ',env),patch.object(m.requests,'post') as post:
