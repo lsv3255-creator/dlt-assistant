@@ -217,6 +217,20 @@ def review_context(history, snapshots, compound_archive, notice_rows, analysis_a
             'has_pre_draw_ai':bool(old),'prior_analysis_hash':digest(old) if old else None}
 
 
+def chinese_number(token):
+    digits=dict(zip('零〇一二两三四五六七八九','001223456789'))
+    if not any(c in token for c in '十百千万'):
+        return int(''.join(digits[c] for c in token))
+    total=section=number=0
+    for c in token:
+        if c in digits:number=int(digits[c])
+        else:
+            unit={'十':10,'百':100,'千':1000,'万':10000}[c]
+            if unit==10000:total+=(section+number)*unit;section=number=0
+            else:section+=(number or 1)*unit;number=0
+    return total+section+number
+
+
 def validate_response(raw,context):
     keys=SECTIONS[context['kind']]
     if not isinstance(raw,dict) or set(raw)!=set(keys):raise ValueError('invalid section keys')
@@ -225,16 +239,15 @@ def validate_response(raw,context):
         if not isinstance(section,dict) or set(section)!= {'text','evidence_ids'}:raise ValueError('invalid section')
         text=section['text'];refs=section['evidence_ids']
         if not isinstance(text,str) or not 12<=len(text)<=400:raise ValueError('invalid text length')
-        # Keep quantitative claims in program-rendered evidence; Chinese numerals
-        # must not bypass the Arabic-number grounding guard.
-        if re.search(r'[零〇一二两三四五六七八九十百千万]+(?:元|个|注|次)|[零〇一二两三四五六七八九十百千万]{2,}期',text):raise ValueError('quantities_belong_in_evidence')
-        if re.search(r'随机生成|随机基线|回归均衡|稳定性存疑|捕获能力|号码无重合|号码本身无重叠',text):raise ValueError('unsupported_interpretation')
         assertion_text=re.sub(r'不能保证中奖|无法保证中奖|不保证中奖|不承诺中奖','',text)
         if re.search(r'[%％]|保证中奖|必中奖|稳赚|稳中|精准预测|提高中奖概率|提升中奖概率',assertion_text):raise ValueError('unverified_promise')
         if not isinstance(refs,list) or not 1<=len(refs)<=4 or any(not isinstance(r,str) or r not in context['evidence'] for r in refs):raise ValueError('bad evidence refs')
         cited=' '.join(context['evidence'][ref] for ref in refs)
         allowed={Decimal(n) for n in re.findall(r'[0-9]+(?:\.[0-9]+)?',cited)}
         if any(Decimal(n) not in allowed for n in re.findall(r'[0-9]+(?:\.[0-9]+)?',text)):raise ValueError('unverified_numeric')
+        for token in re.findall(r'[零〇一二两三四五六七八九十百千万]+(?=元|个|注|次)',text):
+            if Decimal(chinese_number(token)) not in allowed:raise ValueError('unverified_numeric')
+        if re.search(r'随机生成|随机基线|回归均衡|稳定性存疑|捕获能力|号码无重合|号码本身无重叠',text):raise ValueError('unsupported_interpretation')
         if key=='single_reason' and not any(r.startswith('single_') for r in refs):raise ValueError('single evidence required')
         if key=='compound_reason' and not any(r.startswith('compound_') for r in refs):raise ValueError('compound evidence required')
     return raw
@@ -254,27 +267,34 @@ def request_analysis(context):
             'risk说明不确定性，next_focus结合previous_review给出下一期关注点。single_reason至少引用single_开头证据；compound_reason至少引用compound_证据。'
             'review的summary解释实际命中与模拟回报，reason_check对照真实事前AI理由核验；若不存在事前AI记录必须明确只做事后解读，'
             'limitations讨论样本限制，next_focus给出可验证的下一期参考，不宣称已调整参数。每段只引用一至四个真实证据ID。')
+    preferred={
+        'overview':['history_window','candidate_comparison','single_structure','compound_structure'],
+        'single_reason':['single_selection','single_structure','selection_role','uncertainty'],
+        'compound_reason':['compound_budget','compound_structure','selection_role','uncertainty'],
+        'risk':['uncertainty','history_window','single_selection','compound_budget'],
+        'summary':['single_outcome','compound_outcome','structure_comparison','draw'],
+        'reason_check':['prior_analysis','reason_audit','original_statistical_basis'],
+        'limitations':['uncertainty','prior_analysis','original_statistical_basis'],
+        'next_focus':['previous_review','structure_comparison','single_structure','compound_structure','uncertainty']}
     properties={}
     for section in SECTIONS[context['kind']]:
-        refs=list(context['evidence'])
-        if section=='single_reason':refs=[r for r in refs if r.startswith('single_')]
-        if section=='compound_reason':refs=[r for r in refs if r.startswith('compound_')]
+        refs=[r for r in preferred[section] if r in context['evidence']]
         properties[section]={'type':'object','properties':{
             'text':{'type':'string','description':'五十至一百五十字中文定性评审，只解释引用证据，不复述具体数字、号码、中文数量、奖级；不做冷热回归推断，不以随机生成充当理由，不承诺中奖。'},
             'evidence_ids':{'type':'array','items':{'type':'string','enum':refs},'minItems':1,'maxItems':4}},
             'required':['text','evidence_ids'],'additionalProperties':False}
     response_format={'type':'json_schema','json_schema':{'name':'dlt_'+context['kind'],'strict':True,
         'schema':{'type':'object','properties':properties,'required':SECTIONS[context['kind']],'additionalProperties':False}}}
-    last='provider_unavailable'
-    for attempt in range(2):
+    last='provider_unavailable';feedback='首次请求'
+    for attempt in range(3):
         try:
             response=requests.post(url+'/chat/completions',headers={'Authorization':'Bearer '+key},json={
                 'model':route,'temperature':0,'max_tokens':7000,'reasoning':{'enabled':False},'response_format':response_format,'provider':{'require_parameters':True},
-                'messages':[{'role':'system','content':prompt},{'role':'user','content':json.dumps({'template':schema,'context':context},ensure_ascii=False)}]},timeout=(10,75))
+                'messages':[{'role':'system','content':prompt+'\n若上次失败，请根据以下校验结果重写：'+feedback+'。所有章节必须逐项返回；具体数值尽量不复述，使用定性解释；引用只选对应章节schema枚举内的ID。'},{'role':'user','content':json.dumps({'template':schema,'context':context},ensure_ascii=False)}]},timeout=(10,75))
             if not response.ok:
                 last=f'http_{response.status_code}'
                 if response.status_code in (400,401,402,403,404):break
-                if attempt==0:time.sleep(3)
+                if attempt<2:time.sleep(3)
                 continue
             body=response.json();choice=body['choices'][0];content=choice['message'].get('content')
             print('ai_cycle_provider',context['kind'],str(body.get('model','unknown'))[:120],str(choice.get('finish_reason','unknown'))[:20],'content_chars',len(content or ''))
@@ -291,9 +311,10 @@ def request_analysis(context):
         except (ValueError,KeyError,TypeError,IndexError) as exc:
             last='invalid_response'
             reason=str(exc) if re.fullmatch(r'[a-z_ ]{1,45}',str(exc)) else 'json_or_schema_error'
+            feedback=reason
             print('ai_cycle_validation',context['kind'],reason)
         except requests.RequestException:last='connection_error'
-        if attempt==0:time.sleep(3)
+        if attempt<2:time.sleep(3)
     raise RuntimeError(last)
 
 
