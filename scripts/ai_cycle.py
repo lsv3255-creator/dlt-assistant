@@ -239,14 +239,15 @@ def validate_response(raw,context):
         if not isinstance(section,dict) or set(section)!= {'text','evidence_ids'}:raise ValueError('invalid section')
         text=section['text'];refs=section['evidence_ids']
         if not isinstance(text,str) or not 12<=len(text)<=400:raise ValueError('invalid text length')
-        assertion_text=re.sub(r'不能保证中奖|无法保证中奖|不保证中奖|不承诺中奖','',text)
+        assertion_text=re.sub(r'(?:不能|无法|不可能|不会|不代表|不意味着|不等于|并未|未能|不)(?:保证中奖|承诺中奖|提高中奖概率|提升中奖概率)','',text)
         if re.search(r'[%％]|保证中奖|必中奖|稳赚|稳中|精准预测|提高中奖概率|提升中奖概率',assertion_text):raise ValueError('unverified_promise')
         if not isinstance(refs,list) or not 1<=len(refs)<=4 or any(not isinstance(r,str) or r not in context['evidence'] for r in refs):raise ValueError('bad evidence refs')
         cited=' '.join(context['evidence'][ref] for ref in refs)
         allowed={Decimal(n) for n in re.findall(r'[0-9]+(?:\.[0-9]+)?',cited)}
-        if any(Decimal(n) not in allowed for n in re.findall(r'[0-9]+(?:\.[0-9]+)?',text)):raise ValueError('unverified_numeric')
+        for token in re.findall(r'[0-9]+(?:\.[0-9]+)?',text):
+            if Decimal(token) not in allowed:raise ValueError('unverified_numeric_'+key+'_'+token)
         for token in re.findall(r'[零〇一二两三四五六七八九十百千万]+(?=元|个|注|次)',text):
-            if Decimal(chinese_number(token)) not in allowed:raise ValueError('unverified_numeric')
+            if Decimal(chinese_number(token)) not in allowed:raise ValueError('unverified_numeric_'+key+'_'+token)
         if re.search(r'随机生成|随机基线|回归均衡|稳定性存疑|捕获能力|号码无重合|号码本身无重叠|预算.{0,8}合理|近期走势|市场环境|表现均衡|可接受范围',text):raise ValueError('unsupported_interpretation')
         if key=='single_reason' and not any(r.startswith('single_') for r in refs):raise ValueError('single evidence required')
         if key=='compound_reason' and not any(r.startswith('compound_') for r in refs):raise ValueError('compound evidence required')
@@ -310,8 +311,8 @@ def request_analysis(context):
         except requests.Timeout:last='timeout'
         except (ValueError,KeyError,TypeError,IndexError) as exc:
             last='invalid_response'
-            reason=str(exc) if re.fullmatch(r'[a-z_ ]{1,45}',str(exc)) else 'json_or_schema_error'
-            feedback=reason+'；请删去随机生成、随机基线、回归均衡、稳定性存疑、捕获能力、号码无重合、号码本身无重叠等表述，改为客观评审；每段仅依据自己引用的数据。'
+            reason=str(exc) if re.fullmatch(r'[a-z_0-9 .]{1,90}',str(exc)) else 'json_or_schema_error'
+            feedback=reason+'；请删去随机生成、随机基线、回归均衡、稳定性存疑、捕获能力、号码无重合、号码本身无重叠等表述，改为客观评审；每段仅依据自己引用的数据。若报unverified_numeric，错误后缀即未获本段引用支持的数值，请为本段引用该数字对应的证据ID；没有可用引用就删去该数字，禁止改成中文数词绕过。'
             print('ai_cycle_validation',context['kind'],reason)
         except requests.RequestException:last='connection_error'
         if attempt<2:time.sleep(3)
