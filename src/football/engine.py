@@ -30,6 +30,22 @@ def _ranking_probabilities(home_rank: int, away_rank: int) -> dict[str, float]:
     return _rounded_probabilities({"3": 0.70 * home_share, "1": 0.30, "0": 0.70 * (1 - home_share)})
 
 
+def _form_probabilities(home_form: dict, away_form: dict) -> dict[str, float]:
+    """Convert last-10 form (all competitions) into a conservative prior."""
+    home_edge = (home_form["points"] - away_form["points"]) + 0.3 * (
+        (home_form["gf"] - home_form["ga"]) - (away_form["gf"] - away_form["ga"])
+    )
+    home_edge = max(-15.0, min(15.0, home_edge))
+    home_share = 1 / (1 + math.exp(-home_edge / 6))
+    return _rounded_probabilities({"3": 0.70 * home_share, "1": 0.30, "0": 0.70 * (1 - home_share)})
+
+
+def _head_to_head_probabilities(h2h: dict) -> dict[str, float]:
+    meetings = h2h["meetings"]
+    home_share = (h2h["home_wins"] + 0.5 * h2h["draws"]) / meetings
+    return _rounded_probabilities({"3": 0.70 * home_share, "1": 0.30, "0": 0.70 * (1 - home_share)})
+
+
 def _multi_factor_probabilities(match: dict) -> tuple[dict[str, float], dict]:
     market = _probabilities(match["odds"])
     available = ["market", "home_away"]
@@ -46,6 +62,37 @@ def _multi_factor_probabilities(match: dict) -> tuple[dict[str, float], dict]:
     else:
         unavailable.append("ranking")
 
+    dynamics = match.get("dynamics") or {}
+    home_dyn = dynamics.get("home") or {}
+    away_dyn = dynamics.get("away") or {}
+    if home_dyn.get("form_last10") and away_dyn.get("form_last10"):
+        available.append("recent_form")
+        unavailable.remove("recent_form")
+        components["recent_form"] = _form_probabilities(
+            home_dyn["form_last10"], away_dyn["form_last10"]
+        )
+        # With real form evidence, the market prior yields some weight.
+        weights = {
+            "market": 0.60,
+            "home_away": FACTOR_WEIGHTS["home_away"],
+            "recent_form": 0.15,
+        }
+        if "ranking" in components:
+            weights["ranking"] = 0.15
+        h2h = dynamics.get("head_to_head") or {}
+        if h2h.get("meetings", 0) >= 3:
+            available.append("head_to_head")
+            unavailable.remove("head_to_head")
+            components["head_to_head"] = _head_to_head_probabilities(h2h)
+            weights["head_to_head"] = 0.05
+    rest_known = (
+        isinstance(home_dyn.get("rest_days"), int)
+        and isinstance(away_dyn.get("rest_days"), int)
+    )
+    if rest_known:
+        available.append("rest_days")
+        unavailable.remove("rest_days")
+
     weight_total = sum(weights.values())
     combined = {
         outcome: sum(components[name][outcome] * weight for name, weight in weights.items()) / weight_total
@@ -54,6 +101,9 @@ def _multi_factor_probabilities(match: dict) -> tuple[dict[str, float], dict]:
     probabilities = _rounded_probabilities(combined)
     ranked = sorted(OUTCOMES, key=lambda key: (-probabilities[key], OUTCOMES.index(key)))
     uncertainty = round(1 - (probabilities[ranked[0]] - probabilities[ranked[1]]), 4)
+    if rest_known and min(home_dyn["rest_days"], away_dyn["rest_days"]) <= 3:
+        # Short rest adds variance rather than a directional edge.
+        uncertainty = round(min(1.0, uncertainty + 0.02), 4)
     factors = {
         "available": available,
         "unavailable": unavailable,
@@ -121,6 +171,23 @@ def build_plan(issue: dict) -> dict:
             "secondary": ranked[1],
             "confidence": confidence,
         })
+        dynamics = match.get("dynamics") or {}
+        if (dynamics.get("home") or {}).get("form_last10") and (
+            dynamics.get("away") or {}
+        ).get("form_last10"):
+            rows[-1]["dynamics"] = {
+                "home": {
+                    "form_last10": dynamics["home"]["form_last10"],
+                    "rest_days": dynamics["home"].get("rest_days"),
+                    "last_match_date": dynamics["home"].get("last_match_date"),
+                },
+                "away": {
+                    "form_last10": dynamics["away"]["form_last10"],
+                    "rest_days": dynamics["away"].get("rest_days"),
+                    "last_match_date": dynamics["away"].get("last_match_date"),
+                },
+                "head_to_head": dynamics.get("head_to_head"),
+            }
 
     # Five closest matches receive a second outcome. Cost stays explicit and bounded.
     uncertain = {row["order"] for row in sorted(rows, key=lambda row: (row["confidence"], row["order"]))[:5]}
@@ -172,4 +239,5 @@ def settle(plan: dict, results: list[str]) -> dict:
     r9_orders = plan["plans"]["ren9"]["orders"]
     r9_hits = sum(results[order - 1] == plan["matches"][order - 1]["primary"] for order in r9_orders)
     return {"sfc_hits": hits, "sfc_total": 14, "ren9_hits": r9_hits, "ren9_total": 9}
+
 
