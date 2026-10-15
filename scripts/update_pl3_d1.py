@@ -4,7 +4,10 @@
 .verify_tmp/update_d1.sql，由大乐透工作流的 D1 步骤统一执行：
 
 - 查询 D1 pl3_draws 最新期号；表不存在 → 全量回填（2004 年至今）。
-- 数据源为 500彩票网 kaijiang 静态 XML 全量 feed（单请求），按期号差分增量。
+- 数据源与排列五共用（方案 B）：增量自 500彩票网 kaijiang 排列五
+  XML feed 取前三位（04021 期起同一次开奖，实测完全一致）；
+  2004 年最初 20 期及 04006/04007 当年为分开开奖，其真实历史
+  已在全量回填（pls feed）中入库，不被排列五数据覆盖。
 - 维护 data/pl3_history.json 与 public/data/pl3_history.json（最新 1000 期）。
 - 为下一期生成三组娱乐推荐并 INSERT OR IGNORE 首写锁定。
 
@@ -22,6 +25,10 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.pl3 import scraper, stats  # noqa: E402
+from src.pl5 import scraper as pl5_scraper  # noqa: E402
+
+# 04021 期（2004-12-08）起排列三与排列五同一次开奖；此前分开开奖。
+SHARED_FROM_ISSUE = 4021
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_JSON = os.path.join(ROOT, "data", "pl3_history.json")
@@ -124,12 +131,17 @@ def append_pl3_updates(out_path: str) -> None:
     """Append pl3 D1 statements to ``out_path`` (created if needed)."""
     try:
         latest = pl3_d1_latest()
-        feed = scraper.fetch_history()
         if latest is None or latest == 0:
-            rows = feed
+            rows = scraper.fetch_history()
             mode = "全量回填"
         else:
-            rows = [r for r in feed if int(r["issue"]) > latest]
+            # Shared source (plan B): derive from the pailie-5 feed.
+            feed5 = pl5_scraper.fetch_history()
+            rows = [
+                {"issue": r["issue"], "date": r["date"], "digits": r["digits"][:3]}
+                for r in feed5
+                if int(r["issue"]) > max(latest, SHARED_FROM_ISSUE - 1)
+            ]
             mode = "增量"
         if rows:
             bad = scraper.validate(rows)
