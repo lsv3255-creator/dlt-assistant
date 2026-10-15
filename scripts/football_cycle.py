@@ -145,7 +145,28 @@ def _request_ai(plan: dict, review: dict | None = None) -> dict:
     return _fallback_ai(plan, review)
 
 
+def _refresh_issue_from_source() -> None:
+    """Best-effort auto-discovery of the latest issue (Phase 13).
+
+    Any discovery failure keeps the curated issue file untouched so the
+    scheduled run degrades to the previous manual behaviour.
+    """
+    try:
+        from src.football.discovery import refresh_issue_file
+
+        status, found = refresh_issue_file(SOURCE)
+        print(f"football_discovery: {status} issue={found}")
+    except Exception as exc:  # discovery must never break the cycle
+        print(
+            "football_discovery_fallback: "
+            + type(exc).__name__
+            + ": "
+            + str(exc)[:160]
+        )
+
+
 def main() -> None:
+    _refresh_issue_from_source()
     issue = _read(SOURCE)
     if not issue:
         raise SystemExit("current football issue is missing")
@@ -188,4 +209,5 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
 
