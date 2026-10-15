@@ -146,4 +146,11 @@ if __name__ == "__main__":
         append_ssq_updates(OUT)
     except Exception as _exc:  # never break the DLT pipeline
         print(f"ssq hook failed: {type(_exc).__name__}: {str(_exc)[:160]}")
+    # 福彩3D同步（Phase 16）：同上。
+    try:
+        from scripts.update_fc3d_d1 import append_fc3d_updates
+
+        append_fc3d_updates(OUT)
+    except Exception as _exc:  # never break the DLT pipeline
+        print(f"fc3d hook failed: {type(_exc).__name__}: {str(_exc)[:160]}")
     sys.exit(_rc)
