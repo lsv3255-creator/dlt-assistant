@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "game_id": "dlt",
+  "updated_at": "2026-10-15T01:02:27.666776+00:00",
+  "analysis": null,
+  "review": null,
+  "statuses": {
+    "review": "invalid_response",
+    "analysis": "awaiting_review"
+  }
+}
