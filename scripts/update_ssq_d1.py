@@ -92,7 +92,7 @@ def _write_repo_history(rows: list[dict]) -> None:
     for path in (DATA_JSON, PUBLIC_JSON):
         os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, "w", encoding="utf-8") as fh:
-            json.dump(payload, fh, ensure_ascii=False, indent=1)
+            json.dump(payload, fh, ensure_ascii=False, separators=(",", ":"))
             fh.write("\n")
 
 
