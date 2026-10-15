@@ -153,4 +153,11 @@ if __name__ == "__main__":
         append_fc3d_updates(OUT)
     except Exception as _exc:  # never break the DLT pipeline
         print(f"fc3d hook failed: {type(_exc).__name__}: {str(_exc)[:160]}")
+    # 排列三同步（Phase 17）：同上。
+    try:
+        from scripts.update_pl3_d1 import append_pl3_updates
+
+        append_pl3_updates(OUT)
+    except Exception as _exc:  # never break the DLT pipeline
+        print(f"pl3 hook failed: {type(_exc).__name__}: {str(_exc)[:160]}")
     sys.exit(_rc)
