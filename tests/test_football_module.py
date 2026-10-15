@@ -100,13 +100,14 @@ class FootballModuleTests(unittest.TestCase):
         connection.executescript(migration)
         connection.executescript(build_sql(public_plan))
         self.assertEqual(connection.execute("SELECT COUNT(*) FROM football_current_matches").fetchone()[0], 14)
-        self.assertEqual(connection.execute("SELECT issue FROM football_current_snapshot").fetchone()[0], "26143")
+        self.assertEqual(connection.execute("SELECT issue FROM football_current_snapshot").fetchone()[0], public_plan["issue"])
 
+        next_issue = str(int(public_plan["issue"]) + 1)
         next_plan = json.loads(json.dumps(public_plan))
-        next_plan["issue"] = "26144"
+        next_plan["issue"] = next_issue
         connection.executescript(build_sql(next_plan))
         self.assertEqual(connection.execute("SELECT COUNT(*) FROM football_current_matches").fetchone()[0], 14)
-        self.assertEqual(connection.execute("SELECT DISTINCT issue FROM football_current_matches").fetchone()[0], "26144")
+        self.assertEqual(connection.execute("SELECT DISTINCT issue FROM football_current_matches").fetchone()[0], next_issue)
 
     def test_d1_sql_uses_remote_compatible_publish_last_order(self):
         public_plan = json.loads(json.dumps(self.plan))
@@ -218,6 +219,56 @@ class FootballDiscoveryTests(unittest.TestCase):
         self.assertEqual(strip(parsed["matches"]), strip(self.issue["matches"]))
         self.assertEqual(parsed["sale_end"], self.issue["sale_end"])
         self.assertEqual(parsed["draw_date"], self.issue["draw_date"])
+
+    def test_featured_issue_row_format_parses(self):
+        # Featured (current) okooo issues prefix each side with a league
+        # tag: "波甲 [2] 4.86 波兹南 4.48 德甲 [4] 1.58 勒沃".
+        rows = []
+        for m in self.issue["matches"]:
+            kickoff = m["kickoff"][5:10] + " " + m["kickoff"][11:16]
+            rows.append(
+                "<tr><td>{o}</td><td>{lg}</td><td>{ko}</td>"
+                "<td>甲级 [{hr}] {o3:.2f} {home} {o1:.2f} 乙级 [{ar}] {o0:.2f} {away}</td>"
+                "<td>全</td><td><a href=\"/soccer/match/{mid}/history/\">析</a></td>"
+                "<td>:</td><td></td><td>0 0 0</td></tr>".format(
+                    o=m["order"], lg=m["league"], ko=kickoff,
+                    hr=m["home_rank"], ar=m["away_rank"],
+                    home=m["home"], away=m["away"],
+                    o3=m["odds"]["3"], o1=m["odds"]["1"], o0=m["odds"]["0"],
+                    mid=2000 + m["order"],
+                )
+            )
+        html = (
+            "<html><body><div>截止时间:<em> "
+            + self.issue["sale_end"][5:10] + "(周四) " + self.issue["sale_end"][11:16]
+            + "</em></div><table>" + "".join(rows) + "</table></body></html>"
+        )
+        parsed = discovery.parse_issue_page(html, int(self.issue["issue"]), self.now)
+        self.assertEqual(len(parsed["matches"]), 14)
+        self.assertEqual(parsed["matches"][0]["home"], self.issue["matches"][0]["home"])
+
+    def test_refresh_moves_back_to_earlier_open_issue(self):
+        # Several issues can be on sale at once; discovery must feature
+        # the one closing soonest, even below the repository's issue.
+        current_no = int(self.issue["issue"])
+        current = json.loads(json.dumps(self.issue))
+        current["sale_end"] = (self.now + discovery.timedelta(days=2)).isoformat()
+        earlier = json.loads(json.dumps(self.issue))
+        earlier["issue"] = str(current_no - 1)
+        earlier["sale_end"] = (self.now + discovery.timedelta(hours=10)).isoformat()
+        pages = {
+            discovery.INDEX_URL: _okooo_fixture(current),
+            discovery.ISSUE_URL.format(issue=current_no): _okooo_fixture(current),
+            discovery.ISSUE_URL.format(issue=current_no - 1): _okooo_fixture(earlier),
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "current_issue.json"
+            path.write_text(json.dumps(current, ensure_ascii=False), encoding="utf-8")
+            with mock.patch.object(discovery, "_fetch", side_effect=lambda url: pages[url]):
+                status, issue = discovery.refresh_issue_file(path, self.now)
+            self.assertEqual((status, issue), ("switched", str(current_no - 1)))
+            written = json.loads(path.read_text())
+            self.assertLess(written["sale_start"], written["sale_end"])
 
     def test_refresh_same_issue_is_unchanged(self):
         current_no = int(self.issue["issue"])
