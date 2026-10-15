@@ -160,4 +160,11 @@ if __name__ == "__main__":
         append_pl3_updates(OUT)
     except Exception as _exc:  # never break the DLT pipeline
         print(f"pl3 hook failed: {type(_exc).__name__}: {str(_exc)[:160]}")
+    # 排列五同步（Phase 18）：同上；排列家族的权威开奖库。
+    try:
+        from scripts.update_pl5_d1 import append_pl5_updates
+
+        append_pl5_updates(OUT)
+    except Exception as _exc:  # never break the DLT pipeline
+        print(f"pl5 hook failed: {type(_exc).__name__}: {str(_exc)[:160]}")
     sys.exit(_rc)
