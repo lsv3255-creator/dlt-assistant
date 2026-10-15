@@ -1,0 +1,72 @@
+name: 在线免费模型连接验证
+on:
+  push:
+    branches: [master]
+    paths: [.github/workflows/dlt-ai-connection.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: pip install requests
+      - name: 验证真实 AI 分析（不写入任何推荐）
+        env:
+          DLT_AI_API_KEY: ${{ secrets.DLT_AI_API_KEY }}
+          DLT_AI_BASE_URL: ${{ secrets.DLT_AI_BASE_URL }}
+          DLT_AI_MODEL: ${{ secrets.DLT_AI_MODEL }}
+        run: |
+          python - <<'PY'
+          import hashlib,json,os,time,sys
+          from pathlib import Path
+          from unittest.mock import patch
+          from scripts import build_compound as m
+          for name in ['DLT_AI_API_KEY','DLT_AI_BASE_URL','DLT_AI_MODEL']:
+              os.environ[name]=os.getenv(name,'').strip()
+              if not os.environ[name]:
+                  print('CONFIG_MISSING:',name);sys.exit(1)
+          if os.environ['DLT_AI_BASE_URL']!='https://openrouter.ai/api/v1' or os.environ['DLT_AI_MODEL']!='openrouter/free':
+              print('CONFIG_MISMATCH: expected OpenRouter free route');sys.exit(1)
+          paths=list(Path('public/data').glob('*.json'))
+          before={str(p):hashlib.sha256(p.read_bytes()).hexdigest() for p in paths}
+          recs=json.loads(Path('public/data/recommendations.json').read_text())
+          history=json.loads(Path('public/data/dlt_history.json').read_text())['issues']
+          original_post=m.requests.post
+          actual={}
+          def observed_post(*args,**kwargs):
+              result=original_post(*args,**kwargs)
+              if result.ok:
+                  try: actual['model']=str(result.json().get('model','unknown'))[:160]
+                  except Exception: pass
+              return result
+          success=False
+          for attempt in range(2):
+              try:
+                  with patch.object(m.requests,'post',side_effect=observed_post):
+                      out=m.select_with_ai(m.build(recs,history))
+                  if out['ai']['status']!='completed':
+                      raise ValueError('not completed')
+                  print('AI_CONNECTIVITY=PASS')
+                  print('ACTUAL_MODEL='+actual.get('model','unknown'))
+                  print('SCHEMA_AND_EVIDENCE=PASS')
+                  print('TEST_FORMAT='+out['selected_format'])
+                  success=True
+                  break
+              except m.requests.HTTPError as exc:
+                  code=exc.response.status_code if exc.response is not None else 0
+                  print('AI_HTTP_STATUS='+str(code))
+                  if code in (400,401,402,403,404):break
+              except m.requests.Timeout: print('AI_TIMEOUT')
+              except Exception: print('AI_RESPONSE_OR_CONNECTION_FAILED')
+              if attempt==0:time.sleep(5)
+          after={str(p):hashlib.sha256(p.read_bytes()).hexdigest() for p in paths}
+          if before!=after:print('FROZEN_DATA_CHANGED');sys.exit(1)
+          print('ALL_PUBLIC_DATA_UNCHANGED=PASS')
+          if not success:sys.exit(1)
+          PY
