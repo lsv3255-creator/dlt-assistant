@@ -7,8 +7,11 @@ on:
       - .github/workflows/football-analysis.yml
       - data/football/current_issue.json
       - scripts/football_cycle.py
+      - scripts/write_football_d1.py
       - src/football/**
       - public/football.*
+      - functions/api/football-current.ts
+      - migrations/0002_football_current.sql
   workflow_dispatch:
   schedule:
     # 每日北京时间 09:15、17:15、21:45 更新；与大乐透任务完全隔离。
@@ -42,6 +45,17 @@ jobs:
         run: python scripts/football_cycle.py
       - name: 足彩模块测试
         run: python -m unittest tests.test_football_module -v
+      - name: 当前期足彩写入D1
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "未配置Cloudflare密钥，保留静态文件降级路径"
+            exit 0
+          fi
+          python scripts/write_football_d1.py
+          npx --yes wrangler@latest d1 execute dlt-draws --remote --file=migrations/0002_football_current.sql
+          npx --yes wrangler@latest d1 execute dlt-draws --remote --file=.verify_tmp/football_current_d1.sql
       - name: 提交本期公开结果
         run: |
           if git diff --quiet -- public/data/football/current.json data/football/archive.json; then

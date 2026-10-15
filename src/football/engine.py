@@ -7,12 +7,62 @@ import math
 from datetime import datetime
 
 OUTCOMES = ("3", "1", "0")
+FACTOR_WEIGHTS = {"market": 0.75, "ranking": 0.20, "home_away": 0.05}
 
 
 def _probabilities(odds: dict[str, float]) -> dict[str, float]:
     values = {key: 1 / float(odds[key]) for key in OUTCOMES}
     total = sum(values.values())
     return {key: round(values[key] / total, 4) for key in OUTCOMES}
+
+
+def _rounded_probabilities(values: dict[str, float]) -> dict[str, float]:
+    total = sum(values.values())
+    result = {key: round(values[key] / total, 4) for key in OUTCOMES}
+    result["0"] = round(result["0"] + (1 - sum(result.values())), 4)
+    return result
+
+
+def _ranking_probabilities(home_rank: int, away_rank: int) -> dict[str, float]:
+    """Convert same-league table positions to a deliberately conservative prior."""
+    rank_edge = max(-18, min(18, away_rank - home_rank))
+    home_share = 1 / (1 + math.exp(-rank_edge / 6))
+    return _rounded_probabilities({"3": 0.70 * home_share, "1": 0.30, "0": 0.70 * (1 - home_share)})
+
+
+def _multi_factor_probabilities(match: dict) -> tuple[dict[str, float], dict]:
+    market = _probabilities(match["odds"])
+    available = ["market", "home_away"]
+    unavailable = ["recent_form", "injuries", "rest_days", "head_to_head"]
+    components = {
+        "market": market,
+        "home_away": {"3": 0.37, "1": 0.30, "0": 0.33},
+    }
+    weights = {"market": FACTOR_WEIGHTS["market"], "home_away": FACTOR_WEIGHTS["home_away"]}
+    if isinstance(match.get("home_rank"), int) and isinstance(match.get("away_rank"), int):
+        available.append("ranking")
+        components["ranking"] = _ranking_probabilities(match["home_rank"], match["away_rank"])
+        weights["ranking"] = FACTOR_WEIGHTS["ranking"]
+    else:
+        unavailable.append("ranking")
+
+    weight_total = sum(weights.values())
+    combined = {
+        outcome: sum(components[name][outcome] * weight for name, weight in weights.items()) / weight_total
+        for outcome in OUTCOMES
+    }
+    probabilities = _rounded_probabilities(combined)
+    ranked = sorted(OUTCOMES, key=lambda key: (-probabilities[key], OUTCOMES.index(key)))
+    uncertainty = round(1 - (probabilities[ranked[0]] - probabilities[ranked[1]]), 4)
+    factors = {
+        "available": available,
+        "unavailable": unavailable,
+        "weights": {name: round(weight / weight_total, 4) for name, weight in weights.items()},
+        "components": components,
+        "uncertainty": uncertainty,
+        "data_completeness": round(len(available) / (len(available) + len(unavailable)), 4),
+    }
+    return probabilities, factors
 
 
 def validate_issue(issue: dict) -> None:
@@ -29,6 +79,9 @@ def validate_issue(issue: dict) -> None:
         odds = match.get("odds") or {}
         if set(odds) != set(OUTCOMES) or any(float(v) <= 1 for v in odds.values()):
             raise ValueError("valid decimal odds for 3/1/0 are required")
+        for key in ("home_rank", "away_rank"):
+            if key in match and (not isinstance(match[key], int) or match[key] < 1):
+                raise ValueError("rank must be a positive integer")
     datetime.fromisoformat(issue["sale_end"])
 
 
@@ -50,7 +103,7 @@ def build_plan(issue: dict) -> dict:
     validate_issue(issue)
     rows = []
     for match in issue["matches"]:
-        probs = _probabilities(match["odds"])
+        probs, factors = _multi_factor_probabilities(match)
         ranked = sorted(OUTCOMES, key=lambda key: (-probs[key], OUTCOMES.index(key)))
         confidence = round(probs[ranked[0]] - probs[ranked[1]], 4)
         rows.append({
@@ -60,7 +113,10 @@ def build_plan(issue: dict) -> dict:
             "away": match["away"],
             "kickoff": match["kickoff"],
             "odds": {key: float(match["odds"][key]) for key in OUTCOMES},
+            "home_rank": match.get("home_rank"),
+            "away_rank": match.get("away_rank"),
             "probabilities": probs,
+            "factors": factors,
             "primary": ranked[0],
             "secondary": ranked[1],
             "confidence": confidence,
@@ -89,6 +145,24 @@ def build_plan(issue: dict) -> dict:
         },
         "sources": issue["sources"],
     }
+
+
+def freeze_existing_recommendation(plan: dict, existing: dict) -> dict:
+    """Never change a same-issue recommendation after it has been published."""
+    if existing.get("issue") != plan.get("issue") or len(existing.get("matches", [])) != 14:
+        return plan
+    old_by_order = {row.get("order"): row for row in existing["matches"]}
+    for row in plan["matches"]:
+        old = old_by_order.get(row["order"], {})
+        if (old.get("home"), old.get("away"), old.get("kickoff")) != (row["home"], row["away"], row["kickoff"]):
+            return plan
+    for row in plan["matches"]:
+        old = old_by_order[row["order"]]
+        row["primary"] = old["primary"]
+        row["secondary"] = old["secondary"]
+        row["sfc_choices"] = old["sfc_choices"]
+    plan["plans"] = existing["plans"]
+    return plan
 
 
 def settle(plan: dict, results: list[str]) -> dict:
