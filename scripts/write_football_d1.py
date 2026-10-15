@@ -1,4 +1,4 @@
-"""Generate one transactional D1 snapshot for the current football issue only."""
+"""Generate a D1 current snapshot, publishing the customer payload last."""
 from __future__ import annotations
 
 import json
@@ -19,13 +19,7 @@ def build_sql(data: dict) -> str:
     if len(data.get("matches", [])) != 14:
         raise ValueError("football snapshot must contain exactly 14 matches")
     issue = str(data["issue"])
-    lines = ["BEGIN TRANSACTION;"]
-    lines.append(
-        "INSERT INTO football_current_snapshot(slot,issue,sale_end,status,public_payload,updated_at) "
-        f"VALUES(1,{sql_text(issue)},{sql_text(data['sale_end'])},{sql_text(data['status'])},{sql_text(data)},datetime('now')) "
-        "ON CONFLICT(slot) DO UPDATE SET issue=excluded.issue,sale_end=excluded.sale_end,"
-        "status=excluded.status,public_payload=excluded.public_payload,updated_at=datetime('now');"
-    )
+    lines = []
     # This table is intentionally current-only; old match rows are not retained.
     lines.append("DELETE FROM football_current_matches;")
     for row in data["matches"]:
@@ -48,7 +42,14 @@ def build_sql(data: dict) -> str:
         "ON CONFLICT(slot) DO UPDATE SET issue=excluded.issue,plans_json=excluded.plans_json,"
         "ai_json=excluded.ai_json,review_json=excluded.review_json,updated_at=datetime('now');"
     )
-    lines.append("COMMIT;")
+    # Publish last: the API never exposes newly written detail rows before the
+    # complete customer-safe payload is ready.
+    lines.append(
+        "INSERT INTO football_current_snapshot(slot,issue,sale_end,status,public_payload,updated_at) "
+        f"VALUES(1,{sql_text(issue)},{sql_text(data['sale_end'])},{sql_text(data['status'])},{sql_text(data)},datetime('now')) "
+        "ON CONFLICT(slot) DO UPDATE SET issue=excluded.issue,sale_end=excluded.sale_end,"
+        "status=excluded.status,public_payload=excluded.public_payload,updated_at=datetime('now');"
+    )
     return "\n".join(lines) + "\n"
 
 

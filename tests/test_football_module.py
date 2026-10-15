@@ -106,6 +106,16 @@ class FootballModuleTests(unittest.TestCase):
         self.assertEqual(connection.execute("SELECT COUNT(*) FROM football_current_matches").fetchone()[0], 14)
         self.assertEqual(connection.execute("SELECT DISTINCT issue FROM football_current_matches").fetchone()[0], "26144")
 
+    def test_d1_sql_uses_remote_compatible_publish_last_order(self):
+        public_plan = json.loads(json.dumps(self.plan))
+        public_plan.pop("identity_hash")
+        public_plan["ai"] = {"status": "pending", "title": "待更新", "sections": {}}
+        public_plan["review"] = {"status": "pending"}
+        sql = build_sql(public_plan)
+        self.assertNotIn("BEGIN TRANSACTION", sql)
+        self.assertNotIn("COMMIT;", sql)
+        self.assertLess(sql.index("INSERT INTO football_current_matches"), sql.index("INSERT INTO football_current_snapshot"))
+
     def test_no_football_results_history_table_is_created(self):
         migration = (ROOT / "migrations/0002_football_current.sql").read_text().lower()
         self.assertNotIn("football_results", migration)
