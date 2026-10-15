@@ -183,7 +183,7 @@ def _okooo_fixture(issue: dict) -> str:
                 order=m["order"], league=m["league"], kickoff=kickoff,
                 home=_FULL_TO_SHORT.get(m["home"], m["home"]), hr=m["home_rank"],
                 away=_FULL_TO_SHORT.get(m["away"], m["away"]), ar=m["away_rank"],
-                o3=m["odds"]["3"], o1=m["odds"]["1"], o0=m["odds"]["0"], mid=1000 + m["order"],
+                o3=m["odds"]["3"], o1=m["odds"]["1"], o0=m["odds"]["0"], mid=m.get("okooo_match_id", 1000 + m["order"]),
             )
         )
     filler = "<p>澳客网足彩数据</p>" * 60
@@ -212,17 +212,22 @@ class FootballDiscoveryTests(unittest.TestCase):
         parsed = discovery.parse_issue_page(html, int(self.issue["issue"]), self.now)
         validate_issue(parsed)
         self.assertTrue(all(m.get("okooo_match_id") for m in parsed["matches"]))
-        stripped = [{k: v for k, v in m.items() if k != "okooo_match_id"} for m in parsed["matches"]]
-        self.assertEqual(stripped, self.issue["matches"])
+        strip = lambda rows: [
+            {k: v for k, v in m.items() if k != "okooo_match_id"} for m in rows
+        ]
+        self.assertEqual(strip(parsed["matches"]), strip(self.issue["matches"]))
         self.assertEqual(parsed["sale_end"], self.issue["sale_end"])
         self.assertEqual(parsed["draw_date"], self.issue["draw_date"])
 
     def test_refresh_same_issue_is_unchanged(self):
         current_no = int(self.issue["issue"])
         pages = {discovery.ISSUE_URL.format(issue=current_no): _okooo_fixture(self.issue)}
+        curated = json.loads(json.dumps(self.issue))
+        for m in curated["matches"]:
+            m.pop("okooo_match_id", None)
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "current_issue.json"
-            path.write_text(json.dumps(self.issue, ensure_ascii=False), encoding="utf-8")
+            path.write_text(json.dumps(curated, ensure_ascii=False), encoding="utf-8")
             with mock.patch.object(discovery, "_fetch", side_effect=lambda url: pages[url]):
                 # First pass only adds okooo match ids to the curated file.
                 first, _ = discovery.refresh_issue_file(path, self.now)
@@ -320,12 +325,16 @@ class FootballDynamicsTests(unittest.TestCase):
 
     def test_enrich_issue_uses_match_ids_and_degrades(self):
         issue = json.loads(json.dumps(self.issue))
+        for m in issue["matches"]:
+            m.pop("okooo_match_id", None)
         issue["matches"][0]["okooo_match_id"] = "999"
         with mock.patch.object(dynamics, "_fetch", return_value=_history_fixture()):
             enriched = dynamics.enrich_issue(issue, fetch=dynamics._fetch)
         self.assertEqual(enriched, 1)
         self.assertIn("dynamics", issue["matches"][0])
         bare = json.loads(json.dumps(self.issue))
+        for m in bare["matches"]:
+            m.pop("okooo_match_id", None)
         self.assertEqual(dynamics.enrich_issue(bare, fetch=dynamics._fetch), 0)
 
     def test_engine_consumes_dynamics(self):
