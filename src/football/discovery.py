@@ -137,7 +137,7 @@ def _parse_matches(soup: BeautifulSoup, now: datetime) -> list[dict]:
         if not league or len(league) > 6:
             continue
         home_rank, odds3, home, odds1, away_rank, odds0, away = row_match.groups()
-        matches.append({
+        parsed_match = {
             "order": len(matches) + 1,
             "league": league,
             "home": _full_name(home),
@@ -146,7 +146,15 @@ def _parse_matches(soup: BeautifulSoup, now: datetime) -> list[dict]:
             "away_rank": int(away_rank),
             "kickoff": kickoff.isoformat(),
             "odds": {"3": float(odds3), "1": float(odds1), "0": float(odds0)},
-        })
+        }
+        history_link = row.find(
+            "a", href=re.compile(r"/soccer/match/\d+/history/")
+        )
+        if history_link is not None:
+            id_match = re.search(r"/soccer/match/(\d+)/", history_link["href"])
+            if id_match:
+                parsed_match["okooo_match_id"] = id_match.group(1)
+        matches.append(parsed_match)
     if len(matches) != 14:
         raise DiscoveryError(f"expected 14 matches, parsed {len(matches)}")
     return matches
