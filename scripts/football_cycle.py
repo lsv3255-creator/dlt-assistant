@@ -256,6 +256,15 @@ def main() -> None:
     _atomic_write(OUTPUT, public_plan)
     print(f'football issue {plan["issue"]}: ai={plan["ai"]["status"]}, output={OUTPUT}')
 
+    # Jingcai （竞彩足球） rides the same scheduled workflow; it is
+    # fully best-effort and must never break the football pipeline.
+    try:
+        from scripts.jingcai_cycle import main as jingcai_main
+
+        jingcai_main()
+    except Exception as exc:
+        print(f"jingcai_cycle_failed: {type(exc).__name__}: {str(exc)[:160]}")
+
 
 if __name__ == "__main__":
     main()
