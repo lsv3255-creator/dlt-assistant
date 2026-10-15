@@ -12,16 +12,16 @@
       "away": "勒沃库森",
       "kickoff": "2026-10-16T00:45:00+08:00",
       "odds": {
-        "3": 4.88,
+        "3": 4.89,
         "1": 4.48,
         "0": 1.58
       },
       "home_rank": 2,
       "away_rank": 4,
       "probabilities": {
-        "3": 0.2506,
-        "1": 0.2434,
-        "0": 0.506
+        "3": 0.2504,
+        "1": 0.2435,
+        "0": 0.5061
       },
       "factors": {
         "available": [
@@ -35,12 +35,12 @@
           "injuries",
           "head_to_head"
         ],
-        "uncertainty": 0.7446,
+        "uncertainty": 0.7443,
         "data_completeness": 0.7143
       },
       "primary": "0",
       "secondary": "3",
-      "confidence": 0.2554,
+      "confidence": 0.2557,
       "dynamics": {
         "home": {
           "form_last10": {
@@ -231,15 +231,15 @@
       "kickoff": "2026-10-16T00:45:00+08:00",
       "odds": {
         "3": 1.33,
-        "1": 5.42,
-        "0": 8.03
+        "1": 5.41,
+        "0": 8.04
       },
       "home_rank": 3,
       "away_rank": 6,
       "probabilities": {
         "3": 0.6324,
-        "1": 0.2204,
-        "0": 0.1472
+        "1": 0.2205,
+        "0": 0.1471
       },
       "factors": {
         "available": [
@@ -253,12 +253,12 @@
           "injuries",
           "head_to_head"
         ],
-        "uncertainty": 0.588,
+        "uncertainty": 0.5881,
         "data_completeness": 0.7143
       },
       "primary": "3",
       "secondary": "1",
-      "confidence": 0.412,
+      "confidence": 0.4119,
       "dynamics": {
         "home": {
           "form_last10": {
@@ -299,16 +299,16 @@
       "away": "桑德兰",
       "kickoff": "2026-10-16T00:45:00+08:00",
       "odds": {
-        "3": 8.56,
-        "1": 5.34,
+        "3": 8.57,
+        "1": 5.35,
         "0": 1.32
       },
       "home_rank": 15,
       "away_rank": 17,
       "probabilities": {
         "3": 0.1809,
-        "1": 0.2219,
-        "0": 0.5972
+        "1": 0.2217,
+        "0": 0.5974
       },
       "factors": {
         "available": [
@@ -322,12 +322,12 @@
           "injuries",
           "head_to_head"
         ],
-        "uncertainty": 0.6247,
+        "uncertainty": 0.6243,
         "data_completeness": 0.7143
       },
       "primary": "0",
       "secondary": "1",
-      "confidence": 0.3753,
+      "confidence": 0.3757,
       "dynamics": {
         "home": {
           "form_last10": {
@@ -440,7 +440,7 @@
       "odds": {
         "3": 1.21,
         "1": 6.95,
-        "0": 11.3
+        "0": 11.31
       },
       "home_rank": 2,
       "away_rank": 1,
@@ -514,14 +514,14 @@
       "odds": {
         "3": 1.18,
         "1": 7.39,
-        "0": 12.68
+        "0": 12.69
       },
       "home_rank": 18,
       "away_rank": 4,
       "probabilities": {
         "3": 0.555,
-        "1": 0.191,
-        "0": 0.254
+        "1": 0.1911,
+        "0": 0.2539
       },
       "factors": {
         "available": [
@@ -535,12 +535,12 @@
           "injuries",
           "head_to_head"
         ],
-        "uncertainty": 0.699,
+        "uncertainty": 0.6989,
         "data_completeness": 0.7143
       },
       "primary": "3",
       "secondary": "0",
-      "confidence": 0.301,
+      "confidence": 0.3011,
       "dynamics": {
         "home": {
           "form_last10": {
@@ -581,16 +581,16 @@
       "away": "尤文图斯",
       "kickoff": "2026-10-16T03:00:00+08:00",
       "odds": {
-        "3": 3.48,
+        "3": 3.49,
         "1": 3.21,
         "0": 2.16
       },
       "home_rank": 9,
       "away_rank": 6,
       "probabilities": {
-        "3": 0.2419,
-        "1": 0.2958,
-        "0": 0.4623
+        "3": 0.2416,
+        "1": 0.296,
+        "0": 0.4624
       },
       "factors": {
         "available": [
@@ -604,12 +604,12 @@
           "injuries",
           "head_to_head"
         ],
-        "uncertainty": 0.8335,
+        "uncertainty": 0.8336,
         "data_completeness": 0.7143
       },
       "primary": "0",
       "secondary": "1",
-      "confidence": 0.1665,
+      "confidence": 0.1664,
       "dynamics": {
         "home": {
           "form_last10": {
@@ -946,28 +946,57 @@
       "home_rank": 3,
       "away_rank": 6,
       "probabilities": {
-        "3": 0.6906,
-        "1": 0.1797,
-        "0": 0.1297
+        "3": 0.601,
+        "1": 0.1987,
+        "0": 0.2003
       },
       "factors": {
         "available": [
           "market",
           "home_away",
-          "ranking"
+          "ranking",
+          "recent_form",
+          "rest_days"
         ],
         "unavailable": [
-          "recent_form",
           "injuries",
-          "rest_days",
           "head_to_head"
         ],
-        "uncertainty": 0.4891,
-        "data_completeness": 0.4286
+        "uncertainty": 0.5993,
+        "data_completeness": 0.7143
       },
       "primary": "3",
       "secondary": "0",
-      "confidence": 0.5109,
+      "confidence": 0.4007,
+      "dynamics": {
+        "home": {
+          "form_last10": {
+            "played": 10,
+            "w": 4,
+            "d": 2,
+            "l": 4,
+            "points": 14,
+            "gf": 15,
+            "ga": 17
+          },
+          "rest_days": 5,
+          "last_match_date": "2026-10-11"
+        },
+        "away": {
+          "form_last10": {
+            "played": 10,
+            "w": 6,
+            "d": 2,
+            "l": 2,
+            "points": 20,
+            "gf": 15,
+            "ga": 7
+          },
+          "rest_days": 5,
+          "last_match_date": "2026-10-11"
+        },
+        "head_to_head": null
+      },
       "sfc_choices": [
         "3"
       ]
