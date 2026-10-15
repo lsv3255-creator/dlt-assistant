@@ -153,12 +153,23 @@ def _request_ai(plan: dict, review: dict | None = None) -> dict:
     return _fallback_ai(plan, review)
 
 
-def _refresh_issue_from_source() -> None:
+def _refresh_issue_from_source() -> dict | None:
     """Best-effort auto-discovery of the latest issue (Phase 13).
 
     Any discovery failure keeps the curated issue file untouched so the
-    scheduled run degrades to the previous manual behaviour.
+    scheduled run degrades to the previous manual behaviour. Returns
+    the refreshed issue dict when discovery ran, else ``None``.
+
+    CI note: the workflow later commits only the generated public
+    files and then runs ``git pull --rebase``, which refuses to run
+    with unstaged changes — a discovery-rewritten issue file (not part
+    of that commit) would fail the whole run. Under CI the checked-out
+    bytes are therefore restored after loading the refreshed issue
+    into memory; the run itself is unaffected.
     """
+    import os
+
+    original = SOURCE.read_bytes() if SOURCE.exists() else None
     try:
         from src.football.discovery import refresh_issue_file
 
@@ -171,6 +182,15 @@ def _refresh_issue_from_source() -> None:
             + ": "
             + str(exc)[:160]
         )
+        return None
+    refreshed = _read(SOURCE)
+    if os.environ.get("CI") and original is not None:
+        try:
+            if SOURCE.read_bytes() != original:
+                SOURCE.write_bytes(original)
+        except OSError:
+            pass
+    return refreshed
 
 
 def _enrich_issue_dynamics(issue: dict) -> None:
@@ -195,8 +215,7 @@ def _enrich_issue_dynamics(issue: dict) -> None:
 
 
 def main() -> None:
-    _refresh_issue_from_source()
-    issue = _read(SOURCE)
+    issue = _refresh_issue_from_source() or _read(SOURCE)
     if issue:
         _enrich_issue_dynamics(issue)
     if not issue:
