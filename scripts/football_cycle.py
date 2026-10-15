@@ -66,13 +66,38 @@ def _fallback_ai(plan: dict, review: dict | None = None) -> dict:
     }
 
 
+def _ai_fallback_notice(reason: str) -> None:
+    """Surface AI fallback reasons in the log AND as a job annotation.
+
+    Step logs need authentication to download, but workflow-command
+    annotations are readable through the public API, which is how AI
+    failures get diagnosed from outside the runner.
+    """
+    print("football_ai_fallback: " + reason)
+    safe = reason.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+    print(f"::warning title=football_ai_fallback::{safe}")
+
+
 def _request_ai(plan: dict, review: dict | None = None) -> dict:
     key = os.getenv("DLT_AI_API_KEY", "").strip()
     base = os.getenv("DLT_AI_BASE_URL", "").strip()
     route = os.getenv("DLT_AI_MODEL", "").strip()
     if not key or base != "https://openrouter.ai/api/v1" or not route:
+        _ai_fallback_notice(
+            "config: "
+            + ", ".join(
+                name
+                for name, bad in (
+                    ("key-missing", not key),
+                    ("base-mismatch", base != "https://openrouter.ai/api/v1"),
+                    ("route-missing", not route),
+                )
+                if bad
+            )
+        )
         return _fallback_ai(plan, review)
     if route != "openrouter/free" and not route.endswith(":free"):
+        _ai_fallback_notice("config: route-not-free")
         return _fallback_ai(plan, review)
     import requests
 
@@ -125,7 +150,11 @@ def _request_ai(plan: dict, review: dict | None = None) -> dict:
                 },
                 timeout=90,
             )
-            response.raise_for_status()
+            if response.status_code >= 400:
+                raise ValueError(
+                    f"HTTP {response.status_code} from {model}: "
+                    + response.text[:200].replace("\n", " ")
+                )
             content = response.json()["choices"][0]["message"]["content"].strip()
             # Some free endpoints wrap otherwise valid structured JSON in markdown.
             start, end = content.find("{"), content.rfind("}")
@@ -149,7 +178,7 @@ def _request_ai(plan: dict, review: dict | None = None) -> dict:
         except (requests.RequestException, KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
             failures.append(type(exc).__name__ + ":" + str(exc)[:120])
             continue
-    print("football_ai_fallback: " + " | ".join(failures))
+    _ai_fallback_notice(" | ".join(failures))
     return _fallback_ai(plan, review)
 
 
