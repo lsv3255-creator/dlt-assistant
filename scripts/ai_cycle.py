@@ -250,11 +250,22 @@ def request_analysis(context):
             'risk说明不确定性，next_focus结合previous_review给出下一期关注点。single_reason至少引用single_开头证据；compound_reason至少引用compound_证据。'
             'review的summary解释实际命中与模拟回报，reason_check对照真实事前AI理由核验；若不存在事前AI记录必须明确只做事后解读，'
             'limitations讨论样本限制，next_focus给出可验证的下一期参考，不宣称已调整参数。每段只引用一至四个真实证据ID。')
+    properties={}
+    for section in SECTIONS[context['kind']]:
+        refs=list(context['evidence'])
+        if section=='single_reason':refs=[r for r in refs if r.startswith('single_')]
+        if section=='compound_reason':refs=[r for r in refs if r.startswith('compound_')]
+        properties[section]={'type':'object','properties':{
+            'text':{'type':'string','description':'五十至一百五十字中文具体分析，不写阿拉伯数字，不承诺中奖。'},
+            'evidence_ids':{'type':'array','items':{'type':'string','enum':refs},'minItems':1,'maxItems':4}},
+            'required':['text','evidence_ids'],'additionalProperties':False}
+    response_format={'type':'json_schema','json_schema':{'name':'dlt_'+context['kind'],'strict':True,
+        'schema':{'type':'object','properties':properties,'required':SECTIONS[context['kind']],'additionalProperties':False}}}
     last='provider_unavailable'
     for attempt in range(2):
         try:
             response=requests.post(url+'/chat/completions',headers={'Authorization':'Bearer '+key},json={
-                'model':route,'temperature':0,'max_tokens':7000,'reasoning':{'enabled':False},'response_format':{'type':'json_object'},
+                'model':route,'temperature':0,'max_tokens':7000,'reasoning':{'enabled':False},'response_format':response_format,'provider':{'require_parameters':True},
                 'messages':[{'role':'system','content':prompt},{'role':'user','content':json.dumps({'template':schema,'context':context},ensure_ascii=False)}]},timeout=(10,75))
             if not response.ok:
                 last=f'http_{response.status_code}'
