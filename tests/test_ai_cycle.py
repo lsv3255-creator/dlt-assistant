@@ -80,11 +80,12 @@ class AICycleTests(unittest.TestCase):
 
     def test_output_validation_rejects_invention_and_promises(self):
         ctx=self.context();good=fake_response(ctx)['sections']
-        for text in ['出现了999次，未来走势会继续上升。','这个组合能够保证中奖，请放心购买。']:
+        for text in ['出现了999次，未来走势会继续上升。','这个组合能够保证中奖，请放心购买。','这个组合能够提高中奖概率，模型具有明确分析优势。']:
             raw=copy.deepcopy(good);raw['overview']['text']=text
             with self.assertRaises(ValueError):m.validate_response(raw,ctx)
-        raw=copy.deepcopy(good);raw['risk']['text']='历史统计和模型分析不保证中奖，所有推荐仅供持续观察与复核。'
-        m.validate_response(raw,ctx)
+        for denial in ['不保证中奖','无法提高中奖概率','不能提升中奖概率']:
+            raw=copy.deepcopy(good);raw['risk']['text']='历史统计和模型分析'+denial+'，所有推荐仅供持续观察与复核。'
+            m.validate_response(raw,ctx)
         raw=copy.deepcopy(good);raw['single_reason']['evidence_ids']=['does_not_exist']
         with self.assertRaises(ValueError):m.validate_response(raw,ctx)
         raw=copy.deepcopy(good);raw['single_reason']['evidence_ids']=['compound_budget']
