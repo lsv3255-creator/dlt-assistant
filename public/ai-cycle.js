@@ -15,10 +15,10 @@
   function section(record,key,title){
     var s=record.sections&&record.sections[key];
     if(!s||typeof s.text!=='string'||!Array.isArray(s.evidence_ids))throw Error('bad AI section');
-    var facts=s.evidence_ids.map(function(id){if(typeof record.evidence[id]!=='string')throw Error('bad citation');return '<li>'+esc(record.evidence[id])+'</li>';}).join('');
+    var facts=s.evidence_ids.map(function(id){if(typeof record.evidence[id]!=='string')throw Error('bad citation');return '<li>'+esc(readable(record.evidence[id]))+'</li>';}).join('');
     return '<h3>'+esc(title)+'</h3><p>'+esc(readable(s.text))+'</p><details open><summary>本段数据依据</summary><ul style="overflow-wrap:anywhere">'+facts+'</ul></details>';
   }
-  function meta(r){return '<p class="hint" style="overflow-wrap:anywhere">在线 AI：'+esc(r.model)+' · 生成时间 '+esc(r.generated_at)+' · 分析版本 '+esc(r.prompt_version)+'</p>';}
+  function meta(r){return '<p class="hint" style="overflow-wrap:anywhere">在线 AI：'+esc(r.model)+' · 生成时间 '+esc(r.generated_at)+' · 分析版本 '+esc(r.prompt_version)+'</p>'+(r.editorial_policy?'<p class="hint">AI 生成，经规则核验'+(r.editorial_removed_clauses?'，已过滤缺乏依据的表述':'')+'；模型原始记录已保留。</p>':'');}
   function currency(v){return v==null?'待官方奖金详情核验':esc(Number(v).toLocaleString('zh-CN',{maximumFractionDigits:2}))+' 元';}
   function payout(s,title){if(!s)return '<p>'+esc(title)+'：当期没有已冻结方案，未补造历史推荐。</p>';
     return '<h4>'+esc(title)+' · 程序核算</h4><p>展开 '+esc(s.tickets)+' 注；基本成本 '+currency(s.basic_cost_yuan)+'；税前基本奖金 '+currency(s.basic_payout_yuan)+'</p>'+

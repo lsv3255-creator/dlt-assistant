@@ -140,6 +140,17 @@ class AICycleTests(unittest.TestCase):
         self.assertIn('history_window',record['sections']['overview']['evidence_ids'])
         self.assertEqual(record['model_evidence_ids']['overview'],['single_structure'])
 
+    def test_editorial_filter_preserves_exact_source_and_is_idempotent(self):
+        ctx=self.context();record=fake_response(ctx)
+        record['sections']['single_reason']['text']='模型评审既定方案的结构与评分，遗漏号码存在回补压力，历史表现无法证明预测能力。'
+        original=copy.deepcopy(record);archive={}
+        edited=m.audit_record(record,archive)
+        self.assertNotIn('回补压力',edited['sections']['single_reason']['text'])
+        self.assertEqual(archive['raw_model_records'][edited['raw_source_hash']],original)
+        before=copy.deepcopy(edited)
+        self.assertEqual(m.audit_record(edited,archive),before)
+        self.assertEqual(edited['identity'],original['identity'])
+
     def test_free_route_only(self):
         env={'DLT_AI_API_KEY':'TEST','DLT_AI_BASE_URL':'https://openrouter.ai/api/v1','DLT_AI_MODEL':'paid/model'}
         with patch.dict('os.environ',env),patch.object(m.requests,'post') as post:

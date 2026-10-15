@@ -331,6 +331,47 @@ def request_analysis(context):
     raise RuntimeError(last)
 
 
+EDITORIAL_POLICY = 'grounded-editorial-v1'
+UNSUPPORTED_CLAUSES = [r'回补压力',r'样本常态',r'样本中段分布特征',r'频次偏低',
+                       r'中高遗漏状态',r'号码分散度低',r'结构贴合但号码未命中',r'任何方案均为对照组']
+
+
+def audit_record(record, archive):
+    """Filter unsupported inferences without pretending the edited text is raw AI.
+
+    Keep the complete immutable source keyed by its original digest. Existing
+    analysis input references still resolve to the exact review the model saw.
+    No new numbers, claims, recommendations or model text are synthesized here.
+    """
+    if record.get('editorial_policy') == EDITORIAL_POLICY:
+        return record
+    original=copy.deepcopy(record)
+    edited=copy.deepcopy(record['sections']);removed=0
+    for section in edited.values():
+        clauses=re.findall(r'[^，。；]+[，。；]?',section['text'])
+        kept=[]
+        for clause in clauses:
+            if any(re.search(pattern,clause) for pattern in UNSUPPORTED_CLAUSES):removed+=1
+            else:kept.append(clause)
+        text=''.join(kept).strip('，。；')
+        if len(text)<12:raise RuntimeError('editorial_review_required')
+        section['text']=text+'。'
+    if 'previous_review' in record.get('evidence',{}):
+        clauses=re.findall(r'[^，。；]+[，。；]?',record['evidence']['previous_review'])
+        kept=[c for c in clauses if not any(re.search(p,c) for p in UNSUPPORTED_CLAUSES)]
+        removed+=len(clauses)-len(kept)
+        record['evidence']['previous_review']=''.join(kept).strip('，。；')+'。'
+    validate_response(edited,record)
+    source_hash=digest(original)
+    archive.setdefault('raw_model_records',{})[source_hash]=original
+    record['sections']=edited
+    record['raw_source_hash']=source_hash
+    record['editorial_policy']=EDITORIAL_POLICY
+    record['editorial_removed_clauses']=removed
+    record['reviewed_at']=now()
+    return record
+
+
 def get_record(context,archive,request_fn):
     pool=archive['analyses' if context['kind']=='analysis' else 'reviews']
     if context['kind']=='analysis':
@@ -363,6 +404,7 @@ def run(request_fn=request_analysis):
             context=(review_context(history,snapshots,compounds,notices,archive['analyses']) if kind=='review' else
                      analysis_context(recs,history,compound,output['review']))
             record=get_record(context,archive,request_fn)
+            record=audit_record(record,archive)
             output[kind]=record;output['statuses'][kind]='completed'
             write('ai_cycle_archive.json',archive)
         except (ValueError,RuntimeError,KeyError,TypeError,StopIteration) as exc:
