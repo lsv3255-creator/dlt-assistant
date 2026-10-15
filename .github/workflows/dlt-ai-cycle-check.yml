@@ -1,0 +1,97 @@
+name: 完整AI闭环验证
+on:
+  push:
+    branches: [feature/complete-ai-analysis-review]
+    paths:
+      - scripts/ai_cycle.py
+      - public/ai-cycle.js
+      - public/index.html
+      - public/draw-enhancements.js
+      - tests/test_ai_cycle.py
+      - tests/ai_browser_fixture.py
+      - tests/browser/ai-cycle.cjs
+      - .github/workflows/dlt-ai-cycle-check.yml
+  pull_request:
+    branches: [master]
+permissions:
+  contents: read
+jobs:
+  compatibility:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: pip install requests beautifulsoup4 pyyaml
+      - run: python -m unittest tests.test_ai_cycle tests.test_compound tests.test_publisher tests.test_p43_publication_integrity tests.test_p42_wording_integrity -q
+      - run: node --check public/app.js && node --check public/draw-enhancements.js && node --check public/ai-cycle.js
+      - run: npm install --no-save --package-lock=false playwright
+      - run: npx playwright install --with-deps chromium
+      - name: AI区域、手机布局及失败隔离
+        run: |
+          python -m tests.ai_browser_fixture /tmp/ai-browser.json
+          python -m http.server 8878 --directory public > /tmp/dlt-ai-http.log 2>&1 &
+          node tests/browser/ai-cycle.cjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ai-cycle-mobile
+          path: /tmp/ai-cycle-mobile.png
+  real-ai:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/feature/complete-ai-analysis-review'
+    needs: compatibility
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/complete-ai-analysis-review
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: pip install requests beautifulsoup4 pyyaml
+      - name: 记录原数据哈希
+        run: |
+          find public/data -maxdepth 1 -name '*.json' ! -name 'ai_cycle*.json' -print0 | sort -z | xargs -0 sha256sum > /tmp/original-data.sha
+      - name: 真实免费AI分析与复盘
+        env:
+          DLT_AI_API_KEY: ${{ secrets.DLT_AI_API_KEY }}
+          DLT_AI_BASE_URL: ${{ secrets.DLT_AI_BASE_URL }}
+          DLT_AI_MODEL: ${{ secrets.DLT_AI_MODEL }}
+        run: |
+          python -u -m scripts.ai_cycle
+          python - <<'PY'
+          import json
+          data=json.load(open('public/data/ai_cycle.json'))
+          print('AI_STAGE_STATUSES',data['statuses'])
+          for key in ['review','analysis']:
+              record=data[key]
+              if record: print(key,record['issue'],record['model'],record['generated_at'])
+          PY
+      - name: 原数据不变校验
+        run: sha256sum --check /tmp/original-data.sha
+      - name: 保存真实AI归档到功能分支
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add public/data/ai_cycle.json
+          if test -f public/data/ai_cycle_archive.json; then git add public/data/ai_cycle_archive.json; fi
+          if ! git diff --cached --quiet; then
+            git commit -m 'data: archive verified real AI analysis and review'
+            git push origin HEAD:feature/complete-ai-analysis-review
+          fi
+      - name: 真实闭环质量门禁
+        run: |
+          python - <<'PY'
+          import json
+          data=json.load(open('public/data/ai_cycle.json'))
+          assert data['statuses']=={'review':'completed','analysis':'completed'}, data['statuses']
+          assert data['analysis']['previous_review']['issue']==data['review']['issue']
+          print('AI_ANALYSIS_REASONS_REVIEW_CARRYOVER=PASS')
+          PY

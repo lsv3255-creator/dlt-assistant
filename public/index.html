@@ -74,18 +74,25 @@
       <div id="draw-details-body" aria-live="polite">正在读取官方奖金详情…</div>
     </section>
 
+    <section class="card" aria-labelledby="ai-overview-title">
+      <h2 id="ai-overview-title">🧠 AI 综合分析</h2>
+      <div id="ai-overview" aria-live="polite">正在读取本期 AI 分析…</div>
+    </section>
+
     <!-- ② 本期唯一推荐（P1-1：普通用户仅见一条正式推荐；A/B/C/D 为后台候选，不在此呈现，
          用户无需在 A/B/C/D 之间做选择） -->
     <section class="card">
       <h2>🔮 本期唯一推荐</h2>
       <p class="hint">以下为基于真实历史开奖数据的<strong>娱乐推荐</strong>，<strong>不等于中奖预测</strong>。预测期号：<span id="rec-target">—</span></p>
       <div id="primary-recommendation"></div>
+      <div id="ai-single" aria-live="polite">AI 单注分析读取中…</div>
     </section>
 
     <section class="card" aria-labelledby="compound-title">
       <h2 id="compound-title">🧩 本期组合推荐</h2>
       <p class="hint">正式单注以外的独立复式方案，包含原单注号码。</p>
       <div id="compound-body" aria-live="polite">正在读取本期组合方案…</div>
+      <div id="ai-compound" aria-live="polite">AI 组合分析读取中…</div>
     </section>
 
     <!-- ③ 上期推荐复盘（占位，Phase 2 复盘数据就绪后自动填充） -->
@@ -95,6 +102,8 @@
       <div id="review-placeholder" style="border:1px dashed var(--accent, #6d28d9);border-radius:12px;padding:16px;text-align:center;color:var(--muted,#94a3b8)">
         加载中…
       </div>
+      <div id="ai-review" aria-live="polite" style="margin-top:16px">AI 复盘读取中…</div>
+      <div id="ai-next" aria-live="polite" style="margin-top:12px"></div>
       <!-- ③ 下一期模型调整方向（D2.2：复盘闭环末环，随复盘数据自动填充） -->
       <div id="next-adjustment" style="margin-top:12px;border:1px dashed var(--accent-line, #e4d8fb);border-radius:12px;padding:14px;">
         <div style="font-size:12px;color:var(--muted,#94a3b8);margin-bottom:6px;">🔁 下一期模型调整方向</div>
@@ -126,6 +135,7 @@
   </main>
 
   <script src="./app.js?v=task42" defer></script>
-  <script src="./draw-enhancements.js?v=task42" defer></script>
+  <script src="./draw-enhancements.js?v=task44" defer></script>
+  <script src="./ai-cycle.js?v=task44" defer></script>
 </body>
 </html>

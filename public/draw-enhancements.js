@@ -60,7 +60,7 @@
     var tickets=comb(counts[0],5)*comb(counts[1],2);
     if (chosen.tickets!==tickets || chosen.basic_yuan!==tickets*2 || chosen.additional_yuan!==tickets*3) throw new Error('cost mismatch');
     var ai = c.ai && c.ai.status === 'completed';
-    var intro = ai ? 'AI 强力推荐 · 模型 '+esc(c.ai.model)+' 已完成复式方案选择与数据依据复核。' : '统计模型组合推荐 · AI 模型分析尚未接入，本期为可追溯的统计扩展方案。';
+    var intro = ai ? 'AI 强力推荐 · 模型 '+esc(c.ai.model)+' 已完成复式方案选择与数据依据复核。' : '统计模型组合方案 · 保留已冻结号码；AI 综合分析与推荐理由见下方。';
     var refs = ai ? c.ai.factor_refs : chosen.front.slice(0,3).map(function(n){return 'front:'+n;});
     var factors = refs.map(function(ref) { var parts=ref.split(':'), zone=parts[0], n=parts[1]; return '<li>'+ (zone==='front'?'前区':'后区')+' '+esc(n)+'：最近 '+esc(c.window)+' 期出现 '+esc(c.evidence[zone][n])+' 次。</li>'; }).join('');
     compoundRoot.innerHTML = '<p><strong>'+intro+'</strong></p><p>第 '+esc(c.target_issue)+' 期 · '+esc(chosen.format)+' 复式 · 本期已冻结</p>'+
