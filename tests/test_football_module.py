@@ -358,3 +358,13 @@ class FootballDynamicsTests(unittest.TestCase):
         self.assertGreater(
             sql.rindex("football_current_snapshot"), sql.rindex("football_team_snapshots")
         )
+
+    def test_enrich_respects_time_budget(self):
+        issue = json.loads(json.dumps(self.issue))
+        for m in issue["matches"]:
+            m["okooo_match_id"] = "999"
+        with mock.patch.object(dynamics, "_fetch", return_value=_history_fixture()):
+            enriched = dynamics.enrich_issue(
+                issue, fetch=dynamics._fetch, budget_seconds=0
+            )
+        self.assertEqual(enriched, 0)

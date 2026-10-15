@@ -64,11 +64,11 @@ def _decode(raw: bytes) -> str:
         return raw.decode("gb18030")
 
 
-def _fetch(url: str, attempts: int = 3) -> str:
+def _fetch(url: str, attempts: int = 3, timeout: int = 25) -> str:
     last_error: Exception | None = None
     for attempt in range(attempts):
         try:
-            resp = requests.get(url, headers=HEADERS, timeout=25)
+            resp = requests.get(url, headers=HEADERS, timeout=timeout)
             if resp.status_code != 200:
                 raise DiscoveryError(f"{url} -> HTTP {resp.status_code}")
             text = _decode(resp.content)

@@ -16,11 +16,17 @@ nothing here invents it.
 from __future__ import annotations
 
 import re
+import time
 from datetime import datetime
 
 from bs4 import BeautifulSoup
 
 from src.football.discovery import BJ, DiscoveryError, _fetch
+
+
+def _fetch_dynamics(url: str) -> str:
+    """History pages are best-effort: fail fast so 14 fixtures stay cheap."""
+    return _fetch(url, attempts=2, timeout=12)
 
 HISTORY_URL = "https://www.okooo.com/soccer/match/{match_id}/history/"
 _SCORE_RE = re.compile(r"^(\d{1,2})-(\d{1,2})$")
@@ -189,18 +195,23 @@ def parse_history_page(html: str, kickoff: str) -> dict:
     return dynamics
 
 
-def enrich_issue(issue: dict, fetch=_fetch) -> int:
+def enrich_issue(issue: dict, fetch=None, budget_seconds: float = 150.0) -> int:
     """Fetch dynamics for every match that carries an okooo match id.
 
     Returns how many matches were enriched. Per-match failures degrade
-    silently (that match simply keeps its previous factor coverage);
-    this function never raises.
+    silently (that match simply keeps its previous factor coverage) and
+    enrichment stops when the time budget is exhausted, so a slow or
+    blocking source can never stall the whole cycle; never raises.
     """
+    fetch = fetch or _fetch_dynamics
+    started = time.monotonic()
     enriched = 0
     for match in issue.get("matches", []):
         match_id = match.get("okooo_match_id")
         if not match_id:
             continue
+        if time.monotonic() - started > budget_seconds:
+            break
         try:
             html = fetch(HISTORY_URL.format(match_id=match_id))
             match["dynamics"] = parse_history_page(html, match["kickoff"])
