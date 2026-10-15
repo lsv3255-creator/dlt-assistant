@@ -393,7 +393,7 @@
     document.getElementById("content").hidden = true;
     var box = document.getElementById("error");
     box.hidden = false;
-    if (msg) document.getElementById("error-detail").textContent = msg;
+    document.getElementById("error-detail").textContent = "请稍后刷新页面重试。";
   }
 
   /* 数据档案与复盘（initArchive/fmtUpdated/probeReport）已随首页 V2 重构移除，

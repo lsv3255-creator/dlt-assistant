@@ -60,13 +60,13 @@
     var tickets=comb(counts[0],5)*comb(counts[1],2);
     if (chosen.tickets!==tickets || chosen.basic_yuan!==tickets*2 || chosen.additional_yuan!==tickets*3) throw new Error('cost mismatch');
     var ai = c.ai && c.ai.status === 'completed';
-    var intro = ai ? 'AI 强力推荐 · 模型 '+esc(c.ai.model)+' 已完成复式方案选择与数据依据复核。' : '统计模型组合方案 · 保留已冻结号码；AI 综合分析与推荐理由见下方。';
+    var intro = ai ? 'AI 强力推荐 · 已综合历史数据、组合结构和投注成本进行分析。' : '历史数据组合方案 · AI 综合分析与推荐理由见下方。';
     var refs = ai ? c.ai.factor_refs : chosen.front.slice(0,3).map(function(n){return 'front:'+n;});
     var factors = refs.map(function(ref) { var parts=ref.split(':'), zone=parts[0], n=parts[1]; return '<li>'+ (zone==='front'?'前区':'后区')+' '+esc(n)+'：最近 '+esc(c.window)+' 期出现 '+esc(c.evidence[zone][n])+' 次。</li>'; }).join('');
-    compoundRoot.innerHTML = '<p><strong>'+intro+'</strong></p><p>第 '+esc(c.target_issue)+' 期 · '+esc(chosen.format)+' 复式 · 本期已冻结</p>'+
+    compoundRoot.innerHTML = '<p><strong>'+intro+'</strong></p><p>第 '+esc(c.target_issue)+' 期 · '+esc(chosen.format)+' 复式 · 本期方案已确定</p>'+
       '<div class="ball-row" style="flex-wrap:wrap">'+balls(chosen.front,'front')+'</div><div class="ball-row" style="flex-wrap:wrap;margin-top:10px">'+balls(chosen.back,'back')+'</div>'+
       '<p><strong>'+tickets+' 注 · 基本投注 '+money(chosen.basic_yuan)+'</strong><br>如全部追加：'+money(chosen.additional_yuan)+'（含基本投注）</p>'+
       '<p>保留原正式单注全部号码，依据最近 '+esc(c.window)+' 期出现频率补足号码；同频按号码顺序处理。数据截止 '+esc(c.history_cutoff)+' 期。</p><ul>'+factors+'</ul>'+
       '<p class="hint">复式是一组多注组合，预算明显高于单注。' + (ai ? 'AI 参与方案选择与依据分析；' : '本期由统计模型生成；') + '不保证中奖，评分与频率不代表中奖概率。</p>';
-  }).catch(function () { compoundRoot.textContent = '本期组合推荐待发布或核验；原有正式单注推荐保持可用。'; });
+  }).catch(function () { compoundRoot.textContent = '本期组合推荐暂未更新，原有正式单注推荐仍可查看。'; });
 })();

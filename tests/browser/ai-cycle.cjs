@@ -22,7 +22,7 @@ const fs=require('fs');
   if(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth))throw Error('overflow');
   await page.screenshot({path:'/tmp/ai-cycle-mobile.png',fullPage:true});
   mode='stale';await page.reload({waitUntil:'networkidle'});
-  if(!(await page.locator('#ai-single').innerText()).includes('待生成') || !(await page.locator('#ai-review').innerText()).includes('待生成'))throw Error('stale AI shown');
+  if(!(await page.locator('#ai-single').innerText()).includes('暂未更新') || !(await page.locator('#ai-review').innerText()).includes('暂未更新'))throw Error('stale AI shown');
   mode='failed';await page.reload({waitUntil:'networkidle'});
   if(!(await page.locator('#ai-overview').innerText()).includes('暂不可用') || !await page.locator('#content').isVisible() || await page.locator('#primary-recommendation .ball').count()!==7)throw Error('AI failure blocked homepage');
   if(errors.length)throw Error(errors.join('\n'));

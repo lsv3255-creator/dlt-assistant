@@ -337,18 +337,13 @@
 
   function showError(msg) {
     document.getElementById("error").hidden = false;
-    document.getElementById("error-detail").textContent = msg || "";
+    document.getElementById("error-detail").textContent = "数据暂时无法加载，请稍后重试。";
   }
 
   /* ================= 页面启动：loadJSON → scoreAll → render ================= */
   function init() {
     var period = DEFAULT_PERIOD;
     var modelType = "standard";
-
-    // 版本信息
-    document.getElementById("score-version").textContent = SCORE_VERSION.scoreVersion;
-    document.getElementById("weight-version").textContent = modelType;
-    document.getElementById("generated-from").textContent = SCORE_VERSION.generatedFrom;
 
     var drawSeq = 0;
     function draw(issues) {
@@ -388,7 +383,6 @@
         if (!btn) return;
         modelType = btn.getAttribute("data-model") || "standard";
         this.querySelectorAll("button").forEach(function (b) { b.classList.toggle("active", b === btn); });
-        document.getElementById("weight-version").textContent = modelType;
         draw(this._issues);
       });
     }
@@ -397,10 +391,6 @@
       var issues = res.issues || [];
       if (!issues.length) throw new Error("历史数据为空");
       document.getElementById("period-switch")._issues = issues;
-      // 动态展示实际数据规模（API 全历史 或 快照降级）
-      document.getElementById("generated-from").textContent =
-        SCORE_VERSION.generatedFrom + "（实际 " + issues.length + " 期 · " +
-        (res.source === "api" ? "API 全历史" : "快照降级") + "）";
       draw(issues);
     }).catch(function (err) {
       showError(String(err && err.message ? err.message : err));

@@ -70,15 +70,14 @@
 
   <div id="error" class="error-box" hidden>
     <p>⚠️ 暂未读取到实验推荐数据。</p>
-    <p class="error-detail" id="error-detail"></p>
-    <p class="error-hint">请确认每日实验任务已运行并生成 <code>data/experimental_recommendation.json</code>。</p>
+    <p class="error-detail" id="error-detail">请稍后刷新页面重试。</p>
   </div>
 
   <main id="content">
     <!-- 实验总览 -->
     <section class="card" id="sec-overview">
       <h2>🧭 实验总览</h2>
-      <p class="exp-meta">本页汇总 Phase 15（模型研究）与 Phase 16（娱乐价值实验）的全部结果，目标是<strong>透明、诚实、可追溯</strong>地展示：模型表现如何、与 random 相比如何、哪些特征真正有证据、哪些策略没有证据、娱乐体验有何变化、以及<strong>为什么当前不自动修改生产评分权重</strong>。</p>
+      <p class="exp-meta">本页汇总不同分析方案的历史回放结果，展示各方案的历史表现、与随机基准的差异及其局限。</p>
       <div class="overview-nav">
         <a href="#sec-live">实时实验推荐</a>
         <a href="#sec-overview-models">模型研究总览</a>
@@ -95,18 +94,18 @@
     <!-- ① 最新一期推荐（实时） -->
     <section class="card" id="sec-live">
       <h2>🧪 最新一期实验推荐</h2>
-      <p class="exp-meta">娱乐推荐目标期号：<strong id="target-issue">—</strong> ｜ 生成时间：<strong id="gen-at">—</strong> ｜ 分析策略：<span id="model-ver" class="tag">v2-adaptive</span></p>
+      <p class="exp-meta">娱乐推荐目标期号：<strong id="target-issue">—</strong></p>
+      <span id="gen-at" hidden></span><span id="model-ver" hidden></span>
       <div id="reco-list"></div>
     </section>
 
-    <!-- ② 模型状态 -->
+    <!-- ② 历史表现 -->
     <section class="card">
-      <h2>📡 模型状态</h2>
+      <h2>📡 历史表现概览</h2>
       <div class="status-grid">
-        <div class="status-cell"><div class="label">历史训练期数</div><div class="value" id="st-history">—</div></div>
-        <div class="status-cell"><div class="label">ROI</div><div class="value" id="st-roi">—</div></div>
-        <div class="status-cell"><div class="label">平均命中(前区)</div><div class="value" id="st-win">—</div></div>
-        <div class="status-cell"><div class="label">最近调整参数</div><div class="value" id="st-params">—</div></div>
+        <div class="status-cell"><div class="label">历史样本期数</div><div class="value" id="st-history">—</div></div>
+        <div class="status-cell"><div class="label">历史回报率</div><div class="value" id="st-roi">—</div></div>
+        <div class="status-cell"><div class="label">前区平均命中</div><div class="value" id="st-win">—</div></div>
       </div>
     </section>
 
@@ -121,7 +120,7 @@
 
     <!-- ④ 模型研究总览 -->
     <section class="card" id="sec-overview-models">
-      <h2>📊 模型研究总览（Phase 15）</h2>
+      <h2>📊 模型研究总览</h2>
       <p class="exp-meta">基于全部历史开奖的 walk-forward 回放，对比 v1 / v2 / adaptive / random 的核心指标。</p>
       <div id="model-overview"></div>
     </section>
@@ -146,7 +145,7 @@
 
     <!-- ⑥ 模型诊断 -->
     <section class="card" id="sec-diagnostics">
-      <h2>🔬 模型诊断（Phase 15）</h2>
+      <h2>🔬 模型诊断</h2>
       <p class="exp-meta">为何模型未能稳定超越随机：命中分布可区分性 + 收益稳定性。</p>
       <div id="model-diagnostics"></div>
       <div id="reward-stability"></div>
@@ -154,21 +153,21 @@
 
     <!-- ⑦ 娱乐价值评价 -->
     <section class="card" id="sec-entertainment">
-      <h2>🎲 娱乐价值评价（Phase 16）</h2>
+      <h2>🎲 娱乐价值评价</h2>
       <p class="exp-meta">娱乐价值 = 非预测目标评价（小奖频率 / 空军 / 多样性 / 覆盖率），不衡量预测能力或收益；模型之间差异可能仅为随机噪声。</p>
       <div id="entertainment"></div>
     </section>
 
     <!-- ⑧ 反事实实验 -->
     <section class="card" id="sec-counterfactual">
-      <h2>🧩 反事实实验（Phase 15）</h2>
+      <h2>🧩 反事实实验</h2>
       <p class="exp-meta">探索性分析：移除特征 / 移除策略 / 集成对比，显示 baseline、variant、Δ 与显著性，<strong>同时展示没有显著贡献的实验</strong>。不构成预测能力提升证据。</p>
       <div id="counterfactual"></div>
     </section>
 
     <!-- ⑨ Phase 16 Step 3 稳定性验证 -->
     <section class="card" id="sec-stability">
-      <h2>📈 娱乐约束策略稳定性验证（Phase 16 Step 3）</h2>
+      <h2>📈 娱乐策略稳定性验证</h2>
       <p class="exp-meta">多窗口（200/500/900 期）× 多种子（1/42/123/999）验证 coverage_boost 等约束策略的长期稳定性。非预测目标实验。</p>
       <div id="stability"></div>
     </section>
@@ -184,14 +183,14 @@
     <section class="card" id="sec-method">
       <h2>📚 实验方法与数据来源</h2>
       <ul class="method-list">
-        <li><strong>历史期数</strong>：回放基于 <code>data/dlt_history.json</code>。Phase 15 回放使用约 900 期；Phase 16 使用 200 / 500 / 900 期窗口（取最近 N 期）。</li>
-        <li><strong>每期注数</strong>：Phase 15 每模型每期 5~15 注（ROI 按 2 元/注计算）；Phase 16 每期 5 注。</li>
-        <li><strong>walk-forward 防泄漏</strong>：预测第 N 期仅使用第 1..N-1 期数据，严格避免未来数据泄漏。</li>
-        <li><strong>random 如何生成</strong>：由固定随机种子从合法号码空间独立随机抽取，作为<strong>实验基准</strong>；random 不代表真实预测模型。</li>
+        <li><strong>历史期数</strong>：历史回放使用约 900 期，并以 200 / 500 / 900 期窗口进行对比。</li>
+        <li><strong>每期注数</strong>：各方案每期使用相同数量级的号码组合进行公平比较。</li>
+        <li><strong>避免数据泄漏</strong>：分析第 N 期时仅使用此前已开奖数据。</li>
+        <li><strong>随机基准</strong>：从合法号码范围随机抽取，用于比较各分析方案的历史表现。</li>
         <li><strong>UX 指标定义</strong>：UX = 小奖频率(权重 0.35) + 抗空军(0.25) + 多样性(0.20) + 覆盖率(0.20)，以 random 为锚点归一化（random = 1.0）。</li>
         <li><strong>显著性判定</strong>：命中分布用卡方检验（chi2 &gt; 11.07 即在 0.05 水平与随机分布可区分）；反事实 Δ 用 2σ 判定 significant，并提示多重比较下的假阳性风险。</li>
         <li><strong>探索性 vs 结论性</strong>：反事实消融与娱乐约束优化属于<strong>探索性分析</strong>；模型间差异可能仅为随机噪声，<strong>任何结果都不能解释为中奖概率提升</strong>。</li>
-        <li><strong>数据来源</strong>：本页全部数据派生自 <code>reports/*.json</code> 实验层产物（<code>model_ranking</code> / <code>model_diagnostic_report</code> / <code>feature_gain_report</code> / <code>reward_stability_report</code> / <code>counterfactual_analysis</code> / <code>entertainment_evaluation</code> / <code>phase16_step3_validation</code>），未修改生产推荐链路（scorer / recommender / scheduler / publisher）与生产 <code>recommendations.json</code>。</li>
+        <li><strong>数据来源</strong>：本页分析均基于公开历史开奖数据。</li>
       </ul>
     </section>
   </main>
@@ -200,6 +199,6 @@
     <p>本页数据为基于历史开奖的娱乐性统计实验，所有推荐与结论均<strong>不构成中奖预测</strong>。大乐透为负期望游戏，请理性购彩。</p>
   </footer>
 
-  <script src="./experiment.js"></script>
+  <script src="./experiment.js?v=task45"></script>
 </body>
 </html>
