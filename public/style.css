@@ -132,6 +132,30 @@ html { scroll-behavior: smooth; }
   font-weight: 700;
 }
 .lottery-pill.is-active { border-color: var(--accent); color: var(--accent-deep); background: var(--accent-soft); }
+.lottery-hub { max-width: 720px; margin: 12px auto 0; }
+.lottery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(158px, 1fr));
+  gap: 10px;
+}
+.lottery-card {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 13px 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow);
+  text-decoration: none;
+  color: var(--text);
+  transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+}
+.lottery-card:hover { transform: translateY(-2px); border-color: var(--accent-line); box-shadow: 0 6px 16px rgba(109,40,217,.12); }
+.lottery-card.is-active { border-color: var(--accent); background: var(--accent-soft); }
+.lottery-card .lc-ico { font-size: 1.45rem; line-height: 1.2; }
+.lottery-card .lc-name { font-size: .97rem; font-weight: 700; color: var(--accent-deep); }
+.lottery-card .lc-sub { font-size: .74rem; color: var(--muted); }
 @media (max-width: 400px) {
   .quick-item { padding: 12px 6px; }
   .quick-item .qi-label { font-size: .88rem; }
