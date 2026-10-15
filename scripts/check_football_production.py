@@ -40,7 +40,7 @@ def main() -> None:
             football = json.loads(_get("/api/football-current"))
             validate_football_payload(football)
             page = _get("/football").decode("utf-8")
-            if "足彩AI综合分析" not in page:
+            if "胜负彩14场" not in page:
                 raise ValueError("football page missing")
             dlt = json.loads(_get("/data/dlt_history.json"))
             if not dlt.get("issues"):
@@ -51,7 +51,8 @@ def main() -> None:
             last_error = exc
             if attempt < 5:
                 time.sleep(5)
-    raise SystemExit(f"production smoke failed: {type(last_error).__name__}")
+    reason = str(last_error)[:160] if last_error else "unknown"
+    raise SystemExit(f"production smoke failed: {type(last_error).__name__}: {reason}")
 
 
 if __name__ == "__main__":
