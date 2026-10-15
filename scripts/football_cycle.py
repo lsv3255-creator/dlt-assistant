@@ -120,8 +120,11 @@ def _request_ai(plan: dict) -> dict:
             if any(not isinstance(value, str) or len(value) < 20 for value in sections.values()):
                 raise ValueError("invalid AI text")
             joined = " ".join(sections.values())
+            assertion_text = joined
+            for caution in ("不保证中奖", "不能保证中奖", "无法保证中奖", "并不保证中奖", "不作精准预测", "不能精准预测", "无法精准预测"):
+                assertion_text = assertion_text.replace(caution, "")
             forbidden = ("保证中奖", "稳赚", "稳胆", "精准预测", "状态火热", "伤停名单")
-            if any(word in joined for word in forbidden):
+            if any(word in assertion_text for word in forbidden):
                 raise ValueError("unsupported AI claim")
             if re.search(r"近[0-9一二三四五六七八九十]+场|[0-9一二三四五六七八九十]+连[胜败]|历史交锋.{0,12}[胜败]", joined):
                 raise ValueError("unsupported AI form claim")
