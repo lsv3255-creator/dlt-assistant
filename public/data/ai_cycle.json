@@ -1,11 +1,113 @@
 {
   "schema_version": 1,
   "game_id": "dlt",
-  "updated_at": "2026-10-15T01:19:21.455219+00:00",
+  "updated_at": "2026-10-15T01:22:50.760736+00:00",
   "analysis": null,
-  "review": null,
+  "review": {
+    "status": "completed",
+    "model": "nvidia/nemotron-3-super-120b-a12b:free",
+    "route": "openrouter/free",
+    "prompt_version": "dlt-ai-cycle-v4",
+    "generated_at": "2026-10-15T01:23:03.868749+00:00",
+    "input_hash": "56da871af4753a3381bfa274c741dd9736caebcfdafc72b63e050fb3b6fb025c",
+    "sections": {
+      "summary": {
+        "text": "本期单注命中1+1，未中奖。结构对比显示推荐前区和值90，实际和值96，偏差6；奇数个数均为4个，结构贴合但号码未命中。命中分布仅1前1后，说明号码分散度低，未能覆盖开奖号码的分布特征。单注成本2元，奖金0元，反映低覆盖率下的典型结果。",
+        "evidence_ids": [
+          "single_outcome",
+          "draw",
+          "structure_comparison"
+        ]
+      },
+      "reason_check": {
+        "text": "无事前AI分析记录，仅作事后解读。prior_analysis明确说明当期没有开奖前AI分析，reason_audit要求如实指出这一限制。因此无法核验事前理由，所有评审均基于事后数据，不具预测性或策略验证意义。",
+        "evidence_ids": [
+          "prior_analysis",
+          "reason_audit"
+        ]
+      },
+      "limitations": {
+        "text": "样本仅限单注，无法评估覆盖率或组合效能；uncertainty提醒结果不能证明预测能力；single_outcome注明为假设投注结算，非真实客户收益。这些限制使得无法从单次结果推断策略有效性或号码选择的合理性。",
+        "evidence_ids": [
+          "uncertainty",
+          "single_outcome"
+        ]
+      },
+      "next_focus": {
+        "text": "下一期应关注号码分布的均匀性与结构偏差的可解释性，避免过度依赖单一维度贴合（如奇偶个数）。需结合historical frequency与gap分析提升覆盖广度，而非仅匹配和值或奇偶。同时明确任何方案均为对照组，不具预测功能。",
+        "evidence_ids": [
+          "structure_comparison",
+          "original_statistical_basis"
+        ]
+      }
+    },
+    "kind": "review",
+    "issue": "26117",
+    "identity": {
+      "issue": "26117",
+      "single": {
+        "front": [
+          1,
+          11,
+          19,
+          26,
+          33
+        ],
+        "back": [
+          9,
+          12
+        ]
+      },
+      "actual": {
+        "front": [
+          4,
+          13,
+          19,
+          29,
+          31
+        ],
+        "back": [
+          2,
+          12
+        ]
+      },
+      "snapshot_hash": "0b88bbce72149804c01bc1b84c63545ab4820fd7d93795083005ab0ea4dd97c6",
+      "compound": null
+    },
+    "evidence": {
+      "single_outcome": "展开1注，命中分布（前区+后区）：1+1命中1注；奖级：未中奖；基本成本2元，税前基本奖金0元。是假设投注结算，不是客户真实收益。",
+      "draw": "实际开奖前区[4, 13, 19, 29, 31]，后区[2, 12]；期号26117，日期2026-10-14。",
+      "single_frozen": "当期冻结单注前区[1, 11, 19, 26, 33]，后区[9, 12]；当时评分42.68；当期冻结记录完整性已校验。",
+      "uncertainty": "本次结果不能证明预测能力或策略优势；不能把命中等级当作中奖奖级；成本与回报均为按公告结算的假设投注，不是客户真实投注。",
+      "original_statistical_basis": "本期候选由随机基线策略在合法规则下随机生成，作为与统计型策略对比的对照候选，不代表任何统计倾向或走势判断。",
+      "structure_comparison": "推荐前区和值90、实际和值96，绝对偏差6；推荐前区奇数4个，实际前区奇数4个。结构贴合不等于号码命中。",
+      "compound_outcome": "当期没有已发布复式记录，不能事后补造复式或推算其中奖表现。",
+      "prior_analysis": "当期没有开奖前AI分析记录；本次仅为事后解读，无事前AI理由可核验，不得声称AI当时推荐或预测过。",
+      "reason_audit": "无事前AI理由，必须如实指出这一限制。"
+    },
+    "settlement": {
+      "single": {
+        "matches": {
+          "1+1": 1
+        },
+        "prizes": [],
+        "tickets": 1,
+        "basic_cost_yuan": 2,
+        "basic_payout_yuan": "0",
+        "all_additional_cost_yuan": 3,
+        "all_additional_payout_yuan": "0",
+        "payout_status": "verified",
+        "rule_version": "26014-seven-tiers",
+        "rule_source": "https://m.lottery.gov.cn/ksjz/m/yxgz_dlt/",
+        "simulation": true
+      },
+      "compound": null
+    },
+    "has_pre_draw_ai": false,
+    "prior_analysis_hash": null
+  },
   "statuses": {
-    "review": "invalid_response",
-    "analysis": "awaiting_review"
+    "review": "completed",
+    "analysis": "invalid_response"
   }
 }
