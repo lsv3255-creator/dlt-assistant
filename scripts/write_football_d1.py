@@ -6,6 +6,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SOURCE = ROOT / "public/data/football/current.json"
+JINGCAI_SOURCE = ROOT / "public/data/jingcai/current.json"
 OUTPUT = ROOT / ".verify_tmp/football_current_d1.sql"
 
 
@@ -103,11 +104,77 @@ def build_sql(data: dict) -> str:
     return "\n".join(lines) + "\n"
 
 
+JINGCAI_SCHEMA = [
+    "CREATE TABLE IF NOT EXISTS jingcai_current_snapshot("
+    "slot INTEGER PRIMARY KEY, sale_date TEXT, public_payload TEXT, updated_at TEXT);",
+]
+
+
+def build_jingcai_sql(payload: dict) -> str:
+    """Jingcai lines appended after the football block (best-effort).
+
+    The jingcai snapshot is a single current row, published last in
+    its block; jingcai fixtures also feed the shared team archive
+    under a JC<date> issue label.
+    """
+    lines = list(JINGCAI_SCHEMA)
+    archive_view = {
+        "issue": f"JC{payload['sale_date']}",
+        "matches": payload["matches"],
+    }
+    lines.extend(build_team_sql(archive_view))
+    lines.append(
+        "INSERT INTO jingcai_current_snapshot(slot,sale_date,public_payload,updated_at) "
+        f"VALUES(1,{sql_text(payload['sale_date'])},{sql_text(payload)},datetime('now')) "
+        "ON CONFLICT(slot) DO UPDATE SET sale_date=excluded.sale_date,"
+        "public_payload=excluded.public_payload,updated_at=datetime('now');"
+    )
+    return "\n".join(lines) + "\n"
+
+
 def main() -> None:
+    import os
+
     data = json.loads(SOURCE.read_text(encoding="utf-8"))
+    sql = build_sql(data)
+    if JINGCAI_SOURCE.exists():
+        original = JINGCAI_SOURCE.read_bytes()
+        try:
+            payload = json.loads(original.decode("utf-8"))
+            if payload.get("matches"):
+                sql += build_jingcai_sql(payload)
+                print(f"jingcai {payload['sale_date']}: D1 current snapshot SQL ready")
+        except Exception as exc:  # jingcai must never break football D1
+            print(f"jingcai_d1_skipped: {type(exc).__name__}: {str(exc)[:120]}")
+        if os.environ.get("CI"):
+            # The jingcai payload was consumed above; restore the
+            # checked-out bytes so the workflow's bot-commit step
+            # (git pull --rebase) does not trip over a dirty tree.
+            # The committed copy is only the static fallback — D1,
+            # written from the fresh payload, is the primary channel.
+            try:
+                committed = _committed_bytes(JINGCAI_SOURCE)
+                if committed is not None and JINGCAI_SOURCE.read_bytes() != committed:
+                    JINGCAI_SOURCE.write_bytes(committed)
+            except Exception:
+                pass
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
-    OUTPUT.write_text(build_sql(data), encoding="utf-8")
+    OUTPUT.write_text(sql, encoding="utf-8")
     print(f"football issue {data['issue']}: D1 current snapshot SQL ready")
+
+
+def _committed_bytes(path: Path) -> bytes | None:
+    """Bytes of ``path`` as committed at HEAD, via git (CI checkout)."""
+    import subprocess
+
+    relative = path.relative_to(ROOT).as_posix()
+    result = subprocess.run(
+        ["git", "show", f"HEAD:{relative}"],
+        cwd=ROOT,
+        capture_output=True,
+        timeout=30,
+    )
+    return result.stdout if result.returncode == 0 else None
 
 
 if __name__ == "__main__":
