@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import sys
 from pathlib import Path
 
@@ -119,9 +120,11 @@ def _request_ai(plan: dict) -> dict:
             if any(not isinstance(value, str) or len(value) < 20 for value in sections.values()):
                 raise ValueError("invalid AI text")
             joined = " ".join(sections.values())
-            forbidden = ("保证中奖", "稳赚", "稳胆", "精准预测", "伤停", "连胜", "状态火热", "历史交锋", "主场优势")
+            forbidden = ("保证中奖", "稳赚", "稳胆", "精准预测", "状态火热", "伤停名单")
             if any(word in joined for word in forbidden):
                 raise ValueError("unsupported AI claim")
+            if re.search(r"近[0-9一二三四五六七八九十]+场|[0-9一二三四五六七八九十]+连[胜败]|历史交锋.{0,12}[胜败]", joined):
+                raise ValueError("unsupported AI form claim")
             return {"status": "completed", "title": "AI 综合分析", "sections": sections}
         except (requests.RequestException, KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
             failures.append(type(exc).__name__ + ":" + str(exc)[:120])
