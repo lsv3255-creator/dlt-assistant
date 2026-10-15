@@ -87,6 +87,7 @@ def _request_ai(plan: dict) -> dict:
     models = [route] if route != "openrouter/free" else [
         "dots-studio/dots-3-note-preview:free", "openrouter/free"
     ]
+    failures = []
     for model in models:
         try:
             response = requests.post(
@@ -98,6 +99,7 @@ def _request_ai(plan: dict) -> dict:
                     "max_tokens": 2400,
                     "reasoning": {"enabled": False},
                     "response_format": schema,
+                    "provider": {"require_parameters": True},
                     "messages": [
                         {"role": "system", "content": prompt},
                         {"role": "user", "content": json.dumps(facts, ensure_ascii=False)},
@@ -106,7 +108,12 @@ def _request_ai(plan: dict) -> dict:
                 timeout=90,
             )
             response.raise_for_status()
-            sections = json.loads(response.json()["choices"][0]["message"]["content"])
+            content = response.json()["choices"][0]["message"]["content"].strip()
+            # Some free endpoints wrap otherwise valid structured JSON in markdown.
+            start, end = content.find("{"), content.rfind("}")
+            if start < 0 or end <= start:
+                raise ValueError("AI response did not contain a JSON object")
+            sections = json.loads(content[start:end + 1])
             if set(sections) != {"overview", "sfc_reason", "r9_reason", "risk"}:
                 raise ValueError("invalid AI sections")
             if any(not isinstance(value, str) or len(value) < 20 for value in sections.values()):
@@ -116,8 +123,10 @@ def _request_ai(plan: dict) -> dict:
             if any(word in joined for word in forbidden):
                 raise ValueError("unsupported AI claim")
             return {"status": "completed", "title": "AI 综合分析", "sections": sections}
-        except (requests.RequestException, KeyError, TypeError, ValueError, json.JSONDecodeError):
+        except (requests.RequestException, KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
+            failures.append(type(exc).__name__ + ":" + str(exc)[:120])
             continue
+    print("football_ai_fallback: " + " | ".join(failures))
     return _fallback_ai(plan)
 
 
