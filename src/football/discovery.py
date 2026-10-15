@@ -254,7 +254,7 @@ def find_on_sale_issue(current: int, now: datetime) -> tuple[int, str]:
     around the current issue. A candidate counts only when its page
     shows a sale deadline still in the future.
     """
-    candidates: set[int] = set(range(current - 3, current + 4))
+    candidates: set[int] = set(range(current - 3, current + 9))
     pages: dict[int, str] = {}
     for url in (INDEX_URL, ISSUE_URL.format(issue=current)):
         try:
@@ -266,7 +266,9 @@ def find_on_sale_issue(current: int, now: datetime) -> tuple[int, str]:
             pages[current] = html
     best: tuple[datetime, int, str] | None = None
     for number in sorted(candidates):
-        if not (current - 3 <= number <= current + 3):
+        # Look a little behind (a still-open earlier issue) and further
+        # ahead, so a lagging repository file cannot strand discovery.
+        if not (current - 3 <= number <= current + 8):
             continue
         try:
             html = pages.get(number) or _fetch(ISSUE_URL.format(issue=number))
