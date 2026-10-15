@@ -17,6 +17,7 @@ from src.publisher import snapshot_hash
 
 ROOT = Path(__file__).resolve().parent.parent
 VERSION = 'dlt-ai-cycle-v3'
+FORBIDDEN = ['随机生成','随机基线','回归均衡','稳定性存疑','捕获能力','号码无重合','号码本身无重叠',r'预算.{0,8}合理','近期走势','市场环境','表现均衡','可接受范围']
 RULE_SOURCE = 'https://m.lottery.gov.cn/ksjz/m/yxgz_dlt/'
 SECTIONS = {
     'analysis': ['overview', 'single_reason', 'compound_reason', 'risk', 'next_focus'],
@@ -248,7 +249,8 @@ def validate_response(raw,context):
             if Decimal(token) not in allowed:raise ValueError('unverified_numeric_'+key+'_'+token)
         for token in re.findall(r'[零〇一二两三四五六七八九十百千万]+(?=元|个|注|次)',text):
             if Decimal(chinese_number(token)) not in allowed:raise ValueError('unverified_numeric_'+key+'_'+token)
-        if re.search(r'随机生成|随机基线|回归均衡|稳定性存疑|捕获能力|号码无重合|号码本身无重叠|预算.{0,8}合理|近期走势|市场环境|表现均衡|可接受范围',text):raise ValueError('unsupported_interpretation')
+        for index,pattern in enumerate(FORBIDDEN):
+            if re.search(pattern,text):raise ValueError('unsupported_interpretation_'+str(index))
         if key=='single_reason' and not any(r.startswith('single_') for r in refs):raise ValueError('single evidence required')
         if key=='compound_reason' and not any(r.startswith('compound_') for r in refs):raise ValueError('compound evidence required')
     return raw
@@ -281,13 +283,15 @@ def request_analysis(context):
         'schema':{'type':'object','properties':properties,'required':SECTIONS[context['kind']],'additionalProperties':False}}}
     last='provider_unavailable';feedback='首次请求'
     for attempt in range(3):
+        # Prefer a verified structured-output free endpoint; never add a paid route.
+        selected_route=route if route!='openrouter/free' else ['nvidia/nemotron-3-super-120b-a12b:free','dots-studio/dots-3-note-preview:free','openrouter/free'][attempt]
         try:
             response=requests.post(url+'/chat/completions',headers={'Authorization':'Bearer '+key},json={
-                'model':route,'temperature':0,'max_tokens':7000,'reasoning':{'enabled':False},'response_format':response_format,'provider':{'require_parameters':True},
+                'model':selected_route,'temperature':0,'max_tokens':7000,'reasoning':{'enabled':False},'response_format':response_format,'provider':{'require_parameters':True},
                 'messages':[{'role':'system','content':prompt+'\n若上次失败，请根据以下校验结果重写：'+feedback+'。所有章节必须逐项返回；写出引用中的具体数值并解释取舍，禁止没有证据的定性评价；引用只选对应章节schema枚举内的ID。'},{'role':'user','content':json.dumps({'template':schema,'context':context},ensure_ascii=False)}]},timeout=(10,75))
             if not response.ok:
                 last=f'http_{response.status_code}'
-                if response.status_code in (401,402,403,404) or (response.status_code==400 and route!='openrouter/free'):break
+                if response.status_code in (401,402,403) or (response.status_code in (400,404) and route!='openrouter/free'):break
                 if attempt<2:time.sleep(3)
                 continue
             body=response.json();choice=body['choices'][0];content=choice['message'].get('content')
@@ -306,6 +310,8 @@ def request_analysis(context):
             last='invalid_response'
             reason=str(exc) if re.fullmatch(r'[a-z_0-9 .]{1,90}',str(exc)) else 'json_or_schema_error'
             feedback=reason+'；请删去随机生成、随机基线、回归均衡、稳定性存疑、捕获能力、号码无重合、号码本身无重叠等表述，改为客观评审；每段仅依据自己引用的数据。若报unverified_numeric，错误后缀即未获本段引用支持的数值，请为本段引用该数字对应的证据ID；没有可用引用就删去该数字，禁止改成中文数词绕过。'
+            if reason.startswith('unsupported_interpretation_'):
+                feedback+=' 具体需删去的表述：'+FORBIDDEN[int(reason.rsplit('_',1)[1])]+'。'
             print('ai_cycle_validation',context['kind'],reason)
         except requests.RequestException:last='connection_error'
         if attempt<2:time.sleep(3)
