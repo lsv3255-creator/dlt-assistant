@@ -1,3 +1,8 @@
+## 2026-10-15 — Phase 11 Task #43 免费在线AI连接验证通过
+
+2026-10-15 08:33 中国时间：GitHub Actions run 38660623874 / job 116180736331 success。AI_CONNECTIVITY、SCHEMA_AND_EVIDENCE、ALL_PUBLIC_DATA_UNCHANGED 均 PASS。实际模型 nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free，免费路由测试返回合法10+3候选（仅内存测试，不发布、不替换当前8+4）。
+- 新增只读验证 workflow，无部署、无写回，不打印密钥或上游错误正文。
+
 ## 2026-10-15 — Phase 11 Task #42（已上线；AI 调用待配置）
 
 - 首页接入已核验开奖公告：各奖级基本/追加注数、每注奖金、奖金合计、销售额、奖池、兑奖截止与官方来源。
