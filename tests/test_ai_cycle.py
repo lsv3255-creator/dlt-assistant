@@ -115,6 +115,18 @@ class AICycleTests(unittest.TestCase):
             raw['overview']['text']=text
             with self.assertRaises(ValueError):m.validate_response(raw,ctx)
 
+    def test_chinese_quantity_conversion(self):
+        for text,expected in [('一',1),('零四',4),('一零',10),('六百七十二',672),('一千零八',1008),('五十',50),('两百',200)]:
+            self.assertEqual(m.chinese_number(text),expected)
+
+    def test_free_router_transient_bad_endpoint_is_retried(self):
+        ctx=self.context();bad=Mock(ok=False,status_code=400);good=Mock(ok=True)
+        good.json.return_value={'model':'actual/free-model:free','choices':[{'message':{'content':json.dumps(fake_response(ctx)['sections'])}}]}
+        env={'DLT_AI_API_KEY':'TEST','DLT_AI_BASE_URL':'https://openrouter.ai/api/v1','DLT_AI_MODEL':'openrouter/free'}
+        with patch.dict('os.environ',env),patch.object(m.requests,'post',side_effect=[bad,good]) as post,patch.object(m.time,'sleep'):
+            self.assertEqual(m.request_analysis(ctx)['status'],'completed')
+            self.assertEqual(post.call_count,2)
+
     def test_free_route_only(self):
         env={'DLT_AI_API_KEY':'TEST','DLT_AI_BASE_URL':'https://openrouter.ai/api/v1','DLT_AI_MODEL':'paid/model'}
         with patch.dict('os.environ',env),patch.object(m.requests,'post') as post:
