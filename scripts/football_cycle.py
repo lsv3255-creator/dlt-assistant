@@ -32,10 +32,18 @@ def _atomic_write(path: Path, value) -> None:
 def evidence(plan: dict) -> dict[str, str]:
     uncertain = [row for row in plan["matches"] if len(row["sfc_choices"]) == 2]
     r9_orders = plan["plans"]["ren9"]["orders"]
+    dynamic_rows = [row for row in plan["matches"] if row.get("dynamics")]
+    if dynamic_rows:
+        coverage = (
+            f"本期{len(dynamic_rows)}/14场已有市场、排名、主客场、近期状态、"
+            "休息天数与交锋记录参与计算；伤停尚无结构化可靠来源，不参与计算。"
+        )
+    else:
+        coverage = "本期14场均有市场、排名和主客场三类可核验输入；尚无可靠来源的近期状态、伤停、休息天数和交锋数据不参与计算。"
     return {
         "schedule": f'第{plan["issue"]}期共14场，停售时间{plan["sale_end"]}，场次身份已与官方公告固定。',
         "factor_method": "程序先综合市场相对概率、同联赛排名差和主客场保守先验，再用结果差距衡量分歧；这些是辅助比较，不是真实胜率。",
-        "factor_coverage": "本期14场均有市场、排名和主客场三类可核验输入；尚无可靠来源的近期状态、伤停、休息天数和交锋数据不参与计算。",
+        "factor_coverage": coverage,
         "sfc_cover": "14场方案对分歧最大的5场采用双选，其余采用单选；共展开32注，基本金额64元。",
         "sfc_uncertain": "重点防范场次：" + "、".join(f'{r["order"]}场{r["home"]}vs{r["away"]}' for r in uncertain) + "。",
         "r9_scope": "任选九只保留相对置信差更清晰的9场：" + "、".join(str(order) for order in r9_orders) + "场。",
@@ -165,9 +173,32 @@ def _refresh_issue_from_source() -> None:
         )
 
 
+def _enrich_issue_dynamics(issue: dict) -> None:
+    """Best-effort per-issue team dynamics (Phase 13 step 2).
+
+    Fetches each fixture's recent form / rest days / head-to-head from
+    okooo history pages and archives them into the issue for the engine
+    and the D1 team archive. Any failure leaves the issue untouched.
+    """
+    try:
+        from src.football.dynamics import enrich_issue
+
+        enriched = enrich_issue(issue)
+        print(f"football_dynamics: enriched={enriched}/14")
+    except Exception as exc:  # dynamics must never break the cycle
+        print(
+            "football_dynamics_fallback: "
+            + type(exc).__name__
+            + ": "
+            + str(exc)[:160]
+        )
+
+
 def main() -> None:
     _refresh_issue_from_source()
     issue = _read(SOURCE)
+    if issue:
+        _enrich_issue_dynamics(issue)
     if not issue:
         raise SystemExit("current football issue is missing")
     plan = build_plan(issue)
