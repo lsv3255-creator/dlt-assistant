@@ -4,6 +4,7 @@ import unittest
 from pathlib import Path
 
 from scripts.write_football_d1 import build_sql
+from scripts.check_football_production import validate_football_payload
 from src.football.engine import build_plan, freeze_existing_recommendation, issue_fingerprint, settle, validate_issue
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -126,6 +127,18 @@ class FootballModuleTests(unittest.TestCase):
         self.assertIn("SELECT public_payload", api)
         self.assertNotIn("updated_at FROM", api)
         self.assertNotIn("identity_hash", api)
+
+    def test_production_smoke_contract_accepts_public_snapshot(self):
+        public = json.loads((ROOT / "public/data/football/current.json").read_text())
+        public["ai"]["status"] = "completed"
+        validate_football_payload(public)
+
+    def test_production_smoke_rejects_backend_metadata(self):
+        public = json.loads((ROOT / "public/data/football/current.json").read_text())
+        public["ai"]["status"] = "completed"
+        public["identity_hash"] = "hidden"
+        with self.assertRaises(ValueError):
+            validate_football_payload(public)
 
     def test_dlt_workflow_is_not_modified_by_football_workflow(self):
         football = (ROOT / ".github/workflows/football-analysis.yml").read_text()

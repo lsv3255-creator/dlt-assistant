@@ -8,6 +8,7 @@ on:
       - data/football/current_issue.json
       - scripts/football_cycle.py
       - scripts/write_football_d1.py
+      - scripts/check_football_production.py
       - src/football/**
       - public/football.*
       - functions/api/football-current.ts
@@ -86,4 +87,6 @@ jobs:
             exit 0
           fi
           npx --yes wrangler@latest pages deploy public --project-name dlt-assistant --branch master --commit-dirty=true
+      - name: 正式站足彩与大乐透隔离验收
+        run: python scripts/check_football_production.py
 
