@@ -1,0 +1,22 @@
+.football-page { --accent:#0f766e; --accent-deep:#115e59; --accent-soft:#ecfdf5; --accent-line:#99f6e4; }
+.football-header { background:radial-gradient(130% 120% at 50% -10%,#ccfbf1 0%,rgba(236,253,245,0) 70%),var(--bg); }
+.site-nav { max-width:720px;margin:12px auto 0;padding:0 14px;display:grid;grid-template-columns:repeat(2,1fr);gap:10px; }
+.site-nav [aria-current="page"] { border-color:var(--accent);background:var(--accent-soft); }
+.issue-meta { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px; }
+.metric { background:#f8fafc;border:1px solid var(--line);border-radius:12px;padding:10px; }
+.metric small { display:block;color:var(--muted); }
+.ai-state { display:inline-block;padding:3px 9px;border-radius:999px;background:var(--accent-soft);color:var(--accent-deep);font-size:.78rem;font-weight:700; }
+.ai-section { margin:12px 0;padding:12px;background:#f8fafc;border-radius:12px; }
+.ai-section strong { display:block;color:var(--accent-deep);margin-bottom:4px; }
+.plan-strip { display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 14px; }
+.plan-chip { padding:6px 10px;border-radius:999px;background:var(--accent-soft);color:var(--accent-deep);font-weight:700; }
+.match-row { display:grid;grid-template-columns:38px 1fr auto;gap:10px;align-items:center;padding:12px 0;border-top:1px solid var(--line); }
+.match-order { width:32px;height:32px;display:grid;place-items:center;border-radius:9px;background:#e2e8f0;font-weight:800; }
+.match-name { font-weight:700; }
+.match-meta { font-size:.78rem;color:var(--muted); }
+.choices { display:flex;gap:5px; }
+.choice { min-width:30px;text-align:center;padding:5px 7px;border-radius:8px;background:var(--accent);color:white;font-weight:800; }
+.choice.secondary { background:#f59e0b; }
+.source-link { display:block;margin:8px 0;color:var(--accent-deep);overflow-wrap:anywhere; }
+@media (max-width:520px) { .issue-meta { grid-template-columns:1fr; }.match-row { grid-template-columns:34px 1fr; }.choices { grid-column:2; } }
+

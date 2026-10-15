@@ -110,6 +110,28 @@ html { scroll-behavior: smooth; }
 .quick-item .qi-ico { font-size: 1.5rem; line-height: 1.2; }
 .quick-item .qi-label { font-size: .96rem; font-weight: 700; color: var(--accent-deep); }
 .quick-item .qi-sub { font-size: .74rem; color: var(--muted); }
+.lottery-switch {
+  max-width: 720px;
+  margin: 12px auto 0;
+  padding: 0 14px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  overflow-x: auto;
+}
+.lottery-switch-label { color: var(--muted); font-size: .82rem; flex: 0 0 auto; }
+.lottery-pill {
+  flex: 0 0 auto;
+  padding: 7px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--text);
+  text-decoration: none;
+  font-size: .84rem;
+  font-weight: 700;
+}
+.lottery-pill.is-active { border-color: var(--accent); color: var(--accent-deep); background: var(--accent-soft); }
 @media (max-width: 400px) {
   .quick-item { padding: 12px 6px; }
   .quick-item .qi-label { font-size: .88rem; }
