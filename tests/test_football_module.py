@@ -163,11 +163,12 @@ from src.football import discovery
 _FULL_TO_SHORT = {v: k for k, v in discovery.TEAM_NAME_FIXES.items()}
 
 
-def _okooo_fixture(issue: dict, marker_issue: int) -> str:
-    """Build an okooo-like issue page from a curated issue dict."""
-    tabs = " ".join(
-        f"{n}期(当前)" if n == marker_issue else f"{n}期"
-        for n in (int(issue["issue"]) - 1, int(issue["issue"]), int(issue["issue"]) + 1)
+def _okooo_fixture(issue: dict) -> str:
+    """Build an okooo-like issue page (real row layout) from an issue dict."""
+    current_no = int(issue["issue"])
+    tabs = "".join(
+        f'<a href="/zucai/{n}/" class="jsQihaoTab">{n}期</a>'
+        for n in (current_no - 1, current_no, current_no + 1, current_no + 2)
     )
     sale_end = issue["sale_end"]
     rows = []
@@ -175,18 +176,19 @@ def _okooo_fixture(issue: dict, marker_issue: int) -> str:
         kickoff = m["kickoff"][5:10] + " " + m["kickoff"][11:16]
         rows.append(
             "<tr><td>{order}</td><td>{league}</td><td>{kickoff}</td>"
-            "<td>{home}[{hr}]</td><td>{o3}</td><td>{o1}</td><td>{o0}</td>"
-            "<td>{away}[{ar}]</td><td>析情</td></tr>".format(
+            "<td><i>[{hr}]</i><em>{o3:.2f}</em><span>{home}</span>"
+            "<em>{o1:.2f}</em><i>[{ar}]</i><em>{o0:.2f}</em><span>{away}</span></td>"
+            "<td>析情</td></tr>".format(
                 order=m["order"], league=m["league"], kickoff=kickoff,
                 home=_FULL_TO_SHORT.get(m["home"], m["home"]), hr=m["home_rank"],
                 away=_FULL_TO_SHORT.get(m["away"], m["away"]), ar=m["away_rank"],
-                o3=f"{m['odds']['3']:.2f}", o1=f"{m['odds']['1']:.2f}", o0=f"{m['odds']['0']:.2f}",
+                o3=m["odds"]["3"], o1=m["odds"]["1"], o0=m["odds"]["0"],
             )
         )
     filler = "<p>澳客网足彩数据</p>" * 60
     return (
         "<html><body><div>" + tabs + "</div>"
-        f"<div>停售时间：{sale_end[5:10]}(周五){sale_end[11:16]}</div>"
+        f'<div class="overTime">截止时间:<em> {sale_end[5:10]}(周五) {sale_end[11:16]}</em></div>'
         + filler
         + "<table>" + "".join(rows) + "</table></body></html>"
     )
@@ -198,15 +200,14 @@ class FootballDiscoveryTests(unittest.TestCase):
         cls.issue = json.loads((ROOT / "data/football/current_issue.json").read_text())
         cls.now = discovery.datetime(2026, 10, 15, 12, 0, tzinfo=discovery.BJ)
 
-    def test_marker_found_and_missing(self):
-        html = _okooo_fixture(self.issue, int(self.issue["issue"]))
-        text = discovery.BeautifulSoup(html, "html.parser").get_text(" ", strip=True)
-        self.assertEqual(discovery.current_issue_marker(text), int(self.issue["issue"]))
-        with self.assertRaises(discovery.DiscoveryError):
-            discovery.current_issue_marker("没有当前标记")
+    def test_tabs_listed(self):
+        html = _okooo_fixture(self.issue)
+        tabs = discovery.tabulated_issues(html)
+        self.assertIn(int(self.issue["issue"]), tabs)
+        self.assertEqual(tabs, sorted(tabs))
 
     def test_parse_roundtrip_matches_curated_issue(self):
-        html = _okooo_fixture(self.issue, int(self.issue["issue"]))
+        html = _okooo_fixture(self.issue)
         parsed = discovery.parse_issue_page(html, int(self.issue["issue"]), self.now)
         validate_issue(parsed)
         self.assertEqual(parsed["matches"], self.issue["matches"])
@@ -214,22 +215,26 @@ class FootballDiscoveryTests(unittest.TestCase):
         self.assertEqual(parsed["draw_date"], self.issue["draw_date"])
 
     def test_refresh_same_issue_is_unchanged(self):
-        html = _okooo_fixture(self.issue, int(self.issue["issue"]))
+        current_no = int(self.issue["issue"])
+        pages = {discovery.ISSUE_URL.format(issue=current_no): _okooo_fixture(self.issue)}
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "current_issue.json"
             path.write_text(json.dumps(self.issue, ensure_ascii=False), encoding="utf-8")
-            with mock.patch.object(discovery, "_fetch", return_value=html):
+            with mock.patch.object(discovery, "_fetch", side_effect=lambda url: pages[url]):
                 status, issue = discovery.refresh_issue_file(path, self.now)
             self.assertEqual((status, issue), ("unchanged", self.issue["issue"]))
 
-    def test_refresh_switches_to_next_issue_and_freezes_scope(self):
+    def test_refresh_switches_after_deadline_passes(self):
         current_no = int(self.issue["issue"])
+        closed = json.loads(json.dumps(self.issue))
+        closed["sale_end"] = "2026-10-14T22:00:00+08:00"
         nxt = json.loads(json.dumps(self.issue))
         nxt["issue"] = str(current_no + 1)
-        landing = _okooo_fixture(self.issue, current_no + 1)
-        next_page = _okooo_fixture(nxt, current_no + 1)
-        pages = {discovery.ISSUE_URL.format(issue=current_no): landing,
-                 discovery.ISSUE_URL.format(issue=current_no + 1): next_page}
+        nxt["sale_end"] = "2026-10-18T22:00:00+08:00"
+        pages = {
+            discovery.ISSUE_URL.format(issue=current_no): _okooo_fixture(closed),
+            discovery.ISSUE_URL.format(issue=current_no + 1): _okooo_fixture(nxt),
+        }
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "current_issue.json"
             path.write_text(json.dumps(self.issue, ensure_ascii=False), encoding="utf-8")
@@ -238,6 +243,7 @@ class FootballDiscoveryTests(unittest.TestCase):
             self.assertEqual((status, issue), ("switched", str(current_no + 1)))
             written = json.loads(path.read_text())
             validate_issue(written)
+            self.assertEqual(written["sale_end"], "2026-10-18T22:00:00+08:00")
             self.assertEqual(len(written["matches"]), 14)
 
     def test_refresh_failure_leaves_file_untouched(self):
