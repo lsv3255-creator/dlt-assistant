@@ -1,0 +1,27 @@
+name: DLT additive modules checks
+on:
+  push:
+    branches: [feature/dlt-details-ai-compound]
+  pull_request:
+    branches: [master]
+jobs:
+  compatibility:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: pip install requests beautifulsoup4 pyyaml
+      - run: python -m unittest tests.test_compound tests.test_publisher tests.test_p43_publication_integrity tests.test_p42_wording_integrity -q
+      - run: node --check public/app.js && node --check public/draw-enhancements.js
+      - run: npm install --no-save --package-lock=false playwright
+      - run: npx playwright install --with-deps chromium
+      - name: Browser smoke and failure isolation
+        run: |
+          python -m http.server 8877 --directory public > /tmp/dlt-http.log 2>&1 &
+          node tests/browser/task42.cjs

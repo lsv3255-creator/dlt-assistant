@@ -1,3 +1,10 @@
+## 2026-10-15 — Phase 11 Task #42（功能分支验证中）
+
+用户授权补齐奖金公告、具体推荐理由与独立复式方案，原单注及冻结快照不变。
+57 项本地针对性测试 PASS，JavaScript 语法 PASS；GitHub 浏览器检查与生产发布待验证。
+真实 AI 接口已实现，模型凭据需在 Actions Secrets 配置；未配置时如实显示统计版本，不标注 AI 已参与。
+权威任务文档：docs/tasks/PHASE11-TASK42-AI-COMPOUND.md。
+
 
 ## 2026-10-09 — Phase 11 Task #41 开奖详情（功能分支待生产验收）
 

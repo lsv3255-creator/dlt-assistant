@@ -66,12 +66,26 @@
       <p class="latest-analysis" id="latest-analysis">—</p>
     </section>
 
+    <section class="card" aria-labelledby="draw-detail-title">
+      <h2 id="draw-detail-title">📋 详细开奖公告</h2>
+      <label for="draw-detail-issue">选择期号：</label>
+      <select id="draw-detail-issue" aria-label="开奖详情期号"></select>
+      <p id="draw-detail-coverage" class="hint"></p>
+      <div id="draw-details-body" aria-live="polite">正在读取官方奖金详情…</div>
+    </section>
+
     <!-- ② 本期唯一推荐（P1-1：普通用户仅见一条正式推荐；A/B/C/D 为后台候选，不在此呈现，
          用户无需在 A/B/C/D 之间做选择） -->
     <section class="card">
       <h2>🔮 本期唯一推荐</h2>
       <p class="hint">以下为基于真实历史开奖数据的<strong>娱乐推荐</strong>，<strong>不等于中奖预测</strong>。预测期号：<span id="rec-target">—</span></p>
       <div id="primary-recommendation"></div>
+    </section>
+
+    <section class="card" aria-labelledby="compound-title">
+      <h2 id="compound-title">🧩 本期组合推荐</h2>
+      <p class="hint">正式单注以外的独立复式方案，包含原单注号码。</p>
+      <div id="compound-body" aria-live="polite">正在读取本期组合方案…</div>
     </section>
 
     <!-- ③ 上期推荐复盘（占位，Phase 2 复盘数据就绪后自动填充） -->
@@ -111,6 +125,7 @@
     </footer>
   </main>
 
-  <script src="./app.js?v=008a440" defer></script>
+  <script src="./app.js?v=task42" defer></script>
+  <script src="./draw-enhancements.js?v=task42" defer></script>
 </body>
 </html>
