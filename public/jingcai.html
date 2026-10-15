@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>竞彩足球推荐 - 每日场次胜平负与让球胜平负</title>
+  <meta name="description" content="基于官方在售场次与固定奖金、球队近期状态的竞彩足球每日推荐：胜平负、让球胜平负与串关建议。仅供娱乐，不保证中奖。">
+  <meta name="theme-color" content="#0f766e">
+  <link rel="stylesheet" href="./style.css">
+  <link rel="stylesheet" href="./football.css">
+</head>
+<body class="football-page">
+  <header class="site-header football-header">
+    <div class="brand"><h1>竞彩足球推荐</h1><p class="brand-tag">每日场次 · 胜平负 · 让球胜平负 · 串关建议</p></div>
+    <div class="risk-banner">⚠️ 推荐基于数据模型比较，<strong>不保证中奖</strong>；请理性购彩。已发布推荐在停售前不会改号。</div>
+  </header>
+  <nav class="site-nav" aria-label="彩种导航">
+    <a class="quick-item" href="./index.html"><span class="qi-ico">🔴</span><span class="qi-label">大乐透</span></a>
+    <a class="quick-item" href="./football.html"><span class="qi-ico">⚽</span><span class="qi-label">足彩</span></a>
+    <a class="quick-item" href="./jingcai.html" aria-current="page"><span class="qi-ico">🏆</span><span class="qi-label">竞彩</span></a>
+  </nav>
+  <div id="jingcai-error" class="error-box" hidden><p>⚠️ 竞彩数据暂不可用。</p><p class="error-detail">系统不会在数据不完整时编造推荐，请稍后重试。</p></div>
+  <main id="jingcai-content" hidden>
+    <section class="card issue-card"><h2>📅 今日在售场次</h2><div id="jc-summary"></div></section>
+    <section class="card"><h2>🎯 串关建议</h2><p class="hint">从今日胜平负推荐中按模型置信度挑选，过关奖金为所选场次固定奖金的连乘，概率为模型联合概率。</p><div id="jc-parlays"></div></section>
+    <section class="card"><h2>⚽ 每日推荐</h2><p class="hint">胜=主胜，平=平局，负=客胜；让球以主队让球数为准（负数为主队让球）。⭐ 表示模型概率高于奖金隐含概率 3% 以上。</p><div class="match-list" id="jc-match-list"></div></section>
+    <section class="card"><h2>🔎 数据依据</h2><div id="jc-sources"></div></section>
+    <footer class="site-footer"><p>仅作公开数据分析与娱乐参考，不构成投注建议。场次、让球与固定奖金以中国体育彩票官方公告为准。</p></footer>
+  </main>
+  <script src="./jingcai.js?v=phase14" defer></script>
+</body>
+</html>
