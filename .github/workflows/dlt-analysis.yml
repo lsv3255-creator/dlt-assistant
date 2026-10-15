@@ -13,6 +13,8 @@ on:
       - .github/workflows/dlt-analysis.yml
       - public/index.html
       - public/app.js
+      - public/draw-enhancements.js
+      - scripts/build_compound.py
       - scripts/official_details.py
       - src/scraper.py
   schedule:
@@ -327,6 +329,13 @@ jobs:
             exit 1
           fi
           echo "✅ 生产冻结文件未变更，放行后续提交"
+
+      - name: 独立复式方案（不修改正式单注）
+        env:
+          DLT_AI_API_KEY: ${{ secrets.DLT_AI_API_KEY }}
+          DLT_AI_BASE_URL: ${{ secrets.DLT_AI_BASE_URL }}
+          DLT_AI_MODEL: ${{ secrets.DLT_AI_MODEL }}
+        run: python scripts/build_compound.py || echo '复式生成未通过；保留已冻结方案，原单注不受影响'
 
       - name: 同步历史报告
         run: |

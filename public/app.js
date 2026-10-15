@@ -331,7 +331,7 @@
     var fs = (typeof p.final_score === "number") ? p.final_score
            : (typeof p.score === "number") ? p.score : null;
     var scoreHtml = (fs !== null)
-      ? '<span title="综合评分为模型评价指标，不代表中奖概率">AI 综合评分：<strong style="color:#fbbf24">' +
+      ? '<span title="综合评分为模型评价指标，不代表中奖概率">智能模型综合评分：<strong style="color:#fbbf24">' +
         fs.toFixed(1) + " / 100</strong></span>"
       : "";
     container.innerHTML =
@@ -359,6 +359,15 @@
   // 无结构化 explanation 时回退到字符串 reason。不展示内部 debug score dump，不出现 A/B/C/D。
   function renderReasonBlock(p) {
     var ex = p && p.explanation;
+    var selection = '';
+    if (p && typeof p.final_score === 'number' && p.final_breakdown) {
+      var b = p.final_breakdown;
+      selection = '本期系统对多个候选方案进行综合评估，正式单注综合评分 ' + p.final_score.toFixed(1) +
+        ' / 100' + (p.final_rank ? '，候选排名第 ' + p.final_rank : '') +
+        '；基础分 ' + Number(b.base || 0).toFixed(1) + '、历史表现 ' + Number(b.history || 0).toFixed(1) +
+        '、近期表现 ' + Number(b.recent || 0).toFixed(1) + '、结构贴合 ' + Number(b.structure || 0).toFixed(1) +
+        '。评分用于方案比较，不是中奖概率。';
+    }
     if (ex && ex.summary) {
       var factors = Array.isArray(ex.factors) ? ex.factors.slice(0, 5) : [];
       var factorsHtml = factors.length
@@ -373,9 +382,10 @@
         : "";
       var statusNote = (ex.reason_status === "unavailable")
         ? '<div style="font-size:12px;opacity:.6;margin-top:4px;">本期推荐理由暂未生成</div>' : "";
-      return esc(ex.summary) + statusNote + factorsHtml;
+      return (selection ? esc(selection) + '<details style="margin-top:8px"><summary>候选构造来源与分析依据</summary>' : '') +
+        esc(ex.summary) + statusNote + factorsHtml + (selection ? '</details>' : '');
     }
-    return renderReason(p && p.reason);
+    return (selection ? esc(selection) + '<br>' : '') + renderReason(p && p.reason);
   }
 
   /* ---------- 启动 ---------- */
