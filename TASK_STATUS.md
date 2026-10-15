@@ -1,3 +1,7 @@
+## 2026-10-15 — Phase 13 Task #48 足彩自动换期（开发中）
+
+自动发现最新在售期号并切换冻结：官方站自动化访问被 WAF 拦截，改用澳客足彩页作为赛程/市场源，解析后经完整性校验才写入，失败自动回退人工文件。球队存档与每期动态为第二步。任务文档：`docs/tasks/PHASE13-TASK48-FOOTBALL-AUTO-DISCOVERY.md`。
+
 ## 2026-10-15 — Phase 12 Task #47 足彩D1与多因素分析（开发验证中）
 
 足彩当前期正在升级为D1主数据源：保存14场身份与因素、冻结14场/任选九方案、AI解释和当前期复盘；不建设长期赛果/比分历史库。页面保留静态降级，大乐透全链路隔离不变。任务文档：`docs/tasks/PHASE12-TASK47-FOOTBALL-D1-MULTIFACTOR.md`。
@@ -642,3 +646,4 @@ P4-2 PRODUCTION WORDING INTEGRITY = ✅ CLOSED（57/57 PASS，guard deploy `334b
 
 **最后更新**: 2026-08-22 22:01  
 **维护人**: AI Assistant
+
