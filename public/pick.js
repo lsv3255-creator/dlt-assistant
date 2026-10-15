@@ -316,7 +316,7 @@
 
   function showError(msg) {
     document.getElementById("error").hidden = false;
-    document.getElementById("error-detail").textContent = msg || "";
+    document.getElementById("error-detail").textContent = "选号数据暂时无法加载，请稍后重试。";
   }
 
   function parseInput(text, min, max, count) {
@@ -347,14 +347,11 @@
   /* ================= 页面启动：loadIssues → 绑定事件 ================= */
   function init() {
     var issues = [];
-    var sourceTxt = "";
-
     loadIssues().then(function (res) {
       issues = res.issues || [];
       if (!issues.length) throw new Error("历史数据为空");
-      sourceTxt = (res.source === "api" ? "API 全历史" : "快照降级") + " · 实际 " + issues.length + " 期";
       document.getElementById("pick-source").textContent =
-        "数据来源：500彩票网（" + sourceTxt + "）· 统计窗口默认全部";
+        "数据来源：500彩票网 · 已收录 " + issues.length + " 期历史开奖";
       document.getElementById("pick-source").classList.add("ok");
     }).catch(function (err) {
       showError(String(err && err.message ? err.message : err));

@@ -650,7 +650,7 @@
 
   function showError(msg) {
     document.getElementById("error").hidden = false;
-    document.getElementById("error-detail").textContent = msg || "";
+    document.getElementById("error-detail").textContent = "走势图数据暂时无法加载，请稍后重试。";
   }
 
   /* ================= P1-3A：mobile-first 分层（L1 摘要 / L2 紧凑矩阵+Focus / 触摸详情） ================= */

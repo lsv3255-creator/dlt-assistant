@@ -31,10 +31,6 @@
 
   function renderRecommendations(data) {
     $("target-issue").textContent = data.issue || "—";
-    $("gen-at").textContent = data.generated_at || "—";
-    if (data.model_version) {
-      $("model-ver").textContent = data.model_version;
-    }
     const list = $("reco-list");
     list.innerHTML = "";
     const recs = data.recommendations || [];
@@ -63,12 +59,6 @@
     $("st-win").textContent = status.win_rate !== "" && status.win_rate !== undefined && status.win_rate !== null
       ? (typeof status.win_rate === "number" ? (status.win_rate * 100).toFixed(1) + "%" : status.win_rate)
       : "—";
-    const p = status.parameters || {};
-    const keys = ["structure_weight", "risk_weight", "jaccard_threshold", "target_size"];
-    $("st-params").textContent = keys
-      .filter((k) => p[k] !== undefined)
-      .map((k) => `${k}=${p[k]}`)
-      .join(", ") || "—";
   }
 
   function renderAnalysis(data) {
@@ -186,7 +176,7 @@
     const host = $("model-overview");
     if (!host) return;
     if (!ranking || !ranking.models) {
-      setNote("model-overview", "模型研究总览数据暂未生成（请先运行历史回放生成 model_ranking.json）。");
+      setNote("model-overview", "模型研究数据暂未更新，请稍后查看。");
       return;
     }
     const distMap = (diag && diag.conclusion && diag.conclusion.distinguishable_from_random) || {};
@@ -221,7 +211,7 @@
     const host = $("model-diagnostics");
     if (host) {
       if (!diag || !diag.models) {
-        setNote("model-diagnostics", "模型诊断数据暂未生成（请先运行 model_diagnostics 实验）。");
+        setNote("model-diagnostics", "模型诊断数据暂未更新，请稍后查看。");
       } else {
         const headers = ["模型", "命中分布卡方", "可区分随机(0.05)", "特征余弦相似度", "前后段漂移"];
         const rows = Object.keys(diag.models).map((mv) => {
@@ -375,15 +365,11 @@
     const host = $("stability");
     if (!host) return;
     if (!step3) {
-      setNote("stability", "稳定性验证数据暂未生成（请先运行 entertainment_constrained_validator）。");
+      setNote("stability", "稳定性验证数据暂未更新，请稍后查看。");
       return;
     }
     host.innerHTML = "";
     const cfg = step3.config || {};
-    const info = document.createElement("p");
-    info.className = "exp-meta";
-    info.innerHTML = `验证配置：窗口 [${((cfg.windows) || []).join("/")}] 期 × 种子 [${((cfg.seeds) || []).join("/")}] × 变体 [${((cfg.variants) || []).join(", ")}]；每期 ${cfg.n_bets} 注；UX 权重 ${((cfg.weights) || []).join("/")}。`;
-    host.appendChild(info);
 
     // 聚合稳定性表
     const agg = step3.aggregate || {};
@@ -529,7 +515,7 @@
       $("error").hidden = false;
       $("content").hidden = true;
       const d = $("error-detail");
-      if (d) d.textContent = String(err && err.message ? err.message : err);
+      if (d) d.textContent = "请稍后刷新页面重试。";
     }
     // 排行榜 + 研究展示：非阻断加载（缺失不影响主内容/其它区块）
     try {
@@ -537,7 +523,7 @@
       renderRanking(ranking);
     } catch (e) {
       const note = $("rank-note");
-      if (note) note.textContent = "排行榜数据暂未生成（请先运行历史回放生成 model_ranking.json）。";
+      if (note) note.textContent = "排行榜数据暂未更新，请稍后查看。";
     }
     loadResearch();
   }
