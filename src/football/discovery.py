@@ -1,9 +1,10 @@
-"""Auto-discover the latest traditional football-lottery issue.
+"""Auto-discover the traditional football-lottery issue currently on sale.
 
 The official sporttery site blocks automated access (EdgeOne WAF 567),
-so the schedule/market source is okooo's public zucai page, which lists
-the issue currently on sale, all 14 fixtures, league ranks, average odds
-and the sale deadline, and previews upcoming issues.
+so the schedule/market source is okooo's public zucai pages. okooo lists
+recent and upcoming issues as tabs on every issue page; the issue on
+sale is the earliest tabulated issue whose sale deadline is still in
+the future (earlier ones are already closed, later ones are previews).
 
 Discovery never fabricates: a candidate issue is accepted only when it
 parses completely (exactly 14 matches with valid odds) and passes
@@ -56,14 +57,21 @@ class DiscoveryError(RuntimeError):
     pass
 
 
+def _decode(raw: bytes) -> str:
+    try:
+        return raw.decode("utf-8")
+    except UnicodeDecodeError:
+        return raw.decode("gb18030")
+
+
 def _fetch(url: str, attempts: int = 3) -> str:
     last_error: Exception | None = None
     for attempt in range(attempts):
         try:
             resp = requests.get(url, headers=HEADERS, timeout=25)
-            text = resp.text or ""
             if resp.status_code != 200:
                 raise DiscoveryError(f"{url} -> HTTP {resp.status_code}")
+            text = _decode(resp.content)
             if any(marker in text for marker in WAF_MARKERS):
                 raise DiscoveryError(f"{url} -> WAF block page")
             if len(text) < 2000:
@@ -90,20 +98,28 @@ def _with_year(month: int, day: int, hour: int, minute: int, now: datetime) -> d
 
 
 _TIME_RE = re.compile(r"(\d{1,2})-(\d{1,2})\s+(\d{1,2}):(\d{2})")
-_RANKED_TEAM_RE = re.compile(r"([^\s\[\]，,]+)\[(\d+)\]")
-_ODDS_RE = re.compile(r"\d+\.\d{1,2}")
-_SALE_END_RE = re.compile(
-    r"停售时间[^0-9]*(\d{1,2})-(\d{1,2})[^0-9:]{0,12}?(\d{1,2}):(\d{2})"
+# Real okooo row text: "1 英冠 10-17 03:00 [21] 2.90 伯恩利 3.45 [10] 2.28 伍尔弗 ..."
+_ROW_RE = re.compile(
+    r"\[(\d+)\]\s*(\d+\.\d{1,2})\s*(\S+)\s*(\d+\.\d{1,2})\s*"
+    r"\[(\d+)\]\s*(\d+\.\d{1,2})\s*(\S+)"
 )
-_CURRENT_MARKER_RE = re.compile(r"(\d{5})期[（(]当前[）)]")
+_SALE_END_RE = re.compile(
+    r"(?:截止时间|停售时间)[^0-9]*(\d{1,2})-(\d{1,2})[^0-9:]{0,12}?(\d{1,2}):(\d{2})"
+)
+_TAB_RE = re.compile(r'href="/zucai/(\d{5})/"')
 
 
-def current_issue_marker(page_text: str) -> int:
-    """Return the issue number okooo marks as currently on sale."""
-    found = _CURRENT_MARKER_RE.findall(page_text)
-    if not found:
-        raise DiscoveryError("current-issue marker not found on okooo page")
-    return int(found[0])
+def tabulated_issues(html: str) -> list[int]:
+    """All issue numbers linked as tabs on an okooo issue page."""
+    return sorted({int(n) for n in _TAB_RE.findall(html)})
+
+
+def _sale_end(page_text: str, now: datetime) -> datetime:
+    sale_match = _SALE_END_RE.search(page_text)
+    if not sale_match:
+        raise DiscoveryError("sale deadline not found on okooo page")
+    month, day, hour, minute = (int(g) for g in sale_match.groups())
+    return _with_year(month, day, hour, minute, now)
 
 
 def _parse_matches(soup: BeautifulSoup, now: datetime) -> list[dict]:
@@ -111,51 +127,28 @@ def _parse_matches(soup: BeautifulSoup, now: datetime) -> list[dict]:
     for row in soup.find_all("tr"):
         text = row.get_text(" ", strip=True)
         time_match = _TIME_RE.search(text)
-        if not time_match:
-            continue
-        teams = _RANKED_TEAM_RE.findall(text)
-        if len(teams) != 2:
-            continue
-        odds_values = [float(v) for v in _ODDS_RE.findall(text) if float(v) > 1.0]
-        if len(odds_values) < 3:
+        row_match = _ROW_RE.search(text)
+        if not time_match or not row_match:
             continue
         month, day, hour, minute = (int(g) for g in time_match.groups())
         kickoff = _with_year(month, day, hour, minute, now)
-        # League is the short token right before the kickoff time.
         before = text[: time_match.start()].split()
         league = before[-1] if before else ""
-        league = re.sub(r"^\d+", "", league).strip()
         if not league or len(league) > 6:
             continue
-        (home, home_rank), (away, away_rank) = teams
+        home_rank, odds3, home, odds1, away_rank, odds0, away = row_match.groups()
         matches.append({
+            "order": len(matches) + 1,
             "league": league,
             "home": _full_name(home),
             "away": _full_name(away),
             "home_rank": int(home_rank),
             "away_rank": int(away_rank),
             "kickoff": kickoff.isoformat(),
-            "odds": {
-                "3": odds_values[0],
-                "1": odds_values[1],
-                "0": odds_values[2],
-            },
+            "odds": {"3": float(odds3), "1": float(odds1), "0": float(odds0)},
         })
     if len(matches) != 14:
         raise DiscoveryError(f"expected 14 matches, parsed {len(matches)}")
-    for index, match in enumerate(matches, start=1):
-        match["order"] = index
-        ordered = {
-            "order": index,
-            "league": match["league"],
-            "home": match["home"],
-            "away": match["away"],
-            "home_rank": match["home_rank"],
-            "away_rank": match["away_rank"],
-            "kickoff": match["kickoff"],
-            "odds": match["odds"],
-        }
-        matches[index - 1] = ordered
     return matches
 
 
@@ -163,11 +156,7 @@ def parse_issue_page(html: str, issue: int, now: datetime) -> dict:
     """Parse one okooo issue page into the repository issue schema."""
     soup = BeautifulSoup(html, "html.parser")
     page_text = soup.get_text(" ", strip=True)
-    sale_match = _SALE_END_RE.search(page_text)
-    if not sale_match:
-        raise DiscoveryError("sale deadline not found on okooo page")
-    month, day, hour, minute = (int(g) for g in sale_match.groups())
-    sale_end = _with_year(month, day, hour, minute, now)
+    sale_end = _sale_end(page_text, now)
     matches = _parse_matches(soup, now)
     draw_date = max(m["kickoff"][:10] for m in matches)
     url = ISSUE_URL.format(issue=issue)
@@ -204,6 +193,33 @@ def _atomic_write(path: Path, value: dict) -> None:
     temp.replace(path)
 
 
+def find_on_sale_issue(current: int, now: datetime) -> tuple[int, str]:
+    """Return ``(issue, html)`` for the issue currently on sale.
+
+    Starts from the repository's current issue page, walks its issue
+    tabs in ascending order and picks the first issue whose sale
+    deadline is still in the future.
+    """
+    landing = _fetch(ISSUE_URL.format(issue=current))
+    tabs = [n for n in tabulated_issues(landing) if current - 1 <= n <= current + 3]
+    if current not in tabs:
+        raise DiscoveryError("repository issue not present in okooo tabs")
+    pages: dict[int, str] = {current: landing}
+    for number in sorted(tabs):
+        if number < current:
+            continue
+        html = pages.get(number) or _fetch(ISSUE_URL.format(issue=number))
+        pages[number] = html
+        text = BeautifulSoup(html, "html.parser").get_text(" ", strip=True)
+        try:
+            deadline = _sale_end(text, now)
+        except DiscoveryError:
+            continue
+        if deadline > now:
+            return number, html
+    raise DiscoveryError("no tabulated issue has a future sale deadline")
+
+
 def refresh_issue_file(path: Path, now: datetime | None = None) -> tuple[str, str]:
     """Refresh ``current_issue.json`` from okooo.
 
@@ -215,15 +231,10 @@ def refresh_issue_file(path: Path, now: datetime | None = None) -> tuple[str, st
     existing = json.loads(path.read_text(encoding="utf-8"))
     current = int(existing["issue"])
 
-    landing = _fetch(ISSUE_URL.format(issue=current))
-    marker = current_issue_marker(BeautifulSoup(landing, "html.parser").get_text(" ", strip=True))
-    if marker < current:
-        raise DiscoveryError(
-            f"okooo current issue {marker} is behind repository issue {current}"
-        )
+    target, html = find_on_sale_issue(current, now)
+    candidate = parse_issue_page(html, target, now)
 
-    if marker == current:
-        candidate = parse_issue_page(landing, current, now)
+    if target == current:
         candidate["sale_start"] = existing["sale_start"]
         candidate.pop("sale_start_estimated", None)
         if existing.get("results"):
@@ -236,8 +247,6 @@ def refresh_issue_file(path: Path, now: datetime | None = None) -> tuple[str, st
         _atomic_write(path, candidate)
         return "refreshed", str(current)
 
-    html = _fetch(ISSUE_URL.format(issue=marker))
-    candidate = parse_issue_page(html, marker, now)
     # The next issue normally opens when the previous one closes; chain
     # the opening time from the previous deadline when that is later
     # than the two-day estimate.
@@ -246,4 +255,4 @@ def refresh_issue_file(path: Path, now: datetime | None = None) -> tuple[str, st
         candidate["sale_start"] = existing["sale_end"]
     validate_issue(candidate)
     _atomic_write(path, candidate)
-    return "switched", str(marker)
+    return "switched", str(target)
