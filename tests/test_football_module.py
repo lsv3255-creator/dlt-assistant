@@ -436,3 +436,123 @@ class FootballDynamicsTests(unittest.TestCase):
                 issue, fetch=dynamics._fetch, budget_seconds=0
             )
         self.assertEqual(enriched, 0)
+
+
+# --- Phase 14: jingcai (竞彩足球) -------------------------------------------
+from src.jingcai import discovery as jc_discovery
+from src.jingcai import engine as jc_engine
+from scripts.write_football_d1 import build_jingcai_sql
+
+
+def _jingcai_block(mid, code, end, kickoff, deadline_text, spf=True):
+    spf_odds = (
+        '<div class="zhu" data-sp="2.20" data-wf="0" data-wz="0">'
+        '<div class="zhum" title="里昂">里昂</div><p class="p2">[4]</p></div>'
+        '<div class="ping" data-sp="3.40" data-wf="0" data-wz="1"></div>'
+        '<div class="fu" data-sp="2.63" data-wf="0" data-wz="2">'
+        '<div class="zhum" title="水晶宫">水晶</div><p class="p2">[12]</p></div>'
+        if spf else
+        '<div class="zhu" data-sp="" data-wf="0" data-wz="0">'
+        '<div class="zhum" title="里昂">里昂</div></div>'
+        '<div class="ping" data-sp="" data-wf="0" data-wz="1"></div>'
+        '<div class="fu" data-sp="" data-wf="0" data-wz="2">'
+        '<div class="zhum" title="水晶宫">水晶</div></div>'
+    )
+    return (
+        f'<div class="touzhu_1" data-end="{end}" data-mid="{mid}" '
+        f'data-ordercn="{code}" data-rq="-1">'
+        f'<div class="liansai"><a class="saiming">欧联</a>'
+        f'<div class="shijian" title="比赛时间:{kickoff}">{deadline_text}</div></div>'
+        f'<div class="shenpf">{spf_odds}</div>'
+        '<div class="rangqiuspf">'
+        '<div class="zhu" data-sp="4.50" data-wf="1" data-wz="0"></div>'
+        '<div class="ping" data-sp="4.18" data-wf="1" data-wz="1"></div>'
+        '<div class="fu" data-sp="1.50" data-wf="1" data-wz="2"></div>'
+        "</div></div>"
+    )
+
+
+class JingcaiTests(unittest.TestCase):
+    def test_parser_keeps_only_on_sale_matches(self):
+        from datetime import datetime as _dt
+        now = _dt(2026, 10, 15, 12, 0, tzinfo=jc_discovery.BJ)
+        html = "<html><body>" + "".join([
+            _jingcai_block("111", "周四001", "0", "2026-10-16 00:45:00", "22:00"),
+            _jingcai_block("112", "周四002", "1", "2026-10-16 00:45:00", "22:00"),
+            _jingcai_block("113", "周四003", "0", "2026-10-15 10:00:00", "10:00"),
+            _jingcai_block("114", "周四004", "0", "2026-10-16 03:00:00", "22:00", spf=False),
+        ]) + "</body></html>"
+        rows = jc_discovery.parse_jingcai_page(html, now)
+        self.assertEqual([r["code"] for r in rows], ["周四001", "周四004"])
+        first = rows[0]
+        self.assertEqual(first["home"], "里昂")
+        self.assertEqual(first["away"], "水晶宫")
+        self.assertEqual(first["home_rank"], 4)
+        self.assertEqual(first["deadline"], "2026-10-15T22:00:00+08:00")
+        self.assertEqual(first["spf_odds"], {"3": 2.20, "1": 3.40, "0": 2.63})
+        self.assertEqual(first["rq_odds"]["0"], 1.50)
+        self.assertEqual(first["handicap"], -1)
+        self.assertIsNone(rows[1]["spf_odds"])
+        self.assertIsNotNone(rows[1]["rq_odds"])
+
+    def test_engine_picks_and_probabilities(self):
+        match = {
+            "code": "周四001", "league": "欧联", "home": "里昂", "away": "水晶宫",
+            "home_rank": 4, "away_rank": 12,
+            "kickoff": "2026-10-16T00:45:00+08:00", "deadline": "2026-10-15T22:00:00+08:00",
+            "handicap": -1, "okooo_match_id": "111",
+            "spf_odds": {"3": 2.20, "1": 3.40, "0": 2.63},
+            "rq_odds": {"3": 4.50, "1": 4.18, "0": 1.50},
+        }
+        row = jc_engine.analyze_match(match)
+        self.assertAlmostEqual(sum(row["spf"]["probabilities"].values()), 1, places=3)
+        self.assertAlmostEqual(sum(row["rq"]["probabilities"].values()), 1, places=3)
+        self.assertIn(row["spf"]["pick"], ("3", "1", "0"))
+        self.assertEqual(row["rq"]["pick_label"], "让负")  # shortest price by far
+        self.assertIsNotNone(row["factors"])
+
+    def test_freeze_keeps_published_picks(self):
+        base = {
+            "code": "周四001", "league": "欧联", "home": "里昂", "away": "水晶宫",
+            "home_rank": 4, "away_rank": 12,
+            "kickoff": "2026-10-16T00:45:00+08:00", "deadline": "2026-10-15T22:00:00+08:00",
+            "handicap": -1, "okooo_match_id": "111",
+            "spf_odds": {"3": 2.20, "1": 3.40, "0": 2.63},
+            "rq_odds": {"3": 4.50, "1": 4.18, "0": 1.50},
+        }
+        payload = jc_engine.build_payload([dict(base)], "2026-10-15", {})
+        published_pick = payload["matches"][0]["spf"]["pick"]
+        moved = dict(base)
+        moved["spf_odds"] = {"3": 3.10, "1": 3.10, "0": 1.95}
+        fresh = jc_engine.build_payload([moved], "2026-10-15", {})
+        self.assertNotEqual(fresh["matches"][0]["spf"]["pick"], published_pick)
+        frozen = jc_engine.freeze_picks(fresh["matches"], payload)
+        self.assertEqual(frozen[0]["spf"]["pick"], published_pick)
+
+    def test_jingcai_d1_sql_publishes_snapshot_and_archives_teams(self):
+        match = {
+            "code": "周四001", "league": "欧联", "home": "里昂", "away": "水晶宫",
+            "home_rank": 4, "away_rank": 12,
+            "kickoff": "2026-10-16T00:45:00+08:00", "deadline": "2026-10-15T22:00:00+08:00",
+            "handicap": -1, "okooo_match_id": "111",
+            "spf_odds": {"3": 2.20, "1": 3.40, "0": 2.63},
+            "rq_odds": {"3": 4.50, "1": 4.18, "0": 1.50},
+            "dynamics": {
+                "home": {"form_last10": {"played": 10, "w": 5, "d": 3, "l": 2, "points": 18, "gf": 15, "ga": 9},
+                         "rest_days": 4, "last_match_date": "2026-10-11"},
+                "away": {"form_last10": {"played": 10, "w": 3, "d": 3, "l": 4, "points": 12, "gf": 10, "ga": 12},
+                         "rest_days": 4, "last_match_date": "2026-10-11"},
+                "head_to_head": None,
+            },
+        }
+        payload = jc_engine.build_payload([match], "2026-10-15", {})
+        sql = build_jingcai_sql(payload)
+        self.assertIn("CREATE TABLE IF NOT EXISTS jingcai_current_snapshot", sql)
+        self.assertIn("INSERT INTO jingcai_current_snapshot", sql)
+        self.assertIn("JC2026-10-15", sql)
+        connection = sqlite3.connect(":memory:")
+        connection.executescript(sql)
+        row = connection.execute("SELECT sale_date FROM jingcai_current_snapshot").fetchone()
+        self.assertEqual(row[0], "2026-10-15")
+        teams = connection.execute("SELECT COUNT(*) FROM football_team_snapshots").fetchone()[0]
+        self.assertEqual(teams, 2)
