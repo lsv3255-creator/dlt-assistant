@@ -1,0 +1,75 @@
+name: 足彩AI综合分析
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - .github/workflows/football-analysis.yml
+      - data/football/current_issue.json
+      - scripts/football_cycle.py
+      - src/football/**
+      - public/football.*
+  workflow_dispatch:
+  schedule:
+    # 每日北京时间 09:15、17:15、21:45 更新；与大乐透任务完全隔离。
+    - cron: "15 1,9 * * *"
+    - cron: "45 13 * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: football-analysis
+  cancel-in-progress: false
+
+jobs:
+  analyze-football:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install -r requirements.txt
+      - name: 生成足彩分析与AI解读
+        env:
+          DLT_AI_API_KEY: ${{ secrets.DLT_AI_API_KEY }}
+          DLT_AI_BASE_URL: ${{ secrets.DLT_AI_BASE_URL }}
+          DLT_AI_MODEL: ${{ secrets.DLT_AI_MODEL }}
+        run: python scripts/football_cycle.py
+      - name: 足彩模块测试
+        run: python -m unittest tests.test_football_module -v
+      - name: 提交本期公开结果
+        run: |
+          if git diff --quiet -- public/data/football/current.json data/football/archive.json; then
+            echo "足彩公开结果没有变化"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/data/football/current.json data/football/archive.json
+          git commit -m "chore: 更新足彩AI分析"
+          git pull --rebase origin master
+          git push origin HEAD:master
+      - name: Cloudflare生产账号检查
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "未配置Cloudflare密钥，跳过部署"
+            exit 0
+          fi
+          python scripts/check_cloudflare_account.py
+      - name: 部署足彩页面到Cloudflare Pages
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "未配置Cloudflare密钥，跳过部署"
+            exit 0
+          fi
+          npx --yes wrangler@latest pages deploy public --project-name dlt-assistant --branch master --commit-dirty=true
+

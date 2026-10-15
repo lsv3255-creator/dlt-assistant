@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>足彩 AI 综合分析 - 14场胜负彩与任选九</title>
+  <meta name="description" content="基于官方赛程和可核验市场数据的足彩14场、任选九AI综合分析。仅供娱乐，不保证中奖。">
+  <meta name="theme-color" content="#0f766e">
+  <link rel="stylesheet" href="./style.css">
+  <link rel="stylesheet" href="./football.css">
+</head>
+<body class="football-page">
+  <header class="site-header football-header">
+    <div class="brand"><h1>足彩 AI 综合分析</h1><p class="brand-tag">胜负彩14场 · 任选九 · 官方赛程核验</p></div>
+    <div class="risk-banner">⚠️ AI 负责数据比较、方案评审和赛后复盘，<strong>不保证中奖</strong>；请理性购彩。</div>
+  </header>
+  <nav class="site-nav" aria-label="彩种导航">
+    <a class="quick-item" href="./index.html"><span class="qi-ico">🔴</span><span class="qi-label">大乐透</span></a>
+    <a class="quick-item" href="./football.html" aria-current="page"><span class="qi-ico">⚽</span><span class="qi-label">足彩</span></a>
+  </nav>
+  <div id="football-error" class="error-box" hidden><p>⚠️ 本期足彩数据暂不可用。</p><p class="error-detail">系统不会在数据不完整时编造推荐，请稍后重试。</p></div>
+  <main id="football-content" hidden>
+    <section class="card issue-card"><h2>📅 本期赛程</h2><div id="issue-summary"></div></section>
+    <section class="card"><h2>🧠 AI 综合判断</h2><div id="ai-summary"></div></section>
+    <section class="card"><h2>🎯 胜负彩14场方案</h2><p class="hint">3=主胜，1=平局，0=客胜；双选用于覆盖相对分歧更大的场次。</p><div id="sfc-summary"></div><div class="match-list" id="match-list"></div></section>
+    <section class="card"><h2>✅ 任选九方案</h2><p class="hint">从同一批14场中选择相对置信差更清晰的9场，不代表这些比赛确定性更高。</p><div id="r9-summary"></div></section>
+    <section class="card"><h2>📊 赛后复盘</h2><div id="football-review">比赛结束并取得正式赛果后自动复盘。</div></section>
+    <section class="card"><h2>🔎 数据依据</h2><div id="football-sources"></div></section>
+    <footer class="site-footer"><p>仅作公开数据分析与娱乐参考，不构成投注建议。场次调整、停售和开奖结果以中国体育彩票官方公告为准。</p></footer>
+  </main>
+  <script src="./football.js?v=task46" defer></script>
+</body>
+</html>
+

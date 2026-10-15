@@ -1,0 +1,26 @@
+(() => {
+  const $ = id => document.getElementById(id);
+  const safe = value => String(value ?? '').replace(/[&<>'"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch]));
+  const time = value => new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date(value));
+  const labels = {3:'主胜',1:'平',0:'客胜'};
+
+  function render(data) {
+    $('issue-summary').innerHTML = `<div class="issue-meta"><div class="metric"><small>期号</small><strong>第${safe(data.issue)}期</strong></div><div class="metric"><small>停售时间</small><strong>${safe(time(data.sale_end))}</strong></div><div class="metric"><small>开奖日期</small><strong>${safe(data.draw_date)}</strong></div><div class="metric"><small>玩法</small><strong>14场 + 任选九</strong></div></div>`;
+    const ai = data.ai || {};
+    const sections = ai.sections || {};
+    $('ai-summary').innerHTML = `<span class="ai-state">${ai.status === 'completed' ? 'AI 已完成本期分析' : 'AI 分析更新中'}</span><h3>${safe(ai.title || 'AI 综合分析')}</h3>${[['overview','综合研判'],['sfc_reason','14场取舍'],['r9_reason','任选九取舍'],['risk','风险说明']].map(([key,label]) => `<div class="ai-section"><strong>${label}</strong>${safe(sections[key] || '等待更新')}</div>`).join('')}`;
+    $('sfc-summary').innerHTML = `<div class="plan-strip"><span class="plan-chip">${safe(data.plans.sfc14.lines)} 注</span><span class="plan-chip">基本金额 ${safe(data.plans.sfc14.cost_yuan)} 元</span></div>`;
+    $('match-list').innerHTML = data.matches.map(row => `<article class="match-row"><div class="match-order">${row.order}</div><div><div class="match-name">${safe(row.home)} vs ${safe(row.away)}</div><div class="match-meta">${safe(row.league)} · ${safe(time(row.kickoff))} · 相对概率 主${Math.round(row.probabilities['3']*100)}% / 平${Math.round(row.probabilities['1']*100)}% / 客${Math.round(row.probabilities['0']*100)}%</div></div><div class="choices">${row.sfc_choices.map((choice,index)=>`<span class="choice${index?' secondary':''}" title="${labels[choice]}">${choice}</span>`).join('')}</div></article>`).join('');
+    const r9 = new Set(data.plans.ren9.orders);
+    $('r9-summary').innerHTML = `<div class="plan-strip"><span class="plan-chip">场次 ${data.plans.ren9.orders.join('、')}</span><span class="plan-chip">基本金额 ${safe(data.plans.ren9.cost_yuan)} 元</span></div><div class="match-list">${data.matches.filter(row=>r9.has(row.order)).map(row=>`<article class="match-row"><div class="match-order">${row.order}</div><div><div class="match-name">${safe(row.home)} vs ${safe(row.away)}</div><div class="match-meta">${safe(row.league)}</div></div><div class="choices"><span class="choice">${row.primary}</span></div></article>`).join('')}</div>`;
+    if (data.review?.status === 'completed') $('football-review').textContent = `14场覆盖命中 ${data.review.sfc_hits}/14，任选九命中 ${data.review.ren9_hits}/9。复盘只评价已冻结方案，不事后改号。`;
+    $('football-sources').innerHTML = Object.values(data.sources || {}).map(source => `<a class="source-link" href="${safe(source.url)}" target="_blank" rel="noopener noreferrer">${safe(source.name)}</a>`).join('');
+    $('football-content').hidden = false;
+  }
+
+  fetch('./data/football/current.json',{cache:'no-store'}).then(response => {
+    if (!response.ok) throw new Error('数据读取失败');
+    return response.json();
+  }).then(render).catch(() => { $('football-error').hidden = false; });
+})();
+
