@@ -50,6 +50,45 @@ TEAM_NAME_FIXES = {
     "精英": "SBV精英",
     "布鲁马": "布鲁马波卡纳",
     "佐加顿": "佐加顿斯",
+    # Featured-issue pages (e.g. 26142) abbreviate harder; expansions
+    # verified against okooo's own match-history page titles and the
+    # standard Chinese names used in official lottery announcements.
+    "勒沃": "勒沃库森",
+    "布拉格": "布拉格斯巴达",
+    "利勒斯": "利勒斯特罗姆",
+    "托林斯": "特温特",
+    "圣吉联": "圣吉罗斯",
+    "社会": "皇家社会",
+    "凯尔特": "凯尔特人",
+    "伯恩茅": "伯恩茅斯",
+    "格拉茨": "格拉茨风暴",
+    "尤文": "尤文图斯",
+    "萨格勒": "萨格勒布迪纳摩",
+    "安德莱": "安德莱赫特",
+    "霍芬海": "霍芬海姆",
+    "贝西克": "贝西克塔斯",
+    "奥林匹": "奥林匹亚科斯",
+    "索斯基": "索菲亚列夫斯基",
+    "伊普斯": "伊普斯维奇",
+    "斯图加": "斯图加特",
+    "纽卡斯": "纽卡斯尔",
+    "维拉": "阿斯顿维拉",
+    "柏林联": "柏林联合",
+    "多特": "多特蒙德",
+    "埃沃斯": "艾禾斯堡",
+    "奥格斯": "奥格斯堡",
+    "国米": "国际米兰",
+    "比利亚": "比利亚雷亚尔",
+    "巴伦西": "巴伦西亚",
+    "毕尔巴": "毕尔巴鄂竞技",
+    "布伦特": "布伦特福德",
+    "佛罗伦": "佛罗伦萨",
+    "亚特兰": "亚特兰大",
+    "阿拉维": "阿拉维斯",
+    "塞维利": "塞维利亚",
+    "利兹": "利兹联",
+    "诺丁汉": "诺丁汉森林",
+    "门兴": "门兴格拉德巴赫",
 }
 
 
@@ -98,10 +137,13 @@ def _with_year(month: int, day: int, hour: int, minute: int, now: datetime) -> d
 
 
 _TIME_RE = re.compile(r"(\d{1,2})-(\d{1,2})\s+(\d{1,2}):(\d{2})")
-# Real okooo row text: "1 英冠 10-17 03:00 [21] 2.90 伯恩利 3.45 [10] 2.28 伍尔弗 ..."
+# Real okooo row texts come in two shapes: the plain one
+# "1 英冠 10-17 03:00 [21] 2.90 伯恩利 3.45 [10] 2.28 伍尔弗 ..." and the
+# featured-issue one with a league tag before each rank bracket:
+# "1 欧罗巴 10-16 00:45 波甲 [2] 4.86 波兹南 4.48 德甲 [4] 1.58 勒沃 ..."
 _ROW_RE = re.compile(
-    r"\[(\d+)\]\s*(\d+\.\d{1,2})\s*(\S+)\s*(\d+\.\d{1,2})\s*"
-    r"\[(\d+)\]\s*(\d+\.\d{1,2})\s*(\S+)"
+    r"(?:\S+\s+)?\[(\d+)\]\s*(\d+\.\d{1,2})\s*(\S+)\s*(\d+\.\d{1,2})\s*"
+    r"(?:\S+\s+)?\[(\d+)\]\s*(\d+\.\d{1,2})\s*(\S+)"
 )
 _SALE_END_RE = re.compile(
     r"(?:截止时间|停售时间)[^0-9]*(\d{1,2})-(\d{1,2})[^0-9:]{0,12}?(\d{1,2}):(\d{2})"
@@ -202,30 +244,44 @@ def _atomic_write(path: Path, value: dict) -> None:
 
 
 def find_on_sale_issue(current: int, now: datetime) -> tuple[int, str]:
-    """Return ``(issue, html)`` for the issue currently on sale.
+    """Return ``(issue, html)`` for the on-sale issue closing soonest.
 
-    Starts from the repository's current issue page, walks its issue
-    tabs in ascending order and picks the first issue whose sale
-    deadline is still in the future.
+    Several issues are usually on sale at once with staggered
+    deadlines; the featured one is the issue whose deadline comes
+    first, whether its number is below or above the repository's
+    current issue. Candidates come from the okooo index tabs and the
+    tabs on the repository issue's own page, within a small window
+    around the current issue. A candidate counts only when its page
+    shows a sale deadline still in the future.
     """
-    landing = _fetch(ISSUE_URL.format(issue=current))
-    tabs = [n for n in tabulated_issues(landing) if current - 1 <= n <= current + 3]
-    if current not in tabs:
-        raise DiscoveryError("repository issue not present in okooo tabs")
-    pages: dict[int, str] = {current: landing}
-    for number in sorted(tabs):
-        if number < current:
+    candidates: set[int] = set(range(current - 3, current + 4))
+    pages: dict[int, str] = {}
+    for url in (INDEX_URL, ISSUE_URL.format(issue=current)):
+        try:
+            html = _fetch(url)
+        except Exception:
+            continue  # candidate gathering is best-effort
+        candidates.update(tabulated_issues(html))
+        if url != INDEX_URL:
+            pages[current] = html
+    best: tuple[datetime, int, str] | None = None
+    for number in sorted(candidates):
+        if not (current - 3 <= number <= current + 3):
             continue
-        html = pages.get(number) or _fetch(ISSUE_URL.format(issue=number))
-        pages[number] = html
+        try:
+            html = pages.get(number) or _fetch(ISSUE_URL.format(issue=number))
+        except Exception:
+            continue
         text = BeautifulSoup(html, "html.parser").get_text(" ", strip=True)
         try:
             deadline = _sale_end(text, now)
         except DiscoveryError:
             continue
-        if deadline > now:
-            return number, html
-    raise DiscoveryError("no tabulated issue has a future sale deadline")
+        if deadline > now and (best is None or (deadline, number) < best[:2]):
+            best = (deadline, number, html)
+    if best is None:
+        raise DiscoveryError("no tabulated issue has a future sale deadline")
+    return best[1], best[2]
 
 
 def refresh_issue_file(path: Path, now: datetime | None = None) -> tuple[str, str]:
@@ -257,9 +313,13 @@ def refresh_issue_file(path: Path, now: datetime | None = None) -> tuple[str, st
 
     # The next issue normally opens when the previous one closes; chain
     # the opening time from the previous deadline when that is later
-    # than the two-day estimate.
+    # than the two-day estimate. Forward switches only: when discovery
+    # moves back to an earlier still-open issue, its own estimated
+    # opening stands.
     previous_end = datetime.fromisoformat(existing["sale_end"])
-    if previous_end >= datetime.fromisoformat(candidate["sale_start"]):
+    if target > current and previous_end >= datetime.fromisoformat(
+        candidate["sale_start"]
+    ):
         candidate["sale_start"] = existing["sale_end"]
     validate_issue(candidate)
     _atomic_write(path, candidate)
