@@ -600,6 +600,7 @@
         $("inp-complete-front").placeholder = "可选，如 " + CFG.exA.split(" ").slice(0, 2).join(" ");
         $("inp-complete-back").placeholder = "可选，如 " + CFG.exB.split(" ")[0];
         $("hint-machine").textContent = "普通：纯随机生成，与历史无关；智能：按冷热/奇偶/大小/区间风格组合，非预测";
+        $("hint-complete").textContent = "已选部分号码（可留空）→ 自动补全完整 " + CFG.aPick + "+" + CFG.bPick + "，并展示每个号码的冷热/遗漏与组合结构（基于历史统计，非预测）";
       } else {
         $("grp-back").style.display = "none";
         $("grp-cback").style.display = "none";
@@ -608,6 +609,7 @@
         $("lbl-cfront").textContent = "已选（空位用 _ 占位，或整段留空）";
         $("inp-complete-front").placeholder = "如 " + CFG.ex.split(" ").map(function (x, i) { return i === 1 ? "_" : x; }).join(" ");
         $("hint-machine").textContent = "普通：各位独立随机；智能：按各位历史冷热分层加权，非预测";
+        $("hint-complete").textContent = "已选部分号码（空位用 _ 占位，可整段留空）→ 自动补全完整 " + CFG.positions + " 位直选，并展示各位数字的冷热与形态结构（基于历史统计，非预测）";
       }
     }
     function loadCurrent() {
