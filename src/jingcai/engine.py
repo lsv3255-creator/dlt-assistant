@@ -4,17 +4,22 @@ Probabilities start from the official fixed odds (SP) published with
 the fixtures. The 胜平负 model reuses the traditional-lottery
 multi-factor blend (market, ranking, home/away, and — when team
 dynamics were fetched — recent form and head-to-head). The 让球 model
-starts from the handicap market's own implied probabilities and tilts
-them by the same model edge the 胜平负 blend found over its market
-(an approximation, kept deliberately small by construction since the
-tilt ratios stay near 1). Picks are the argmax per market; a value
-flag marks picks whose model probability beats the SP price by >3%.
+judges the handicap on its own terms: an independent-Poisson score
+matrix is fitted to the 胜平负 model probabilities, the fixture's
+actual handicap line is applied to the resulting goal-margin
+distribution (so a model edge concentrated in one-goal wins lands on
+让平 for a -1 line instead of 让胜), and the outcome is blended with
+the handicap market's own implied probabilities (0.6 model / 0.4
+market). Picks are the argmax per market; a value flag marks picks
+whose model probability beats the SP price by >3%.
 
 Recommendations freeze per match: once a payload is published, later
 runs keep the same picks for the same fixture (code + kickoff +
 teams), refreshing only odds/probabilities around them.
 """
 from __future__ import annotations
+
+import math
 
 from src.football.engine import _multi_factor_probabilities, _probabilities
 
@@ -41,6 +46,105 @@ def _market_block(odds: dict | None, probabilities: dict | None, labels: dict) -
     }
 
 
+_MAX_GOALS = 10
+_PMF_CACHE: dict[float, list[float]] = {}
+
+
+def _poisson_pmf_list(lam: float) -> list[float]:
+    if lam not in _PMF_CACHE:
+        _PMF_CACHE[lam] = [
+            math.exp(-lam) * lam**k / math.factorial(k)
+            for k in range(_MAX_GOALS + 1)
+        ]
+    return _PMF_CACHE[lam]
+
+
+def _margin_distribution(lam_home: float, lam_away: float) -> dict[int, float]:
+    home = _poisson_pmf_list(round(lam_home, 4))
+    away = _poisson_pmf_list(round(lam_away, 4))
+    margins: dict[int, float] = {}
+    for hg, hp in enumerate(home):
+        if hp <= 0:
+            continue
+        for ag, ap in enumerate(away):
+            if ap <= 0:
+                continue
+            margins[hg - ag] = margins.get(hg - ag, 0.0) + hp * ap
+    return margins
+
+
+def _spf_from_margins(margins: dict[int, float]) -> dict[str, float]:
+    return {
+        "3": sum(p for m, p in margins.items() if m > 0),
+        "1": margins.get(0, 0.0),
+        "0": sum(p for m, p in margins.items() if m < 0),
+    }
+
+
+def _fit_lambdas(target: dict) -> tuple[float, float]:
+    """Fit independent-Poisson expected goals to a 1X2 probability set."""
+
+    def error(lh: float, la: float) -> float:
+        probs = _spf_from_margins(_margin_distribution(lh, la))
+        return sum((probs[key] - target[key]) ** 2 for key in OUTCOMES)
+
+    grid = [0.2 + 0.1 * i for i in range(41)]  # 0.2 .. 4.2
+    best = (1.35, 1.15)
+    best_err = float("inf")
+    for lh in grid:
+        for la in grid:
+            err = error(lh, la)
+            if err < best_err:
+                best_err, best = err, (lh, la)
+    step = 0.05
+    while step >= 0.006:
+        improved = False
+        for dlh in (-step, 0.0, step):
+            for dla in (-step, 0.0, step):
+                cand = (max(0.05, best[0] + dlh), max(0.05, best[1] + dla))
+                err = error(*cand)
+                if err < best_err - 1e-12:
+                    best_err, best, improved = err, cand, True
+        if not improved:
+            step /= 2
+    return best
+
+
+def _rq_from_margins(margins: dict[int, float], handicap: int) -> dict[str, float]:
+    out = {"3": 0.0, "1": 0.0, "0": 0.0}
+    for margin, prob in margins.items():
+        adjusted = margin + handicap
+        out["3" if adjusted > 0 else "1" if adjusted == 0 else "0"] += prob
+    total = sum(out.values()) or 1.0
+    return {key: out[key] / total for key in OUTCOMES}
+
+
+def _rq_probabilities(match: dict, spf_probabilities: dict | None) -> tuple[dict | None, dict | None]:
+    """Handicap probabilities judged from the goal-margin distribution.
+
+    Returns (blended probabilities, model-only margin probabilities).
+    The model part fits a score matrix to the 胜平负 model and applies
+    the fixture's real handicap line; blending with the handicap
+    market's implied probabilities keeps the market's line knowledge.
+    """
+    if not match.get("rq_odds"):
+        return None, None
+    market_rq = _probabilities(match["rq_odds"])
+    if spf_probabilities is None:
+        return market_rq, None
+    lam_home, lam_away = _fit_lambdas(spf_probabilities)
+    margins = _margin_distribution(lam_home, lam_away)
+    model_rq = _rq_from_margins(margins, int(match.get("handicap") or 0))
+    blended = {
+        key: 0.6 * model_rq[key] + 0.4 * market_rq[key] for key in OUTCOMES
+    }
+    total = sum(blended.values())
+    return (
+        {key: round(blended[key] / total, 4) for key in OUTCOMES},
+        {key: round(model_rq[key], 4) for key in OUTCOMES},
+    )
+
+
 def analyze_match(match: dict) -> dict:
     """Attach model probabilities and picks to one parsed fixture."""
     row = dict(match)
@@ -60,19 +164,10 @@ def analyze_match(match: dict) -> dict:
         }
     row["spf"] = _market_block(match.get("spf_odds"), spf_probabilities, SPF_LABELS)
 
-    rq_probabilities = None
-    if match.get("rq_odds"):
-        rq_probabilities = _probabilities(match["rq_odds"])
-        if spf_probabilities is not None and match.get("spf_odds"):
-            market_spf = _probabilities(match["spf_odds"])
-            tilted = {
-                key: rq_probabilities[key]
-                * (spf_probabilities[key] / market_spf[key])
-                for key in OUTCOMES
-            }
-            total = sum(tilted.values())
-            rq_probabilities = {key: round(tilted[key] / total, 4) for key in OUTCOMES}
+    rq_probabilities, rq_model = _rq_probabilities(match, spf_probabilities)
     row["rq"] = _market_block(match.get("rq_odds"), rq_probabilities, RQ_LABELS)
+    if row["rq"] is not None and rq_model is not None:
+        row["rq"]["margin_model"] = rq_model
     row["factors"] = factors
     dynamics = match.get("dynamics")
     if dynamics:
