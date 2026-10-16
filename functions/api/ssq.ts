@@ -172,26 +172,66 @@ export const onRequestGet = async ({ env, request }: { env: Env; request: Reques
       if (row) analysis = JSON.parse(row.payload);
     } catch { /* table may not exist yet */ }
 
-    // Review: how the locked picks for the latest drawn issue performed.
+    // Review: how the locked picks for the latest drawn issue performed,
+    // enriched with the prize tier won, deterministic miss attribution
+    // and next-issue improvement directions (statistics, not AI text).
     let review: unknown = null;
     try {
       const past = await env.DB.prepare(
         "SELECT strategy, red, blue FROM ssq_recommendations WHERE target_issue = ? ORDER BY strategy",
       ).bind(draws[0].issue).all<RecRow>();
       if (past.results.length) {
-        review = {
-          issue: draws[0].issue,
-          actual: draws[0],
-          results: past.results.map(r => {
-            const red = JSON.parse(r.red) as number[];
-            return {
-              strategy: r.strategy,
-              red, blue: r.blue,
-              red_hits: red.filter(n => draws[0].red.includes(n)),
-              blue_hit: r.blue === draws[0].blue,
-            };
-          }),
-        };
+        const actual = draws[0];
+        const hotCount = new Map<number, number>();
+        for (const d of draws.slice(1, 11)) for (const n of d.red) hotCount.set(n, (hotCount.get(n) ?? 0) + 1);
+        const hot = new Set([...hotCount.entries()].filter(([, c]) => c >= 3).map(([n]) => n));
+        const actualSum = actual.red.reduce((a, b) => a + b, 0);
+        const actualHot = actual.red.filter(n => hot.has(n)).length;
+        const actualOdd = actual.red.filter(n => n % 2 === 1).length;
+        const det = detail as { first_prize?: number; second_prize?: number } | null;
+        const internals: { sumDelta: number; hotGap: number; blueDiff: number }[] = [];
+        const results = past.results.map(r => {
+          const red = JSON.parse(r.red) as number[];
+          const redHits = red.filter(n => actual.red.includes(n));
+          const blueHit = r.blue === actual.blue;
+          const rc = redHits.length;
+          let prize: { tier: string | null; amount: number } = { tier: null, amount: 0 };
+          if (rc === 6 && blueHit) prize = { tier: "一等奖", amount: det?.first_prize ?? 0 };
+          else if (rc === 6) prize = { tier: "二等奖", amount: det?.second_prize ?? 0 };
+          else if (rc === 5 && blueHit) prize = { tier: "三等奖", amount: 3000 };
+          else if (rc === 5 || (rc === 4 && blueHit)) prize = { tier: "四等奖", amount: 200 };
+          else if (rc === 4 || (rc === 3 && blueHit)) prize = { tier: "五等奖", amount: 10 };
+          else if (blueHit) prize = { tier: "六等奖", amount: 5 };
+          const pickSum = red.reduce((a, b) => a + b, 0);
+          const sumDelta = pickSum - actualSum;
+          const pickHot = red.filter(n => hot.has(n)).length;
+          const hotGap = actualHot - pickHot;
+          const blueDiff = r.blue - actual.blue;
+          internals.push({ sumDelta, hotGap, blueDiff });
+          const notes: string[] = [];
+          if (rc >= 4) notes.push(`红球命中 ${rc} 个，结构接近开奖`);
+          if (Math.abs(sumDelta) >= 15) notes.push(`和值偏${sumDelta > 0 ? "高" : "低"} ${Math.abs(sumDelta)} 点（${pickSum} vs 开奖 ${actualSum}）`);
+          const oddPick = red.filter(n => n % 2 === 1).length;
+          if (Math.abs(oddPick - actualOdd) >= 2) notes.push(`奇偶结构错位（推荐 ${oddPick} 奇 vs 开奖 ${actualOdd} 奇）`);
+          if (hotGap >= 2) notes.push(`开奖红球 ${actualHot} 个为近10期热号，推荐仅含 ${pickHot} 个，冷热取向错位`);
+          if (!blueHit && Math.abs(blueDiff) === 1) notes.push("蓝球差 1 个邻号");
+          return {
+            strategy: r.strategy,
+            red, blue: r.blue,
+            red_hits: redHits,
+            blue_hit: blueHit,
+            prize,
+            notes: notes.slice(0, 3),
+          };
+        });
+        const improvement: string[] = [];
+        if (internals.every(i => i.sumDelta <= -15)) improvement.push("三组推荐和值均低于开奖 15 点以上，下期和值中枢上移");
+        if (internals.every(i => i.sumDelta >= 15)) improvement.push("三组推荐和值均高于开奖 15 点以上，下期和值中枢下移");
+        if (internals.every(i => i.hotGap >= 2)) improvement.push("下期提高近10期热号在红球中的配比");
+        if (internals.every(i => i.blueDiff !== 0) && new Set(internals.map(i => Math.sign(i.blueDiff))).size === 1)
+          improvement.push(`蓝球候选整体偏${internals[0].blueDiff > 0 ? "大" : "小"}，下期向开奖蓝球 ${actual.blue} 一侧扩展范围`);
+        if (!improvement.length) improvement.push("本期偏差未见系统性模式，下期维持现有策略参数");
+        review = { issue: actual.issue, actual, results, improvement: improvement.slice(0, 3) };
       }
     } catch { /* ignore */ }
 
