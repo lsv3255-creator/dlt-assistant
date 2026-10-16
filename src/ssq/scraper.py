@@ -27,7 +27,37 @@ USER_AGENT = (
 )
 ISSUE_RE = re.compile(r"^\d{5}$")
 _DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
+_PROMO_RE = re.compile(r"^\d{1,2},\d{1,2},\d{1,2}$")
 FIRST_YEAR = 3  # 双色球 launched in 2003 (first draw 03001, 2003-02-23)
+
+
+def _parse_detail(cells: list, blue_idx: int) -> dict | None:
+    """Announcement cells after the blue ball: pool, 1st-prize count,
+    1st prize, 2nd-prize count, 2nd prize, total sales. Legacy rows
+    carry an extra promotional cell (e.g. '04,12,15'); skip it."""
+    tail: list[str] = []
+    for td in cells[blue_idx + 1 : -1]:
+        text = td.get_text(strip=True)
+        if not text or _PROMO_RE.fullmatch(text):
+            continue
+        tail.append(text)
+    # Some eras carry a placeholder '0' cell right after the blue ball.
+    if len(tail) == 7 and tail[0] == "0":
+        tail = tail[1:]
+    if len(tail) != 6:
+        return None
+    try:
+        values = [int(t.replace(",", "")) for t in tail]
+    except ValueError:
+        return None
+    return {
+        "pool": values[0],
+        "first_count": values[1],
+        "first_prize": values[2],
+        "second_count": values[3],
+        "second_prize": values[4],
+        "sales": values[5],
+    }
 
 
 def _parse_rows(html: str) -> list[dict[str, Any]]:
@@ -55,14 +85,16 @@ def _parse_rows(html: str) -> list[dict[str, Any]]:
         blue_text = blue_td.get_text(strip=True)
         if not blue_text.isdigit():
             continue
-        rows.append(
-            {
-                "issue": issue,
-                "date": date_match.group(0),
-                "red": reds,
-                "blue": int(blue_text),
-            }
-        )
+        row = {
+            "issue": issue,
+            "date": date_match.group(0),
+            "red": reds,
+            "blue": int(blue_text),
+        }
+        detail = _parse_detail(cells, cells.index(blue_td))
+        if detail:
+            row["detail"] = detail
+        rows.append(row)
     return rows
 
 

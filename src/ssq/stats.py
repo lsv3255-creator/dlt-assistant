@@ -127,3 +127,64 @@ def generate_picks(target_issue: str, rows: list[dict]) -> list[dict]:
         {"strategy": "B-冷热组合型", "red": sorted(reds_b), "blue": blue_b},
         {"strategy": "C-纯随机娱乐型", "red": reds_c, "blue": blue_c},
     ]
+
+
+def number_scores(rows: list[dict]) -> tuple[dict, dict]:
+    """Balanced scores per ball (freq100 + omission bonus)."""
+    freq_100 = frequency(rows, 100)
+    omit = omission(rows)
+    red = {
+        n: freq_100["red"][n] + min(omit["red"][n], 20) * 0.3 for n in RED_RANGE
+    }
+    blue = {
+        n: freq_100["blue"][n] + min(omit["blue"][n], 12) * 0.3 for n in BLUE_RANGE
+    }
+    return red, blue
+
+
+def generate_plans(target_issue: str, rows: list[dict], picks: list[dict]) -> list[dict]:
+    """Single + compound plans for ``target_issue`` (DLT homepage parity).
+
+    - single （本期唯一推荐）: the A-strategy pick, with its score basis.
+    - combo （本期组合推荐）: top-8 red pool + top-2 blue pool compound
+      (C(8,6)*2 = 56 bets, 112 yuan), pools ranked by balanced score.
+    """
+    import math
+
+    red_scores, blue_scores = number_scores(rows)
+    freq_100 = frequency(rows, 100)
+    omit = omission(rows)
+    pick_a = picks[0]
+    single = {
+        "red": pick_a["red"],
+        "blue": pick_a["blue"],
+        "basis": [
+            {
+                "number": n,
+                "freq100": freq_100["red"][n],
+                "omission": omit["red"][n],
+                "score": round(red_scores[n], 1),
+            }
+            for n in pick_a["red"]
+        ],
+        "blue_basis": {
+            "number": pick_a["blue"],
+            "freq100": freq_100["blue"][pick_a["blue"]],
+            "omission": omit["blue"][pick_a["blue"]],
+        },
+    }
+    ranked_red = sorted(RED_RANGE, key=lambda n: (-red_scores[n], n))
+    ranked_blue = sorted(BLUE_RANGE, key=lambda n: (-blue_scores[n], n))
+    pool_red = sorted(ranked_red[:8])
+    pool_blue = sorted(ranked_blue[:2])
+    bets = math.comb(len(pool_red), 6) * len(pool_blue)
+    combo = {
+        "red_pool": pool_red,
+        "blue_pool": pool_blue,
+        "bets": bets,
+        "cost_yuan": bets * 2,
+    }
+    return [
+        {"kind": "single", "payload": single},
+        {"kind": "combo", "payload": combo},
+    ]

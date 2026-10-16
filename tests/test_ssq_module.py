@@ -62,6 +62,23 @@ class SsqScraperTests(unittest.TestCase):
         self.assertTrue(errors and "红球范围" in errors[0][1])
 
 
+    def test_detail_announcement_parsed(self):
+        rows = scraper._parse_rows(FIXTURE_HTML)
+        self.assertEqual(
+            rows[0]["detail"],
+            {
+                "pool": 958655708,
+                "first_count": 5,
+                "first_prize": 8783740,
+                "second_count": 80,
+                "second_prize": 295604,
+                "sales": 340890776,
+            },
+        )
+        # Legacy 2003 row layout: no reliable detail, must not fake one.
+        self.assertNotIn("detail", rows[1])
+
+
 class SsqStatsTests(unittest.TestCase):
     def test_next_target_draw_days(self):
         # 2026-10-15 is a Thursday draw; next is Sunday 2026-10-18.
@@ -91,6 +108,28 @@ class SsqStatsTests(unittest.TestCase):
         self.assertEqual(summary["total_draws"], 120)
         self.assertEqual(summary["frequency_100"]["sample"], 100)
         self.assertEqual(sum(summary["frequency_all"]["red"].values()), 120 * 6)
+
+    def test_plans_single_matches_strategy_a(self):
+        from src.ssq import analysis
+
+        rows = _rows()
+        picks = stats.generate_picks("26119", rows)
+        plans = stats.generate_plans("26119", rows, picks)
+        by_kind = {p["kind"]: p["payload"] for p in plans}
+        self.assertEqual(by_kind["single"]["red"], picks[0]["red"])
+        self.assertEqual(by_kind["single"]["blue"], picks[0]["blue"])
+        self.assertEqual(len(by_kind["combo"]["red_pool"]), 8)
+        self.assertEqual(len(by_kind["combo"]["blue_pool"]), 2)
+        self.assertEqual(by_kind["combo"]["bets"], 56)
+        self.assertEqual(by_kind["combo"]["cost_yuan"], 112)
+        report = analysis.build_analysis(
+            rows, picks, {"issue": "26119", "date": "2026-10-18"}
+        )
+        self.assertEqual(
+            set(report["sections"]),
+            {"trend", "hot_cold", "structure", "basis", "risk"},
+        )
+        self.assertIn(rows[-1]["issue"], report["sections"]["trend"])
 
 
 if __name__ == "__main__":

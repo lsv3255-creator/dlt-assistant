@@ -39,12 +39,34 @@ export const onRequestGet = async ({ env }: { env: Env }): Promise<Response> => 
     const top = (values: number[], count: number, offset: number) =>
       values.slice(offset).map((v, i) => [i + offset, v] as [number, number])
         .sort((a, b) => b[1] - a[1] || a[0] - b[0]).slice(0, count).map(([n]) => n);
+    const freq30 = { red: new Array(34).fill(0), blue: new Array(17).fill(0) };
+    draws.slice(0, 30).forEach(d => {
+      d.red.forEach(n => { freq30.red[n] += 1; });
+      freq30.blue[d.blue] += 1;
+    });
+    const freqAll = { red: new Array(34).fill(0), blue: new Array(17).fill(0) };
+    draws.forEach(d => {
+      d.red.forEach(n => { freqAll.red[n] += 1; });
+      freqAll.blue[d.blue] += 1;
+    });
+    // Distributions over the last 100 draws.
+    const sumHist = new Array(19).fill(0); // buckets of 10: 20..199 -> idx
+    const oddCounts = new Array(7).fill(0);
+    draws.slice(0, 100).forEach(d => {
+      const s = d.red.reduce((a, b) => a + b, 0);
+      sumHist[Math.min(18, Math.floor(s / 10))] += 1;
+      oddCounts[d.red.filter(n => n % 2 === 1).length] += 1;
+    });
     const stats = {
       total_draws: draws.length,
+      frequency_30: { red: freq30.red.slice(1), blue: freq30.blue.slice(1) },
       frequency_100: { red: freq100.red.slice(1), blue: freq100.blue.slice(1) },
+      frequency_all: { red: freqAll.red.slice(1), blue: freqAll.blue.slice(1) },
       omission: { red: omission.red.slice(1), blue: omission.blue.slice(1) },
       hot: { red: top(freq100.red, 6, 1), blue: top(freq100.blue, 3, 1) },
       cold: { red: top(omission.red, 6, 1), blue: top(omission.blue, 3, 1) },
+      sum_hist_100: sumHist,
+      odd_counts_100: oddCounts,
     };
 
     let recommendations: { target_issue: string; target_date: string; picks: { strategy: string; red: number[]; blue: number }[] } | null = null;
@@ -61,11 +83,70 @@ export const onRequestGet = async ({ env }: { env: Env }): Promise<Response> => 
       };
     }
 
+    // Detail announcement for the latest draw (pool / prizes / sales).
+    let detail: unknown = null;
+    try {
+      const row = await env.DB.prepare(
+        "SELECT payload FROM ssq_details WHERE issue = ?",
+      ).bind(draws[0].issue).first<{ payload: string }>();
+      if (row) detail = JSON.parse(row.payload);
+    } catch { /* table may not exist yet */ }
+
+    // Locked plans (single + combo) and the comprehensive analysis.
+    let plans: unknown = null;
+    try {
+      const planRows = await env.DB.prepare(
+        "SELECT target_issue, target_date, kind, payload FROM ssq_plans WHERE target_issue = (SELECT MAX(target_issue) FROM ssq_plans)",
+      ).all<{ target_issue: string; target_date: string; kind: string; payload: string }>();
+      if (planRows.results.length) {
+        plans = {
+          target_issue: planRows.results[0].target_issue,
+          target_date: planRows.results[0].target_date,
+          single: JSON.parse(planRows.results.find(r => r.kind === "single")?.payload ?? "null"),
+          combo: JSON.parse(planRows.results.find(r => r.kind === "combo")?.payload ?? "null"),
+        };
+      }
+    } catch { /* table may not exist yet */ }
+    let analysis: unknown = null;
+    try {
+      const row = await env.DB.prepare(
+        "SELECT payload FROM ssq_analysis ORDER BY target_issue DESC LIMIT 1",
+      ).first<{ payload: string }>();
+      if (row) analysis = JSON.parse(row.payload);
+    } catch { /* table may not exist yet */ }
+
+    // Review: how the locked picks for the latest drawn issue performed.
+    let review: unknown = null;
+    try {
+      const past = await env.DB.prepare(
+        "SELECT strategy, red, blue FROM ssq_recommendations WHERE target_issue = ? ORDER BY strategy",
+      ).bind(draws[0].issue).all<RecRow>();
+      if (past.results.length) {
+        review = {
+          issue: draws[0].issue,
+          actual: draws[0],
+          results: past.results.map(r => {
+            const red = JSON.parse(r.red) as number[];
+            return {
+              strategy: r.strategy,
+              red, blue: r.blue,
+              red_hits: red.filter(n => draws[0].red.includes(n)),
+              blue_hit: r.blue === draws[0].blue,
+            };
+          }),
+        };
+      }
+    } catch { /* ignore */ }
+
     return json({
       latest: draws[0],
       draws: draws.slice(0, 100),
       stats,
       recommendations,
+      detail,
+      plans,
+      analysis,
+      review,
       source: {
         name: "500彩票网双色球历史开奖（与官方同步，全量历史存入本站数据库）",
         url: "https://datachart.500.com/ssq/history/newinc/history.php",
