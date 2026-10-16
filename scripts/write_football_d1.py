@@ -1,4 +1,9 @@
-"""Generate a D1 current snapshot, publishing the customer payload last."""
+"""Generate a D1 current snapshot, publishing the customer payload last.
+
+Also appends the four lottery games' evening draw updates (see
+``_append_lottery_updates``) so daily-draw games land the same night
+instead of waiting for the next morning's DLT run.
+"""
 from __future__ import annotations
 
 import json
@@ -161,6 +166,41 @@ def main() -> None:
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     OUTPUT.write_text(sql, encoding="utf-8")
     print(f"football issue {data['issue']}: D1 current snapshot SQL ready")
+    _append_lottery_updates()
+
+
+def _append_lottery_updates() -> None:
+    """Append the four lottery games' D1 updates to the football SQL file.
+
+    Draw ingestion for 双色球/福彩3D/排列三/排列五 normally rides the
+    DLT workflow, which runs at 10:00 daily (plus 21:45 on DLT draw
+    days) — so evening draws （排列 20:30 / 福彩3D 21:15 / 双色球
+    21:15 on its days) stayed stale until the next morning and their
+    reviews could not be computed. The football workflow runs every
+    evening at 21:45, after those draws, inside a step that already
+    holds the Cloudflare token and executes this very SQL file — so
+    the same fault-isolated hooks run here too and the draws land the
+    same night. The 10:00 DLT run remains as the backstop; every
+    statement is INSERT OR IGNORE, so double execution is harmless.
+    """
+    import importlib
+    import sys
+
+    if str(ROOT) not in sys.path:
+        sys.path.insert(0, str(ROOT))
+    hooks = [
+        ("ssq", "scripts.update_ssq_d1", "append_ssq_updates"),
+        ("fc3d", "scripts.update_fc3d_d1", "append_fc3d_updates"),
+        ("pl3", "scripts.update_pl3_d1", "append_pl3_updates"),
+        ("pl5", "scripts.update_pl5_d1", "append_pl5_updates"),
+    ]
+    for name, module_name, func_name in hooks:
+        try:
+            module = importlib.import_module(module_name)
+            getattr(module, func_name)(str(OUTPUT))
+            print(f"lottery hook {name}: appended evening updates")
+        except Exception as exc:  # games must never break football D1
+            print(f"lottery hook {name} failed: {type(exc).__name__}: {str(exc)[:160]}")
 
 
 def _committed_bytes(path: Path) -> bytes | None:

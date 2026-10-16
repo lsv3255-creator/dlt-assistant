@@ -86,7 +86,7 @@
     <!-- ③ 智能补全（激活：completePick 纯函数 + 冷热/遗漏/组合结构展示） -->
     <section class="card">
       <h2>🧩 智能补全</h2>
-      <p class="hint">已选部分号码（可留空）→ 自动补全完整 5+2，并展示每个号码的冷热/遗漏与组合结构（基于历史统计，非预测）</p>
+      <p class="hint" id="hint-complete">已选部分号码（可留空）→ 自动补全完整 5+2，并展示每个号码的冷热/遗漏与组合结构（基于历史统计，非预测）</p>
       <div class="manual-input">
         <div class="input-group">
           <span class="input-label" id="lbl-cfront">前区已选（0-5 个，1-35）</span>
@@ -112,6 +112,6 @@
     <p class="error-detail" id="error-detail"></p>
   </div>
 
-  <script src="./pick.js?v=multi1" defer></script>
+  <script src="./pick.js?v=multi2" defer></script>
 </body>
 </html>
