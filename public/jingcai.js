@@ -43,4 +43,26 @@
     .catch(() => load('./data/jingcai/current.json'))
     .then(render)
     .catch(() => { $('jingcai-error').hidden = false; });
+
+  function renderReviews(payload) {
+    const days = ((payload && payload.days) || []).filter(day => day && day.matches);
+    const blocks = [];
+    let rendered = 0;
+    days.forEach(day => {
+      const entries = Object.values(day.matches);
+      const settled = entries.filter(e => e.score);
+      if (!settled.length) return;
+      const spfSettled = settled.filter(e => e.spf_pick);
+      const rqSettled = settled.filter(e => e.rq_pick);
+      const spfHits = spfSettled.filter(e => e.spf_hit).length;
+      const rqHits = rqSettled.filter(e => e.rq_hit).length;
+      const parlays = (day.parlays || []).map(p => `<span class="plan-chip">${safe(p.name)} ${p.hit === null || p.hit === undefined ? '待赛果' : p.hit ? '✅ 命中' : '❌ 未中'}</span>`).join('');
+      const mark = hit => hit === null || hit === undefined ? '—' : hit ? '✅' : '❌';
+      const rows = rendered === 0 ? settled.map(e => `<div class="match-meta">${safe(e.code)} ${safe(e.home)} vs ${safe(e.away)} · 比分 ${e.score[0]}:${e.score[1]} · 胜平负 ${safe(e.spf_label || '—')} ${mark(e.spf_hit)} · 让球(${(e.handicap ?? 0) > 0 ? '+' : ''}${e.handicap ?? 0}) ${safe(e.rq_label || '—')} ${mark(e.rq_hit)}</div>`).join('') : '';
+      rendered += 1;
+      blocks.push(`<div class="plan-strip"><span class="plan-chip">${safe(day.sale_date)}</span><span class="plan-chip">胜平负命中 ${spfHits}/${spfSettled.length}</span><span class="plan-chip">让球命中 ${rqHits}/${rqSettled.length}</span>${parlays}</div>${rows}`);
+    });
+    if (blocks.length) $('jc-reviews').innerHTML = blocks.join('');
+  }
+  load('/api/jingcai-archive').then(renderReviews).catch(() => {});
 })();
