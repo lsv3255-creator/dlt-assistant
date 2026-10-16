@@ -204,6 +204,16 @@ def append_ssq_updates(out_path: str) -> None:
         if rows or not os.path.exists(DATA_JSON):
             _write_repo_history(history)
         lines = list(SCHEMA)
+        # 方案/分析先行写入：与体量大的公告回填解耦，避免排在文件末尾受影响。
+        if len(history) >= 100:
+            plan_lines = _plans_analysis_sql(history)
+            plan_bytes = sum(len(x.encode("utf-8")) for x in plan_lines)
+            print(
+                "::warning title=ssq深度诊断::"
+                f"plans_statements={len(plan_lines)} plans_bytes={plan_bytes}"
+            )
+            lines.extend(_recommendation_sql(history))
+            lines.extend(plan_lines)
         lines.extend(_draw_sql(rows))
         lines.extend(_details_sql(rows))
         # One-time announcement backfill: draws exist but details empty.
@@ -212,9 +222,6 @@ def append_ssq_updates(out_path: str) -> None:
             full = scraper.fetch_all_history()
             lines.extend(_details_sql(full))
             print(f"ssq: 详细公告一次性回填 {len(full)} 期")
-        if len(history) >= 100:
-            lines.extend(_recommendation_sql(history))
-            lines.extend(_plans_analysis_sql(history))
         os.makedirs(os.path.dirname(out_path), exist_ok=True)
         with open(out_path, "a", encoding="utf-8") as fh:
             fh.write(f"-- 双色球{mode}（新增 {len(rows)} 期）\n")
