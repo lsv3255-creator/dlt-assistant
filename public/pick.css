@@ -121,3 +121,12 @@
   .pick-balls .ball { width: 28px; height: 28px; font-size: .78rem; }
   .combo-grid { grid-template-columns: 1fr 1fr; }
 }
+
+/* 全彩种切换 */
+.game-switch { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0 2px; }
+.game-chip {
+  padding: 9px 14px; border-radius: 999px; border: 1px solid var(--accent-deep);
+  background: #fff; color: var(--accent-deep); font-size: .92rem; cursor: pointer;
+}
+.game-chip.active { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 700; }
+.ball.digit-ball { border-radius: 9px; background: #334155; }
