@@ -35,6 +35,16 @@
     .catch(() => load('./data/football/current.json'))
     .then(render)
     .catch(() => { $('football-error').hidden = false; });
+
+  function renderReviews(payload) {
+    const reviews = (payload && payload.reviews) || [];
+    if (!reviews.length) return;
+    const latest = reviews[0];
+    const detail = latest.matches.map(m => `<div class="match-meta">${m.order}. ${safe(m.home)} vs ${safe(m.away)} · 赛果 ${safe(labels[m.result] || '—')} · 方案 ${m.sfc_choices.join('/')} ${m.sfc_hit ? '✅ 命中' : '❌ 未中'}</div>`).join('');
+    const history = reviews.slice(1).map(r => `<div class="match-meta">第${safe(r.issue)}期 · 14场覆盖命中 ${r.sfc_hits}/14 · 任选九命中 ${r.ren9_hits}/9</div>`).join('');
+    $('football-review').innerHTML = `<div>第${safe(latest.issue)}期已复盘：14场覆盖命中 <strong>${latest.sfc_hits}/14</strong>，任选九命中 <strong>${latest.ren9_hits}/9</strong>。复盘只评价已冻结方案，不事后改号。</div>${detail}${history}`;
+  }
+  load('./data/football/reviews.json').then(renderReviews).catch(() => {});
 })();
 
 
