@@ -178,8 +178,42 @@ def _recommendation_sql(history: list[dict]) -> list[str]:
     return lines
 
 
+def _append_lines(out_path: str, header: str, lines: list) -> None:
+    os.makedirs(os.path.dirname(out_path), exist_ok=True)
+    with open(out_path, "a", encoding="utf-8") as fh:
+        fh.write(header + "\n")
+        fh.write("\n".join(lines) + "\n")
+
+
 def append_ssq_updates(out_path: str) -> None:
-    """Append ssq D1 statements to ``out_path`` (created if needed)."""
+    """Append ssq D1 statements to ``out_path`` (created if needed).
+
+    Phase A （方案/分析）只依赖仓库历史文件、无网络依赖，独立先行落盘：
+    即使抓取官网或探针子进程失败，也不会把已生成的方案/分析一起丢掉。
+    Phase B 才是开奖增量与公告回填（需要网络）。
+    """
+    # ---- Phase A: plans/analysis from the repo history (no network) ----
+    try:
+        repo_history = _load_repo_history()
+        if len(repo_history) >= 100:
+            plan_lines = _plans_analysis_sql(repo_history)
+            plan_bytes = sum(len(x.encode("utf-8")) for x in plan_lines)
+            print(
+                "::warning title=ssq深度诊断::"
+                f"phaseA plans_statements={len(plan_lines)} plans_bytes={plan_bytes}"
+            )
+            lines = list(SCHEMA)
+            lines.extend(_recommendation_sql(repo_history))
+            lines.extend(plan_lines)
+            _append_lines(out_path, "-- 双色球方案/分析（仓库历史，无网络依赖）", lines)
+    except Exception as exc:  # never break the DLT pipeline
+        print(
+            "::warning title=ssq深度诊断::"
+            f"phaseA_failed {type(exc).__name__}: {str(exc)[:120]}"
+        )
+        print(f"ssq phaseA skipped: {type(exc).__name__}: {str(exc)[:160]}")
+
+    # ---- Phase B: draw increments + announcement details (network) ----
     try:
         latest = ssq_d1_latest()
         if latest is None or latest == 0:
@@ -204,16 +238,6 @@ def append_ssq_updates(out_path: str) -> None:
         if rows or not os.path.exists(DATA_JSON):
             _write_repo_history(history)
         lines = list(SCHEMA)
-        # 方案/分析先行写入：与体量大的公告回填解耦，避免排在文件末尾受影响。
-        if len(history) >= 100:
-            plan_lines = _plans_analysis_sql(history)
-            plan_bytes = sum(len(x.encode("utf-8")) for x in plan_lines)
-            print(
-                "::warning title=ssq深度诊断::"
-                f"plans_statements={len(plan_lines)} plans_bytes={plan_bytes}"
-            )
-            lines.extend(_recommendation_sql(history))
-            lines.extend(plan_lines)
         lines.extend(_draw_sql(rows))
         lines.extend(_details_sql(rows))
         # One-time announcement backfill: draws exist but details empty.
@@ -222,13 +246,14 @@ def append_ssq_updates(out_path: str) -> None:
             full = scraper.fetch_all_history()
             lines.extend(_details_sql(full))
             print(f"ssq: 详细公告一次性回填 {len(full)} 期")
-        os.makedirs(os.path.dirname(out_path), exist_ok=True)
-        with open(out_path, "a", encoding="utf-8") as fh:
-            fh.write(f"-- 双色球{mode}（新增 {len(rows)} 期）\n")
-            fh.write("\n".join(lines) + "\n")
+        _append_lines(out_path, f"-- 双色球{mode}（新增 {len(rows)} 期）", lines)
         print(
             f"ssq: {mode}完成，新增 {len(rows)} 期 -> {out_path}；"
             f"仓库历史 {len(history)} 期，最新 {history[-1]['issue'] if history else '无'}"
         )
     except Exception as exc:  # never break the DLT pipeline
+        print(
+            "::warning title=ssq深度诊断::"
+            f"phaseB_failed {type(exc).__name__}: {str(exc)[:120]}"
+        )
         print(f"ssq_d1_skipped: {type(exc).__name__}: {str(exc)[:160]}")
