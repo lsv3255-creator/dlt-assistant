@@ -8,7 +8,8 @@
     if (!market) return `<div class="match-meta">${label}：未开售</div>`;
     const probs = market.probabilities;
     const star = market.value_edge > 0.03 ? ' ⭐' : '';
-    return `<div class="match-meta">${label}${handicap ? `(${handicap > 0 ? '+' : ''}${handicap})` : ''} · 概率 胜${pct(probs['3'])}/平${pct(probs['1'])}/负${pct(probs['0'])} · 奖金 ${safe(market.odds[market.pick])} · <strong>推荐 ${safe(market.pick_label)}${star}</strong></div>`;
+    const model = market.margin_model ? ` · 净胜球模型 胜${pct(market.margin_model['3'])}/平${pct(market.margin_model['1'])}/负${pct(market.margin_model['0'])}` : '';
+    return `<div class="match-meta">${label}${handicap ? `(${handicap > 0 ? '+' : ''}${handicap})` : ''} · 概率 胜${pct(probs['3'])}/平${pct(probs['1'])}/负${pct(probs['0'])}${model} · 奖金 ${safe(market.odds[market.pick])} · <strong>推荐 ${safe(market.pick_label)}${star}</strong></div>`;
   }
 
   function render(data) {
