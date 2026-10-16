@@ -5,13 +5,20 @@ the fixtures. The 胜平负 model reuses the traditional-lottery
 multi-factor blend (market, ranking, home/away, and — when team
 dynamics were fetched — recent form and head-to-head). The 让球 model
 judges the handicap on its own terms: an independent-Poisson score
-matrix is fitted to the 胜平负 model probabilities, the fixture's
-actual handicap line is applied to the resulting goal-margin
-distribution (so a model edge concentrated in one-goal wins lands on
-让平 for a -1 line instead of 让胜), and the outcome is blended with
-the handicap market's own implied probabilities (0.6 model / 0.4
-market). Picks are the argmax per market; a value flag marks picks
-whose model probability beats the SP price by >3%.
+matrix is built from two expected-goals estimates — one fitted to
+the 胜平负 model probabilities, one from both teams' recent scoring
+rates (attack vs defence over the last 10 matches), the dimension a
+1X2 marginal cannot see, since identical win probabilities can hide
+very different margin profiles. The fixture's actual handicap line
+is applied to the resulting goal-margin distribution (so a model
+edge concentrated in one-goal wins lands on 让平 for a -1 line
+instead of 让胜), and the outcome is blended 50/50 with the handicap
+market's own implied probabilities — the market leg is also how
+pricing news such as injuries enters, as no structured injury feed
+exists upstream. Picks are the argmax per market; a value flag marks
+picks whose model probability beats the SP price by >3%. Handicap
+picks whose three outcomes land within 5 points of each other are
+flagged low-confidence instead of being presented as firm calls.
 
 Recommendations freeze per match: once a payload is published, later
 runs keep the same picks for the same fixture (code + kickoff +
@@ -115,6 +122,33 @@ def _fit_lambdas(target: dict) -> tuple[float, float]:
     return best
 
 
+def _form_expected_goals(match: dict) -> tuple[float, float] | None:
+    """Expected goals from recent scoring rates (last-10 form).
+
+    Classic attack x defence construction: each side's scoring rate
+    is scaled by the opponent's concession rate relative to the
+    pair's overall scoring level, with a home-edge split. Needs at
+    least 5 recorded matches per side; returns None otherwise.
+    """
+    dynamics = match.get("dynamics") or {}
+    home = (dynamics.get("home") or {}).get("form_last10") or {}
+    away = (dynamics.get("away") or {}).get("form_last10") or {}
+    try:
+        h_played, a_played = int(home["played"]), int(away["played"])
+        h_att, h_def = home["gf"] / h_played, home["ga"] / h_played
+        a_att, a_def = away["gf"] / a_played, away["ga"] / a_played
+    except (KeyError, TypeError, ValueError, ZeroDivisionError):
+        return None
+    if min(h_played, a_played) < 5:
+        return None
+    level = (h_att + h_def + a_att + a_def) / 4
+    if level <= 0:
+        return None
+    lam_home = min(4.2, max(0.15, h_att * a_def / level * 1.12))
+    lam_away = min(4.2, max(0.15, a_att * h_def / level * 0.88))
+    return lam_home, lam_away
+
+
 def _rq_from_margins(margins: dict[int, float], handicap: int) -> dict[str, float]:
     out = {"3": 0.0, "1": 0.0, "0": 0.0}
     for margin, prob in margins.items():
@@ -127,10 +161,12 @@ def _rq_from_margins(margins: dict[int, float], handicap: int) -> dict[str, floa
 def _rq_probabilities(match: dict, spf_probabilities: dict | None) -> tuple[dict | None, dict | None]:
     """Handicap probabilities judged from the goal-margin distribution.
 
-    Returns (blended probabilities, model-only margin probabilities).
-    The model part fits a score matrix to the 胜平负 model and applies
-    the fixture's real handicap line; blending with the handicap
-    market's implied probabilities keeps the market's line knowledge.
+    Returns (blended probabilities, model detail). Expected goals
+    come from two sources — fitted to the 胜平负 model probabilities
+    and derived from recent scoring rates — averaged when both
+    exist; the fixture's real handicap line is then applied to the
+    margin distribution and the result blended 50/50 with the
+    handicap market's implied probabilities.
     """
     if not match.get("rq_odds"):
         return None, None
@@ -138,15 +174,24 @@ def _rq_probabilities(match: dict, spf_probabilities: dict | None) -> tuple[dict
     if spf_probabilities is None:
         return market_rq, None
     lam_home, lam_away = _fit_lambdas(spf_probabilities)
+    form_lams = _form_expected_goals(match)
+    if form_lams:
+        lam_home = (lam_home + form_lams[0]) / 2
+        lam_away = (lam_away + form_lams[1]) / 2
     margins = _margin_distribution(lam_home, lam_away)
     model_rq = _rq_from_margins(margins, int(match.get("handicap") or 0))
     blended = {
-        key: 0.6 * model_rq[key] + 0.4 * market_rq[key] for key in OUTCOMES
+        key: 0.5 * model_rq[key] + 0.5 * market_rq[key] for key in OUTCOMES
     }
     total = sum(blended.values())
+    detail = {
+        "margin_model": {key: round(model_rq[key], 4) for key in OUTCOMES},
+        "xg": {"home": round(lam_home, 2), "away": round(lam_away, 2)},
+        "form_based": bool(form_lams),
+    }
     return (
         {key: round(blended[key] / total, 4) for key in OUTCOMES},
-        {key: round(model_rq[key], 4) for key in OUTCOMES},
+        detail,
     )
 
 
@@ -169,10 +214,15 @@ def analyze_match(match: dict) -> dict:
         }
     row["spf"] = _market_block(match.get("spf_odds"), spf_probabilities, SPF_LABELS)
 
-    rq_probabilities, rq_model = _rq_probabilities(match, spf_probabilities)
+    rq_probabilities, rq_detail = _rq_probabilities(match, spf_probabilities)
     row["rq"] = _market_block(match.get("rq_odds"), rq_probabilities, RQ_LABELS)
-    if row["rq"] is not None and rq_model is not None:
-        row["rq"]["margin_model"] = rq_model
+    if row["rq"] is not None and rq_detail is not None:
+        row["rq"]["margin_model"] = rq_detail["margin_model"]
+        row["rq"]["xg"] = rq_detail["xg"]
+        ranked = sorted(row["rq"]["probabilities"].values(), reverse=True)
+        if ranked[0] - ranked[1] < 0.05:
+            row["rq"]["low_confidence"] = True
+            row["rq"]["pick_note"] = "让球三项概率接近，模型把握较低，仅供参考"
     row["factors"] = factors
     dynamics = match.get("dynamics")
     if dynamics:
