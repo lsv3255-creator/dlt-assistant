@@ -32,7 +32,7 @@ class Fc3dScraperTests(unittest.TestCase):
     def test_parse_feed(self):
         rows = scraper._parse_feed(FIXTURE_XML)
         self.assertEqual(len(rows), 2)
-        self.assertEqual(rows[0], {"issue": "2004001", "date": "2004-10-18", "digits": [0, 7, 0]})
+        self.assertEqual(rows[0], {"issue": "2004001", "date": "2004-10-18", "digits": [0, 7, 0], "trycode": [1, 2, 3]})
         self.assertEqual(rows[1]["digits"], [8, 2, 3])
         self.assertEqual(scraper.validate(rows), [])
 
@@ -72,3 +72,27 @@ class Fc3dStatsTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class Fc3dPlansAnalysisTests(unittest.TestCase):
+    def test_plans_and_analysis(self):
+        from src.fc3d import analysis
+
+        rows = _rows()
+        picks = stats.generate_picks("2026275", rows)
+        plans = stats.generate_plans("2026275", rows, picks)
+        by_kind = {p["kind"]: p["payload"] for p in plans}
+        self.assertEqual(by_kind["single"]["digits"], picks[0]["digits"])
+        self.assertEqual(by_kind["combo"]["bets"], 27)
+        self.assertEqual(by_kind["combo"]["cost_yuan"], 54)
+        self.assertIn(by_kind["combo"]["group_play"]["type"], ("组三", "组六", "豹子"))
+        report = analysis.build_analysis(
+            rows, picks, {"issue": "2026275", "date": "2026-10-16"}
+        )
+        self.assertEqual(
+            set(report["sections"]),
+            {"trend", "hot_cold", "structure", "basis", "risk"},
+        )
+        self.assertEqual(analysis.draw_form([5, 5, 5]), "豹子")
+        self.assertEqual(analysis.draw_form([5, 5, 2]), "组三")
+        self.assertEqual(analysis.draw_form([5, 4, 2]), "组六")
