@@ -12,6 +12,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 SOURCE = ROOT / "public/data/football/current.json"
 JINGCAI_SOURCE = ROOT / "public/data/jingcai/current.json"
+JINGCAI_ARCHIVE_SOURCE = ROOT / "public/data/jingcai/archive.json"
 OUTPUT = ROOT / ".verify_tmp/football_current_d1.sql"
 
 
@@ -115,6 +116,26 @@ JINGCAI_SCHEMA = [
 ]
 
 
+JINGCAI_ARCHIVE_SCHEMA = [
+    "CREATE TABLE IF NOT EXISTS jingcai_archive_days("
+    "sale_date TEXT PRIMARY KEY, payload TEXT, updated_at TEXT);",
+]
+
+
+def build_jingcai_archive_sql(archive: dict) -> str:
+    """Archive day rows: published picks plus their settlement state."""
+    lines = list(JINGCAI_ARCHIVE_SCHEMA)
+    for sale_date in sorted(archive.get("days", {})):
+        day = archive["days"][sale_date]
+        lines.append(
+            "INSERT INTO jingcai_archive_days(sale_date,payload,updated_at) "
+            f"VALUES({sql_text(sale_date)},{sql_text(day)},datetime('now')) "
+            "ON CONFLICT(sale_date) DO UPDATE SET payload=excluded.payload,"
+            "updated_at=datetime('now');"
+        )
+    return "\n".join(lines) + "\n"
+
+
 def build_jingcai_sql(payload: dict) -> str:
     """Jingcai lines appended after the football block (best-effort).
 
@@ -163,6 +184,14 @@ def main() -> None:
                     JINGCAI_SOURCE.write_bytes(committed)
             except Exception:
                 pass
+    if JINGCAI_ARCHIVE_SOURCE.exists():
+        try:
+            archive = json.loads(JINGCAI_ARCHIVE_SOURCE.read_text(encoding="utf-8"))
+            if archive.get("days"):
+                sql += build_jingcai_archive_sql(archive)
+                print(f"jingcai archive: D1 rows for {len(archive['days'])} sale days")
+        except Exception as exc:  # archive must never break football D1
+            print(f"jingcai_archive_d1_skipped: {type(exc).__name__}: {str(exc)[:120]}")
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     OUTPUT.write_text(sql, encoding="utf-8")
     print(f"football issue {data['issue']}: D1 current snapshot SQL ready")
