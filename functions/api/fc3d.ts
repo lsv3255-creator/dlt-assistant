@@ -140,7 +140,7 @@ export const onRequestGet = async ({ env, request }: { env: Env; request: Reques
       const row = await env.DB.prepare(
         "SELECT payload FROM fc3d_details WHERE issue = ?",
       ).bind(draws[0].issue).first<{ payload: string }>();
-      if (row) detail.trycode = (JSON.parse(row.payload) as { trycode: number[] }).trycode;
+      if (row) Object.assign(detail, JSON.parse(row.payload) as Record<string, unknown>);
     } catch { /* table may not exist yet */ }
     let plans: unknown = null;
     try {

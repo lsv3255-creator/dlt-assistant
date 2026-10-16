@@ -1,6 +1,7 @@
 (() => {
   const $ = id => document.getElementById(id);
   const safe = value => String(value ?? '').replace(/[&<>'"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch]));
+  const money = n => '¥' + Number(n).toLocaleString('zh-CN');
   const balls = digits =>
     `<div class="ball-row latest-balls">${digits.map(d => `<span class="ball front">${d}</span>`).join('')}</div>`;
   const POS = ['百位', '十位', '个位'];
@@ -18,6 +19,10 @@
            ${dt.form ? `<div class="metric"><small>形态</small><strong>${safe(dt.form)}</strong></div>` : ''}
            <div class="metric"><small>奇偶</small><strong>${safe(dt.odd_count)} 奇 · ${latest.digits.length - dt.odd_count} 偶</strong></div>
            ${dt.trycode ? `<div class="metric"><small>试机号</small><strong>${dt.trycode.join(' ')}</strong></div>` : ''}
+           ${dt.sales ? `<div class="metric"><small>本期销售额</small><strong>${money(dt.sales)}</strong></div>` : ''}
+           ${dt.direct_count ? `<div class="metric"><small>直选</small><strong>${safe(dt.direct_count)} 注 · ${money(dt.direct_prize || 1040)}</strong></div>` : ''}
+           ${dt.group3_count ? `<div class="metric"><small>组三</small><strong>${safe(dt.group3_count)} 注 · ${money(dt.group3_prize || 346)}</strong></div>` : ''}
+           ${dt.group6_count ? `<div class="metric"><small>组六</small><strong>${safe(dt.group6_count)} 注 · ${money(dt.group6_prize || 173)}</strong></div>` : ''}
          </div>`
       : '<p class="hint">开奖详情暂缺。</p>';
 

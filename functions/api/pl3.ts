@@ -130,6 +130,12 @@ export const onRequestGet = async ({ env, request }: { env: Env; request: Reques
         : null,
       odd_count: latestDigits.filter(d => d % 2 === 1).length,
     };
+    try {
+      const row = await env.DB.prepare(
+        "SELECT payload FROM pl3_details WHERE issue = ?",
+      ).bind(draws[0].issue).first<{ payload: string }>();
+      if (row) Object.assign(detail, JSON.parse(row.payload) as Record<string, unknown>);
+    } catch { /* table may not exist yet */ }
     let plans: unknown = null;
     try {
       const planRows = await env.DB.prepare(
