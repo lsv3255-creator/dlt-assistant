@@ -15,7 +15,12 @@ whose model probability beats the SP price by >3%.
 
 Recommendations freeze per match: once a payload is published, later
 runs keep the same picks for the same fixture (code + kickoff +
-teams), refreshing only odds/probabilities around them.
+teams), refreshing only odds/probabilities around them. Exception for
+the handicap market: the line itself moves while a fixture is on
+sale, so a 让球 pick is re-judged whenever the line changes, or when
+the margin model flips decisively (probability gap >= 0.08) under the
+same line; the reason is recorded on the pick (``rejudged`` /
+``pick_note``) so a changed recommendation never looks arbitrary.
 """
 from __future__ import annotations
 
@@ -230,8 +235,25 @@ def _freeze_key(row: dict) -> tuple:
     return (row.get("code"), row.get("kickoff"), row.get("home"), row.get("away"))
 
 
+def _freeze_market(block: dict, old_block: dict) -> None:
+    """Pin a market block to its previously published pick."""
+    block["pick"] = old_block["pick"]
+    block["pick_label"] = old_block["pick_label"]
+    block["confidence"] = block["probabilities"][block["pick"]]
+    block["value_edge"] = round(
+        block["confidence"] * block["odds"][block["pick"]] - 1, 4
+    )
+
+
 def freeze_picks(rows: list[dict], existing: dict | None) -> list[dict]:
-    """Keep previously published picks for fixtures still on sale."""
+    """Keep previously published picks for fixtures still on sale.
+
+    SPF picks stay frozen. RQ picks follow the handicap: when the line
+    moved since the pick was published, or the margin model now
+    favours another outcome by a decisive margin under the same line,
+    the freshly judged pick stands and is annotated; otherwise the
+    published RQ pick is kept (no flip-flopping on odds noise).
+    """
     if not existing:
         return rows
     previous = {_freeze_key(row): row for row in existing.get("matches", [])}
@@ -239,14 +261,30 @@ def freeze_picks(rows: list[dict], existing: dict | None) -> list[dict]:
         old = previous.get(_freeze_key(row))
         if not old:
             continue
-        for market in ("spf", "rq"):
-            if row.get(market) and old.get(market):
-                row[market]["pick"] = old[market]["pick"]
-                row[market]["pick_label"] = old[market]["pick_label"]
-                row[market]["confidence"] = row[market]["probabilities"][row[market]["pick"]]
-                row[market]["value_edge"] = round(
-                    row[market]["confidence"] * row[market]["odds"][row[market]["pick"]] - 1, 4
+        if row.get("spf") and old.get("spf"):
+            _freeze_market(row["spf"], old["spf"])
+        if row.get("rq") and old.get("rq"):
+            old_line = old.get("handicap")
+            new_line = row.get("handicap")
+            new_pick = row["rq"]["pick"]
+            old_pick = old["rq"]["pick"]
+            if old_line is not None and new_line is not None and old_line != new_line:
+                row["rq"]["rejudged"] = True
+                row["rq"]["pick_note"] = (
+                    f"让球盘口 {old_line:+d}→{new_line:+d}，已按新盘口重新判断"
                 )
+            elif new_pick != old_pick:
+                gap = (
+                    row["rq"]["probabilities"][new_pick]
+                    - row["rq"]["probabilities"][old_pick]
+                )
+                if gap >= 0.08:
+                    row["rq"]["rejudged"] = True
+                    row["rq"]["pick_note"] = "盘口未变，但净胜球模型判断明显变化，已更新推荐"
+                else:
+                    _freeze_market(row["rq"], old["rq"])
+            else:
+                _freeze_market(row["rq"], old["rq"])
     return rows
 
 
