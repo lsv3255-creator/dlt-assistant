@@ -27,14 +27,24 @@ ISSUE_RE = re.compile(r"^\d{7}$")
 _ROW_RE = re.compile(
     r'expect="(\d{7})"\s+opencode="(\d),(\d),(\d)"\s+opentime="(\d{4}-\d{2}-\d{2})'
 )
+_TRY_RE = re.compile(r'expect="(\d{7})"[^>]*?trycode="(\d),(\d),(\d)"')
 
 
 def _parse_feed(text: str) -> list[dict[str, Any]]:
+    trycodes = {
+        issue: [int(a), int(b), int(c)]
+        for issue, a, b, c in _TRY_RE.findall(text)
+    }
     rows: list[dict[str, Any]] = []
     for issue, d1, d2, d3, date in _ROW_RE.findall(text):
-        rows.append(
-            {"issue": issue, "date": date, "digits": [int(d1), int(d2), int(d3)]}
-        )
+        row: dict[str, Any] = {
+            "issue": issue,
+            "date": date,
+            "digits": [int(d1), int(d2), int(d3)],
+        }
+        if issue in trycodes:
+            row["trycode"] = trycodes[issue]
+        rows.append(row)
     rows.sort(key=lambda r: int(r["issue"]))
     return rows
 
