@@ -52,6 +52,7 @@ SCHEMA = [
     "target_date TEXT NOT NULL, kind TEXT NOT NULL, payload TEXT NOT NULL, "
     "date TEXT NOT NULL, UNIQUE(target_issue, kind));",
     "CREATE TABLE IF NOT EXISTS pl3_analysis ("
+    "CREATE TABLE IF NOT EXISTS pl3_details (" "issue TEXT PRIMARY KEY, payload TEXT);",
     "target_issue TEXT NOT NULL UNIQUE, payload TEXT NOT NULL, "
     "date TEXT NOT NULL);",
 ]
@@ -140,6 +141,25 @@ def _plans_analysis_sql(history: list[dict]) -> list[str]:
     return lines
 
 
+
+
+def _details_sql(history: list[dict]) -> list[str]:
+    """Announcement details for the newest issues (REPLACE)."""
+    try:
+        from src.lottery.notice500 import fetch_notice
+
+        latest = int(history[-1]["issue"])
+        notices = fetch_notice("pl3", latest - 11, latest)
+    except Exception as exc:
+        print(f"pl3_notice_skipped: {type(exc).__name__}: {str(exc)[:120]}")
+        return []
+    return [
+        "INSERT OR REPLACE INTO pl3_details (issue, payload) VALUES ("
+        f"{_sql_text(issue)}, {_sql_text(payload)});"
+        for issue, payload in notices.items()
+    ]
+
+
 def _recommendation_sql(history: list[dict]) -> list[str]:
     latest = history[-1]
     target = stats.next_target(latest)
@@ -186,6 +206,7 @@ def append_pl3_updates(out_path: str) -> None:
             _write_repo_history(history)
         lines = list(SCHEMA)
         lines.extend(_draw_sql(rows))
+        lines.extend(_details_sql(history))
         if len(history) >= 100:
             lines.extend(_recommendation_sql(history))
             lines.extend(_plans_analysis_sql(history))
