@@ -29,8 +29,17 @@ export const onRequestGet = async ({ env }: { env: Env }): Promise<Response> => 
     const argmax = (values: number[]) => values.indexOf(Math.max(...values));
     const sumDist = new Array(28).fill(0);
     draws.slice(0, 100).forEach(d => { sumDist[d.digits[0] + d.digits[1] + d.digits[2]] += 1; });
+    const freq30 = Array.from({ length: 3 }, () => new Array(10).fill(0));
+    draws.slice(0, 30).forEach(d => d.digits.forEach((digit, pos) => { freq30[pos][digit] += 1; }));
+    const freqAll = Array.from({ length: 3 }, () => new Array(10).fill(0));
+    draws.forEach(d => d.digits.forEach((digit, pos) => { freqAll[pos][digit] += 1; }));
+    const sumHist = new Array(28).fill(0);
+    draws.slice(0, 100).forEach(d => { sumHist[d.digits.reduce((a, b) => a + b, 0)] += 1; });
     const stats = {
       total_draws: draws.length,
+      frequency_30: { per_position: freq30 },
+      frequency_all: { per_position: freqAll },
+      sum_hist_100: sumHist,
       frequency_100: { per_position: freq100 },
       omission: { per_position: omission },
       hot: freq100.map(argmax),
@@ -52,11 +61,71 @@ export const onRequestGet = async ({ env }: { env: Env }): Promise<Response> => 
       };
     }
 
+    // Draw detail: computed shape (+ trycode for fc3d from its table).
+    const latestDigits = draws[0].digits;
+    const detail: Record<string, unknown> = {
+      sum: latestDigits.reduce((a, b) => a + b, 0),
+      span: Math.max(...latestDigits) - Math.min(...latestDigits),
+      form: latestDigits.length === 3
+        ? (new Set(latestDigits).size === 1 ? "豹子" : new Set(latestDigits).size === 2 ? "组三" : "组六")
+        : null,
+      odd_count: latestDigits.filter(d => d % 2 === 1).length,
+    };
+    let plans: unknown = null;
+    try {
+      const planRows = await env.DB.prepare(
+        "SELECT target_issue, target_date, kind, payload FROM pl3_plans WHERE target_issue = (SELECT MAX(target_issue) FROM pl3_plans)",
+      ).all<{ target_issue: string; target_date: string; kind: string; payload: string }>();
+      if (planRows.results.length) {
+        plans = {
+          target_issue: planRows.results[0].target_issue,
+          target_date: planRows.results[0].target_date,
+          single: JSON.parse(planRows.results.find(r => r.kind === "single")?.payload ?? "null"),
+          combo: JSON.parse(planRows.results.find(r => r.kind === "combo")?.payload ?? "null"),
+        };
+      }
+    } catch { /* table may not exist yet */ }
+    let analysis: unknown = null;
+    try {
+      const row = await env.DB.prepare(
+        "SELECT payload FROM pl3_analysis ORDER BY target_issue DESC LIMIT 1",
+      ).first<{ payload: string }>();
+      if (row) analysis = JSON.parse(row.payload);
+    } catch { /* table may not exist yet */ }
+    let review: unknown = null;
+    try {
+      const past = await env.DB.prepare(
+        "SELECT strategy, digits FROM pl3_recommendations WHERE target_issue = ? ORDER BY strategy",
+      ).bind(draws[0].issue).all<RecRow>();
+      if (past.results.length) {
+        review = {
+          issue: draws[0].issue,
+          actual: draws[0],
+          results: past.results.map(r => {
+            const digits = JSON.parse(r.digits) as number[];
+            return {
+              strategy: r.strategy,
+              digits,
+              position_hits: digits.filter((d, i) => d === draws[0].digits[i]).length,
+              direct_hit: digits.join() === draws[0].digits.join(),
+              group_hit: digits.length === 3
+                ? [...digits].sort().join() === [...draws[0].digits].sort().join()
+                : false,
+            };
+          }),
+        };
+      }
+    } catch { /* ignore */ }
+
     return json({
       latest: draws[0],
       draws: draws.slice(0, 100),
       stats,
       recommendations,
+      detail,
+      plans,
+      analysis,
+      review,
       source: {
         name: "500彩票网排列三历史开奖（与官方同步，全量历史存入本站数据库）",
         url: "https://kaijiang.500.com/pls.shtml",

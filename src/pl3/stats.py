@@ -110,3 +110,63 @@ def generate_picks(target_issue: str, rows: list[dict]) -> list[dict]:
         {"strategy": "B-冷热组合型", "digits": picks_b},
         {"strategy": "C-纯随机娱乐型", "digits": picks_c},
     ]
+
+
+def position_scores(rows: list[dict]) -> list[dict]:
+    """Balanced score per digit for each position."""
+    freq_100 = frequency(rows, 100)
+    omit = omission(rows)
+    return [
+        {
+            d: freq_100["per_position"][pos][d] + min(omit[pos][d], 20) * 0.3
+            for d in DIGITS
+        }
+        for pos in range(POSITIONS)
+    ]
+
+
+def generate_plans(target_issue: str, rows: list[dict], picks: list[dict]) -> list[dict]:
+    """Single + compound plans (DLT homepage parity).
+
+    - single: the A-strategy direct pick with per-position score basis.
+    - combo: top-3 scored digits per position as a direct compound
+      (3^3 = 27 bets, 54 yuan), plus the group-play reading of A.
+    """
+    scores = position_scores(rows)
+    freq_100 = frequency(rows, 100)
+    omit = omission(rows)
+    pick_a = picks[0]
+    single = {
+        "digits": pick_a["digits"],
+        "basis": [
+            {
+                "position": pos,
+                "digit": pick_a["digits"][pos],
+                "freq100": freq_100["per_position"][pos][pick_a["digits"][pos]],
+                "omission": omit[pos][pick_a["digits"][pos]],
+                "score": round(scores[pos][pick_a["digits"][pos]], 1),
+            }
+            for pos in range(POSITIONS)
+        ],
+    }
+    pools = [
+        sorted(
+            sorted(DIGITS, key=lambda d: (-scores[pos][d], d))[:3]
+        )
+        for pos in range(POSITIONS)
+    ]
+    bets = 1
+    for pool in pools:
+        bets *= len(pool)
+    unique = sorted(set(pick_a["digits"]))
+    group_type = "组三" if len(unique) == 2 else ("豹子" if len(unique) == 1 else "组六")
+    combo = {
+        "pools": pools,
+        "bets": bets,
+        "cost_yuan": bets * 2,
+        "group_play": {"type": group_type, "digits": unique},
+    }
+    return [
+        {"kind": "single", "payload": single},
+        {"kind": "combo", "payload": combo},
+    ]

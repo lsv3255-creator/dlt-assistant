@@ -21,7 +21,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from src.fc3d import scraper, stats  # noqa: E402
+from src.fc3d import analysis, scraper, stats  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_JSON = os.path.join(ROOT, "data", "fc3d_history.json")
@@ -40,6 +40,16 @@ SCHEMA = [
     "id INTEGER PRIMARY KEY AUTOINCREMENT, target_issue TEXT NOT NULL, "
     "target_date TEXT NOT NULL, strategy TEXT NOT NULL, digits TEXT NOT NULL, "
     "date TEXT NOT NULL, UNIQUE(target_issue, strategy));",
+    # 开奖详情（试机号，来自同一 feed）
+    "CREATE TABLE IF NOT EXISTS fc3d_details ("
+    "issue TEXT NOT NULL UNIQUE, payload TEXT NOT NULL);",
+    "CREATE TABLE IF NOT EXISTS fc3d_plans ("
+    "id INTEGER PRIMARY KEY AUTOINCREMENT, target_issue TEXT NOT NULL, "
+    "target_date TEXT NOT NULL, kind TEXT NOT NULL, payload TEXT NOT NULL, "
+    "date TEXT NOT NULL, UNIQUE(target_issue, kind));",
+    "CREATE TABLE IF NOT EXISTS fc3d_analysis ("
+    "target_issue TEXT NOT NULL UNIQUE, payload TEXT NOT NULL, "
+    "date TEXT NOT NULL);",
 ]
 
 
@@ -103,6 +113,41 @@ def _draw_sql(rows: list[dict]) -> list[str]:
     return lines
 
 
+def _details_sql(rows: list[dict]) -> list[str]:
+    lines = []
+    for it in rows:
+        if "trycode" not in it:
+            continue
+        payload = {"trycode": it["trycode"]}
+        lines.append(
+            "INSERT OR IGNORE INTO fc3d_details (issue, payload) VALUES ("
+            f"{_sql_text(it['issue'])}, {_sql_text(payload)});"
+        )
+    return lines
+
+
+def _plans_analysis_sql(history: list[dict]) -> list[str]:
+    latest = history[-1]
+    target = stats.next_target(latest)
+    picks = stats.generate_picks(target["issue"], history)
+    today = datetime.datetime.now(BJ).date().isoformat()
+    lines = []
+    for plan in stats.generate_plans(target["issue"], history, picks):
+        lines.append(
+            "INSERT OR IGNORE INTO fc3d_plans "
+            "(target_issue, target_date, kind, payload, date) VALUES ("
+            f"{_sql_text(target['issue'])}, {_sql_text(target['date'])}, "
+            f"{_sql_text(plan['kind'])}, {_sql_text(plan['payload'])}, "
+            f"{_sql_text(today)});"
+        )
+    report = analysis.build_analysis(history, picks, target)
+    lines.append(
+        "INSERT OR IGNORE INTO fc3d_analysis (target_issue, payload, date) VALUES ("
+        f"{_sql_text(target['issue'])}, {_sql_text(report)}, {_sql_text(today)});"
+    )
+    return lines
+
+
 def _recommendation_sql(history: list[dict]) -> list[str]:
     latest = history[-1]
     target = stats.next_target(latest)
@@ -144,8 +189,24 @@ def append_fc3d_updates(out_path: str) -> None:
             _write_repo_history(history)
         lines = list(SCHEMA)
         lines.extend(_draw_sql(rows))
+        lines.extend(_details_sql(rows))
+        # One-time trycode backfill for the existing history (the feed
+        # is fetched whole every run, so this costs nothing extra).
+        try:
+            probe = subprocess.run(
+                "npx --yes wrangler@latest d1 execute dlt-draws --remote "
+                '--command "SELECT MAX(issue) AS m FROM fc3d_details;"',
+                shell=True, capture_output=True, text=True, timeout=120,
+            )
+            blob = (probe.stdout or "") + (probe.stderr or "")
+            if "no such table" in blob or not re.search(r'"m":\s*\d', probe.stdout or ""):
+                lines.extend(_details_sql(feed))
+                print("fc3d: 试机号一次性回填全史")
+        except Exception:
+            pass
         if len(history) >= 100:
             lines.extend(_recommendation_sql(history))
+            lines.extend(_plans_analysis_sql(history))
         os.makedirs(os.path.dirname(out_path), exist_ok=True)
         with open(out_path, "a", encoding="utf-8") as fh:
             fh.write(f"-- 福彩3D{mode}（新增 {len(rows)} 期）\n")

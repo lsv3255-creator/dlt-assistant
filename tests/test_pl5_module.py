@@ -82,3 +82,23 @@ class Pl5StatsTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class Pl5PlansAnalysisTests(unittest.TestCase):
+    def test_plans_and_analysis(self):
+        from src.pl5 import analysis
+
+        rows = _rows()
+        picks = stats.generate_picks("26275", rows)
+        plans = stats.generate_plans("26275", rows, picks)
+        by_kind = {p["kind"]: p["payload"] for p in plans}
+        self.assertEqual(by_kind["single"]["digits"], picks[0]["digits"])
+        self.assertEqual(by_kind["combo"]["bets"], 32)
+        self.assertEqual(by_kind["combo"]["cost_yuan"], 64)
+        report = analysis.build_analysis(
+            rows, picks, {"issue": "26275", "date": "2026-10-16"}
+        )
+        self.assertEqual(
+            set(report["sections"]),
+            {"trend", "hot_cold", "structure", "basis", "risk"},
+        )
