@@ -24,7 +24,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from src.ssq import scraper, stats  # noqa: E402
+from src.ssq import analysis, scraper, stats  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_JSON = os.path.join(ROOT, "data", "ssq_history.json")
@@ -46,6 +46,18 @@ SCHEMA = [
     "target_date TEXT NOT NULL, strategy TEXT NOT NULL, red TEXT NOT NULL, "
     "blue INTEGER NOT NULL, date TEXT NOT NULL, "
     "UNIQUE(target_issue, strategy));",
+    # 详细开奖公告（奖池/一二等奖注数奖金/销售额，随开奖行一并抓取）
+    "CREATE TABLE IF NOT EXISTS ssq_details ("
+    "issue TEXT NOT NULL UNIQUE, payload TEXT NOT NULL);",
+    # 本期方案：single=唯一推荐 / combo=组合推荐（首写锁定）
+    "CREATE TABLE IF NOT EXISTS ssq_plans ("
+    "id INTEGER PRIMARY KEY AUTOINCREMENT, target_issue TEXT NOT NULL, "
+    "target_date TEXT NOT NULL, kind TEXT NOT NULL, payload TEXT NOT NULL, "
+    "date TEXT NOT NULL, UNIQUE(target_issue, kind));",
+    # 综合分析（统计引擎生成的结构化解读，首写锁定）
+    "CREATE TABLE IF NOT EXISTS ssq_analysis ("
+    "target_issue TEXT NOT NULL UNIQUE, payload TEXT NOT NULL, "
+    "date TEXT NOT NULL);",
 ]
 
 
@@ -55,11 +67,11 @@ def _sql_text(value) -> str:
     return "'" + value.replace("'", "''") + "'"
 
 
-def ssq_d1_latest() -> int | None:
-    """MAX(issue_num) in D1; None when the table does not exist yet."""
+def _d1_max_issue(table: str, column: str) -> int | None:
+    """MAX(column) in a D1 table; None when the table does not exist."""
     cmd = (
         "npx --yes wrangler@latest d1 execute dlt-draws --remote "
-        '--command "SELECT MAX(issue_num) AS m FROM ssq_draws;"'
+        f'--command "SELECT MAX({column}) AS m FROM {table};"'
     )
     try:
         proc = subprocess.run(
@@ -72,6 +84,44 @@ def ssq_d1_latest() -> int | None:
         return None
     match = re.search(r'"m":\s*(\d+)', proc.stdout or "")
     return int(match.group(1)) if match else 0
+
+
+def ssq_d1_latest() -> int | None:
+    return _d1_max_issue("ssq_draws", "issue_num")
+
+
+def _details_sql(rows: list[dict]) -> list[str]:
+    lines = []
+    for it in rows:
+        if "detail" not in it:
+            continue
+        lines.append(
+            "INSERT OR IGNORE INTO ssq_details (issue, payload) VALUES ("
+            f"{_sql_text(it['issue'])}, {_sql_text(it['detail'])});"
+        )
+    return lines
+
+
+def _plans_analysis_sql(history: list[dict]) -> list[str]:
+    latest = history[-1]
+    target = stats.next_target(latest)
+    picks = stats.generate_picks(target["issue"], history)
+    today = datetime.datetime.now(BJ).date().isoformat()
+    lines = []
+    for plan in stats.generate_plans(target["issue"], history, picks):
+        lines.append(
+            "INSERT OR IGNORE INTO ssq_plans "
+            "(target_issue, target_date, kind, payload, date) VALUES ("
+            f"{_sql_text(target['issue'])}, {_sql_text(target['date'])}, "
+            f"{_sql_text(plan['kind'])}, {_sql_text(plan['payload'])}, "
+            f"{_sql_text(today)});"
+        )
+    report = analysis.build_analysis(history, picks, target)
+    lines.append(
+        "INSERT OR IGNORE INTO ssq_analysis (target_issue, payload, date) VALUES ("
+        f"{_sql_text(target['issue'])}, {_sql_text(report)}, {_sql_text(today)});"
+    )
+    return lines
 
 
 def _load_repo_history() -> list[dict]:
@@ -155,8 +205,16 @@ def append_ssq_updates(out_path: str) -> None:
             _write_repo_history(history)
         lines = list(SCHEMA)
         lines.extend(_draw_sql(rows))
+        lines.extend(_details_sql(rows))
+        # One-time announcement backfill: draws exist but details empty.
+        details_latest = _d1_max_issue("ssq_details", "issue")
+        if (details_latest is None or details_latest == 0) and latest:
+            full = scraper.fetch_all_history()
+            lines.extend(_details_sql(full))
+            print(f"ssq: 详细公告一次性回填 {len(full)} 期")
         if len(history) >= 100:
             lines.extend(_recommendation_sql(history))
+            lines.extend(_plans_analysis_sql(history))
         os.makedirs(os.path.dirname(out_path), exist_ok=True)
         with open(out_path, "a", encoding="utf-8") as fh:
             fh.write(f"-- 双色球{mode}（新增 {len(rows)} 期）\n")
