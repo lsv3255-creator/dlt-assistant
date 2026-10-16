@@ -4,14 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 
-  <title>智能选号 - 大乐透综合数据分析平台（非预测）</title>
-  <meta name="description" content="大乐透智能选号：普通随机选号、智能统计风格选号、手动号码历史表现分析。基于真实历史开奖数据，仅娱乐分析，不预测彩票结果。" />
+  <title>智能选号（全彩种） - 多彩种综合数据分析平台（非预测）</title>
+  <meta name="description" content="全彩种智能选号：大乐透、双色球、福彩3D、排列三、排列五可选，普通随机选号、智能统计风格选号、手动号码历史表现分析。基于真实历史开奖数据，仅娱乐分析，不预测彩票结果。" />
   <meta name="robots" content="index,follow" />
   <meta name="theme-color" content="#6d28d9" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%236d28d9'/%3E%3Ctext x='32' y='44' font-size='36' text-anchor='middle' fill='%23ffffff' font-family='sans-serif'%3E%E9%80%89%3C/text%3E%3C/svg%3E" />
 
   <link rel="stylesheet" href="./style.css" />
-  <link rel="stylesheet" href="./pick.css" />
+  <link rel="stylesheet" href="./pick.css?v=multi1" />
 </head>
 <body>
   <header class="site-header pick-header">
@@ -40,6 +40,19 @@
       <p class="hint">全部统计基于真实历史开奖数据 · 本页不提供任何中奖概率</p>
     </section>
 
+    <!-- 彩种选择 -->
+    <section class="card">
+      <h2>🎰 选择彩种</h2>
+      <div class="game-switch" role="group" aria-label="选择彩种">
+        <button type="button" class="game-chip" data-game="dlt">🔴 大乐透</button>
+        <button type="button" class="game-chip" data-game="ssq">🔵 双色球</button>
+        <button type="button" class="game-chip" data-game="fc3d">🔢 福彩3D</button>
+        <button type="button" class="game-chip" data-game="pl3">🎲 排列三</button>
+        <button type="button" class="game-chip" data-game="pl5">🖐️ 排列五</button>
+      </div>
+      <p class="hint">切换彩种后，机选、号码分析和智能补全都会按所选彩种的规则与历史数据工作。</p>
+    </section>
+
     <!-- ① 机选（普通 / 智能） -->
     <section class="card">
       <h2>🎲 机选号码</h2>
@@ -49,7 +62,7 @@
         <button id="btn-smart" class="pick-btn pick-btn-accent">智能风格 1注</button>
       </div>
       <div id="machine-results" class="pick-results"></div>
-      <p class="hint">普通：纯随机生成，与历史无关；智能：按冷热/奇偶/大小/区间风格组合，非预测</p>
+      <p class="hint" id="hint-machine">普通：纯随机生成，与历史无关；智能：按冷热/奇偶/大小/区间风格组合，非预测</p>
     </section>
 
     <!-- ② 手动号码历史表现分析 -->
@@ -57,11 +70,11 @@
       <h2>🔍 我的号码历史表现</h2>
       <div class="manual-input">
         <div class="input-group">
-          <span class="input-label">前区（选 5 个，1-35）</span>
+          <span class="input-label" id="lbl-front">前区（选 5 个，1-35）</span>
           <input id="inp-front" class="pick-input" type="text" placeholder="如 12 16 19 29 33" />
         </div>
-        <div class="input-group">
-          <span class="input-label">后区（选 2 个，1-12）</span>
+        <div class="input-group" id="grp-back">
+          <span class="input-label" id="lbl-back">后区（选 2 个，1-12）</span>
           <input id="inp-back" class="pick-input" type="text" placeholder="如 07 09" />
         </div>
         <button id="btn-analyze" class="pick-btn pick-btn-accent">分析我的号码</button>
@@ -76,11 +89,11 @@
       <p class="hint">已选部分号码（可留空）→ 自动补全完整 5+2，并展示每个号码的冷热/遗漏与组合结构（基于历史统计，非预测）</p>
       <div class="manual-input">
         <div class="input-group">
-          <span class="input-label">前区已选（0-5 个，1-35）</span>
+          <span class="input-label" id="lbl-cfront">前区已选（0-5 个，1-35）</span>
           <input id="inp-complete-front" class="pick-input" type="text" placeholder="可选，如 12 19" />
         </div>
-        <div class="input-group">
-          <span class="input-label">后区已选（0-2 个，1-12）</span>
+        <div class="input-group" id="grp-cback">
+          <span class="input-label" id="lbl-cback">后区已选（0-2 个，1-12）</span>
           <input id="inp-complete-back" class="pick-input" type="text" placeholder="可选，如 07" />
         </div>
         <button id="btn-complete" class="pick-btn pick-btn-accent">智能补全</button>
@@ -99,6 +112,6 @@
     <p class="error-detail" id="error-detail"></p>
   </div>
 
-  <script src="./pick.js?v=task45" defer></script>
+  <script src="./pick.js?v=multi1" defer></script>
 </body>
 </html>

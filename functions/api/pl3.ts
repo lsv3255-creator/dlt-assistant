@@ -9,8 +9,67 @@ interface D1PreparedStatement {
 interface DrawRow { issue: string; date: string; d1: number; d2: number; d3: number; }
 interface RecRow { target_issue: string; target_date: string; strategy: string; digits: string; }
 
-export const onRequestGet = async ({ env }: { env: Env }): Promise<Response> => {
+export const onRequestGet = async ({ env, request }: { env: Env; request: Request }): Promise<Response> => {
   try {
+    // Single-issue detail (?issue=...): draw + computed shape + that
+    // issue's locked recommendations/plans.
+    const issueParam = new URL(request.url).searchParams.get("issue");
+    if (issueParam) {
+      const drawRow = await env.DB.prepare(
+        "SELECT issue, date, d1, d2, d3 FROM pl3_draws WHERE issue = ?",
+      ).bind(issueParam).first<DrawRow>();
+      if (!drawRow) return json({ error: "未找到该期开奖" }, 404);
+      const draw = { issue: drawRow.issue, date: drawRow.date, digits: [drawRow.d1, drawRow.d2, drawRow.d3] };
+      const digits = draw.digits;
+      const counts = new Map<number, number>();
+      digits.forEach(d => counts.set(d, (counts.get(d) ?? 0) + 1));
+      const sizes = [...counts.values()].sort((a, b) => b - a);
+      const form = digits.length === 3
+        ? (sizes[0] === 3 ? "豹子" : sizes[0] === 2 ? "组三" : "组六")
+        : (({ "5": "五同", "4,1": "四同", "3,2": "三带二", "3,1,1": "三同", "2,2,1": "两对", "2,1,1,1": "一对", "1,1,1,1,1": "全不同" } as Record<string, string>)[sizes.join(",")] ?? "其他");
+      const computed = {
+        sum: digits.reduce((a, b) => a + b, 0),
+        span: Math.max(...digits) - Math.min(...digits),
+        form,
+        odd_count: digits.filter(d => d % 2 === 1).length,
+        big_count: digits.filter(d => d >= 5).length,
+      };
+
+      const detail: unknown = null;
+      let recommendations: unknown = null;
+      try {
+        const recs = await env.DB.prepare(
+          "SELECT strategy, digits FROM pl3_recommendations WHERE target_issue = ? ORDER BY strategy",
+        ).bind(issueParam).all<{ strategy: string; digits: string }>();
+        if (recs.results.length) {
+          recommendations = recs.results.map(r => {
+            const rec = r.digits.split(",").map(Number);
+            return {
+              strategy: r.strategy, digits: rec,
+              position_hits: rec.filter((d, i) => d === digits[i]).length,
+              direct_hit: rec.every((d, i) => d === digits[i]),
+              group_hit: digits.length === 3
+                ? [...rec].sort((a, b) => a - b).join(",") === [...digits].sort((a, b) => a - b).join(",")
+                : null,
+            };
+          });
+        }
+      } catch { /* recommendations table may not exist */ }
+      let plans: unknown = null;
+      try {
+        const planRows = await env.DB.prepare(
+          "SELECT kind, payload FROM pl3_plans WHERE target_issue = ?",
+        ).bind(issueParam).all<{ kind: string; payload: string }>();
+        if (planRows.results.length) {
+          plans = {
+            single: JSON.parse(planRows.results.find(r => r.kind === "single")?.payload ?? "null"),
+            combo: JSON.parse(planRows.results.find(r => r.kind === "combo")?.payload ?? "null"),
+          };
+        }
+      } catch { /* plans table may not exist */ }
+      return json({ issue: draw.issue, draw, detail, computed, recommendations, plans }, 200);
+    }
+
     const { results } = await env.DB.prepare(
       "SELECT issue, date, d1, d2, d3 FROM pl3_draws ORDER BY issue_num DESC LIMIT 9000",
     ).all<DrawRow>();

@@ -70,14 +70,130 @@
       $('ssq-stats').innerHTML = '<p class="hint">统计数据暂时不可用。</p>';
     }
 
-    $('ssq-history').innerHTML =
-      `<div class="match-list">${data.draws.slice(0, 50).map(dr =>
-        `<article class="match-row"><div class="match-order">${safe(dr.issue.slice(-3))}</div><div><div class="match-name">${dr.red.map(pad).join(' ')} + ${pad(dr.blue)}</div><div class="match-meta">第 ${safe(dr.issue)} 期 · ${safe(dr.date)}</div></div></article>`).join('')}</div>`;
+    initHistory(data);
     const source = data.source || {};
     $('ssq-sources').innerHTML = source.url
       ? `<a class="source-link" href="${safe(source.url)}" target="_blank" rel="noopener noreferrer">${safe(source.name)}</a>`
       : '';
     $('ssq-content').hidden = false;
+  }
+
+
+  // ---- 历史开奖：默认收起 + 期号搜索 + 分页展开 + 点开看单期详情 ----
+  const HIST_INIT = 10, HIST_PAGE = 50;
+  function initHistory(data) {
+    const all = data.draws || [];
+    const box = $('ssq-history');
+    if (!box) return;
+    let shown = HIST_INIT, query = '', openIssue = null;
+    const cache = new Map();
+    box.innerHTML =
+      '<div class="hist-tools">' +
+        '<input class="hist-q" type="search" inputmode="numeric" placeholder="按期号搜索，如 26118" aria-label="按期号搜索">' +
+        '<button class="hist-btn hist-search" type="button">搜索</button>' +
+        '<button class="hist-btn hist-clear" type="button" hidden>清除</button>' +
+      '</div>' +
+      '<div class="match-list hist-list"></div>' +
+      '<div class="hist-tools">' +
+        '<button class="hist-btn hist-more" type="button">展开历史</button>' +
+        '<button class="hist-btn hist-collapse" type="button" hidden>收起</button>' +
+        '<span class="hist-count hint"></span>' +
+      '</div>';
+    const listEl = box.querySelector('.hist-list');
+    const qEl = box.querySelector('.hist-q');
+    const moreBtn = box.querySelector('.hist-more');
+    const collapseBtn = box.querySelector('.hist-collapse');
+    const clearBtn = box.querySelector('.hist-clear');
+    const countEl = box.querySelector('.hist-count');
+    const filtered = () => query ? all.filter(dr => String(dr.issue).includes(query)) : all;
+    function rowHtml(dr) {
+      return '<article class="match-row hist-row" data-issue="' + safe(dr.issue) + '" role="button" tabindex="0" aria-expanded="false">' +
+        '<div class="match-order">' + safe(String(dr.issue).slice(-3)) + '</div>' +
+        '<div><div class="match-name">' + dr.red.map(pad).join(' ') + ' + ' + pad(dr.blue) + '</div>' +
+        '<div class="match-meta">第 ' + safe(dr.issue) + ' 期 · ' + safe(dr.date) + ' · 点开看详情 ›</div></div></article>' +
+        '<div class="hist-detail" data-detail="' + safe(dr.issue) + '" hidden></div>';
+    }
+    function drawList() {
+      const rows = filtered();
+      listEl.innerHTML = rows.slice(0, shown).map(rowHtml).join('') || '<p class="hint">没有找到对应期号，换个期号试试。</p>';
+      countEl.textContent = '共 ' + rows.length + ' 期 · 已显示 ' + Math.min(shown, rows.length) + ' 期';
+      moreBtn.hidden = shown >= rows.length;
+      moreBtn.textContent = shown <= HIST_INIT ? '展开历史（更多）' : '加载更多';
+      collapseBtn.hidden = !(shown > HIST_INIT || query);
+      clearBtn.hidden = !query;
+      if (openIssue) {
+        const row = listEl.querySelector('.hist-row[data-issue="' + openIssue + '"]');
+        const panel = listEl.querySelector('[data-detail="' + openIssue + '"]');
+        if (row && panel) { row.setAttribute('aria-expanded', 'true'); panel.hidden = false; panel.innerHTML = detailHtml(cache.get(openIssue), byIssue(openIssue)); }
+      }
+    }
+    const byIssue = issue => all.find(dr => String(dr.issue) === String(issue));
+    async function toggle(issue) {
+      if (openIssue === issue) { openIssue = null; drawList(); return; }
+      openIssue = issue;
+      drawList();
+      if (!cache.has(issue)) {
+        const panel = listEl.querySelector('[data-detail="' + issue + '"]');
+        if (panel) panel.innerHTML = '<p class="hint">详情加载中…</p>';
+        try {
+          const r = await fetch('/api/ssq?issue=' + encodeURIComponent(issue), { cache: 'no-store' });
+          if (!r.ok) throw new Error('bad');
+          cache.set(issue, await r.json());
+        } catch { cache.set(issue, null); }
+        if (openIssue === issue) drawList();
+      }
+    }
+    listEl.addEventListener('click', e => {
+      const row = e.target.closest('.hist-row');
+      if (row) toggle(row.dataset.issue);
+    });
+    listEl.addEventListener('keydown', e => {
+      if ((e.key === 'Enter' || e.key === ' ') && e.target.classList.contains('hist-row')) {
+        e.preventDefault(); toggle(e.target.dataset.issue);
+      }
+    });
+    moreBtn.addEventListener('click', () => { shown += HIST_PAGE; drawList(); });
+    collapseBtn.addEventListener('click', () => { shown = HIST_INIT; drawList(); });
+    const doSearch = () => { query = qEl.value.trim(); shown = HIST_PAGE; drawList(); };
+    box.querySelector('.hist-search').addEventListener('click', doSearch);
+    qEl.addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+    clearBtn.addEventListener('click', () => { qEl.value = ''; query = ''; shown = HIST_INIT; drawList(); });
+
+    function detailHtml(d, dr) {
+      if (!dr) return '<p class="hint">详情暂不可用。</p>';
+      const red = dr.red, blue = dr.blue;
+      const c = (d && d.computed) || {
+        sum_red: red.reduce((a, b) => a + b, 0),
+        odd_red: red.filter(n => n % 2 === 1).length,
+        big_red: red.filter(n => n >= 17).length,
+        span_red: Math.max(...red) - Math.min(...red),
+      };
+      let html = balls(red, blue) +
+        '<div class="match-meta">红球和值 ' + c.sum_red + ' · 跨度 ' + c.span_red + ' · 奇偶 ' + c.odd_red + ':' + (6 - c.odd_red) + ' · 大小（≥17）' + c.big_red + ':' + (6 - c.big_red) + '</div>';
+      if (d && d.detail) {
+        const t = d.detail;
+        html += '<div class="issue-meta">' +
+          '<div class="metric"><small>奖池滚存</small><strong>' + money(t.pool) + '</strong></div>' +
+          '<div class="metric"><small>本期销售额</small><strong>' + money(t.sales) + '</strong></div>' +
+          '<div class="metric"><small>一等奖</small><strong>' + safe(t.first_count) + ' 注 · ' + money(t.first_prize) + '</strong></div>' +
+          '<div class="metric"><small>二等奖</small><strong>' + safe(t.second_count) + ' 注 · ' + money(t.second_prize) + '</strong></div></div>';
+      } else {
+        html += '<p class="hint">该期官方奖金详情暂缺（数据源未提供）。</p>';
+      }
+      if (d && d.recommendations) {
+        html += '<div class="match-meta"><strong>本站当期锁定推荐复盘</strong></div>' + d.recommendations.map(r =>
+          '<div class="match-meta"><strong>' + safe(r.strategy) + '</strong>：' + r.red.map(pad).join(' ') + ' + ' + pad(r.blue) +
+          ' → 红球命中 ' + r.red_hits.length + ' 个 · 蓝球' + (r.blue_hit ? '命中 ✔' : '未中') + '</div>').join('');
+      }
+      if (d && d.plans) {
+        if (d.plans.single) html += '<div class="match-meta"><strong>当期唯一推荐</strong>：' + d.plans.single.red.map(pad).join(' ') + ' + ' + pad(d.plans.single.blue) + '</div>';
+        if (d.plans.combo) html += '<div class="match-meta"><strong>当期组合推荐</strong>：红 ' + d.plans.combo.red_pool.map(pad).join(' ') + ' · 蓝 ' + d.plans.combo.blue_pool.map(pad).join(' ') + '（' + safe(d.plans.combo.bets) + ' 注）</div>';
+      }
+      if (!d) html += '<p class="hint">（离线数据模式：仅展示号码与结构统计）</p>';
+      return html;
+    }
+
+    drawList();
   }
 
   const load = url => fetch(url, { cache: 'no-store' }).then(r => {

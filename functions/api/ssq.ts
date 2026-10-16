@@ -15,8 +15,65 @@ interface RecRow { target_issue: string; target_date: string; strategy: string; 
 
 const redsOf = (row: DrawRow) => [row.red1, row.red2, row.red3, row.red4, row.red5, row.red6];
 
-export const onRequestGet = async ({ env }: { env: Env }): Promise<Response> => {
+export const onRequestGet = async ({ env, request }: { env: Env; request: Request }): Promise<Response> => {
   try {
+    // Single-issue detail (?issue=26118): draw + official announcement +
+    // computed shape + that issue's locked recommendations/plans.
+    const issueParam = new URL(request.url).searchParams.get("issue");
+    if (issueParam) {
+      const drawRow = await env.DB.prepare(
+        "SELECT issue, date, red1, red2, red3, red4, red5, red6, blue FROM ssq_draws WHERE issue = ?",
+      ).bind(issueParam).first<{ issue: string; date: string; red1: number; red2: number; red3: number; red4: number; red5: number; red6: number; blue: number }>();
+      if (!drawRow) return json({ error: "未找到该期开奖" }, 404);
+      const draw = {
+        issue: drawRow.issue, date: drawRow.date,
+        red: [drawRow.red1, drawRow.red2, drawRow.red3, drawRow.red4, drawRow.red5, drawRow.red6],
+        blue: drawRow.blue,
+      };
+      let detail: unknown = null;
+      try {
+        const row = await env.DB.prepare(
+          "SELECT payload FROM ssq_details WHERE issue = ?",
+        ).bind(issueParam).first<{ payload: string }>();
+        if (row) detail = JSON.parse(row.payload);
+      } catch { /* details table may not exist */ }
+      const computed = {
+        sum_red: draw.red.reduce((a, b) => a + b, 0),
+        odd_red: draw.red.filter(n => n % 2 === 1).length,
+        big_red: draw.red.filter(n => n >= 17).length,
+        span_red: Math.max(...draw.red) - Math.min(...draw.red),
+      };
+      let recommendations: unknown = null;
+      try {
+        const recs = await env.DB.prepare(
+          "SELECT strategy, red, blue FROM ssq_recommendations WHERE target_issue = ? ORDER BY strategy",
+        ).bind(issueParam).all<{ strategy: string; red: string; blue: number }>();
+        if (recs.results.length) {
+          recommendations = recs.results.map(r => {
+            const reds = JSON.parse(r.red) as number[];
+            return {
+              strategy: r.strategy, red: reds, blue: r.blue,
+              red_hits: reds.filter(n => draw.red.includes(n)),
+              blue_hit: r.blue === draw.blue,
+            };
+          });
+        }
+      } catch { /* recommendations table may not exist */ }
+      let plans: unknown = null;
+      try {
+        const planRows = await env.DB.prepare(
+          "SELECT kind, payload FROM ssq_plans WHERE target_issue = ?",
+        ).bind(issueParam).all<{ kind: string; payload: string }>();
+        if (planRows.results.length) {
+          plans = {
+            single: JSON.parse(planRows.results.find(r => r.kind === "single")?.payload ?? "null"),
+            combo: JSON.parse(planRows.results.find(r => r.kind === "combo")?.payload ?? "null"),
+          };
+        }
+      } catch { /* plans table may not exist */ }
+      return json({ issue: draw.issue, draw, detail, computed, recommendations, plans }, 200);
+    }
+
     const { results } = await env.DB.prepare(
       "SELECT issue, date, red1, red2, red3, red4, red5, red6, blue FROM ssq_draws ORDER BY issue_num DESC LIMIT 4000",
     ).all<DrawRow>();
