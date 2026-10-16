@@ -131,6 +131,36 @@ def parse_jingcai_page(html: str, now: datetime) -> list[dict]:
     return matches
 
 
+_SCORE_PAIR_RE = re.compile(r"(\d{1,2}):(\d{1,2})")
+
+
+def parse_finished_scores(html: str) -> dict[str, tuple[int, int]]:
+    """Final scores by okooo match id, from closed match blocks.
+
+    Blocks whose sale has closed stay on the page with data-end="1"
+    and the full-time score as the LAST colon pair in the block text
+    (the first pair is the kickoff time). Unplayed future blocks show
+    a 0:0 placeholder, so callers must gate on the fixture's kickoff
+    before trusting a score from here.
+    """
+    soup = BeautifulSoup(html, "html.parser")
+    scores: dict[str, tuple[int, int]] = {}
+    for block in soup.select("[data-mid]"):
+        if block.get("data-end") != "1":
+            continue
+        pairs = _SCORE_PAIR_RE.findall(block.get_text(" ", strip=True))
+        if len(pairs) < 2:
+            continue
+        home, away = (int(v) for v in pairs[-1])
+        scores[block["data-mid"]] = (home, away)
+    return scores
+
+
+def discover_finished_scores() -> dict[str, tuple[int, int]]:
+    """Fetch the jingcai page and extract finished matches' scores."""
+    return parse_finished_scores(_fetch(JINGCAI_URL))
+
+
 def discover_fixtures(now: datetime | None = None) -> list[dict]:
     """Fetch and parse the currently on-sale jingcai fixtures."""
     now = now or datetime.now(BJ)
