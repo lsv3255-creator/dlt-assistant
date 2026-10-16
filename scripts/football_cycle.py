@@ -16,6 +16,7 @@ from src.football.engine import build_plan, freeze_existing_recommendation, sett
 SOURCE = ROOT / "data/football/current_issue.json"
 OUTPUT = ROOT / "public/data/football/current.json"
 ARCHIVE = ROOT / "data/football/archive.json"
+REVIEWS_OUT = ROOT / "public/data/football/reviews.json"
 
 
 def _read(path: Path, default=None):
@@ -257,6 +258,95 @@ def _enrich_issue_dynamics(issue: dict) -> None:
         )
 
 
+
+
+def _matches_finished(issue_or_plan: dict) -> bool:
+    """True when every match kicked off at least 3 hours ago."""
+    from datetime import datetime, timedelta, timezone
+
+    bj = timezone(timedelta(hours=8))
+    kickoffs = [row["kickoff"] for row in issue_or_plan.get("matches", [])]
+    if not kickoffs:
+        return False
+    return max(kickoffs) < (datetime.now(bj) - timedelta(hours=3)).isoformat()
+
+
+def _fetch_results_for_issue(issue_number: str) -> list[str] | None:
+    """Final outcomes for one issue from its okooo page (best-effort)."""
+    try:
+        from src.football.discovery import ISSUE_URL, _fetch, parse_issue_results
+
+        return parse_issue_results(_fetch(ISSUE_URL.format(issue=issue_number)))
+    except Exception as exc:  # results must never break the cycle
+        print(
+            "football_results_fallback: "
+            + type(exc).__name__
+            + ": "
+            + str(exc)[:140]
+        )
+        return None
+
+
+def _settle_archive_items(items: list[dict], current_issue: str) -> None:
+    """Settle archived plans whose matches have finished.
+
+    Discovery rolls to the next issue when its sale opens — usually
+    BEFORE the previous issue's matches end — so settlement cannot
+    rely on the current-issue path alone; past issues are settled
+    here from their own okooo pages, whenever their scores appear.
+    """
+    for item in items:
+        if item.get("issue") == current_issue:
+            continue
+        if (item.get("review") or {}).get("status") == "completed":
+            continue
+        if not _matches_finished(item):
+            continue
+        results = _fetch_results_for_issue(item["issue"])
+        if results:
+            item["review"] = {"status": "completed", **settle(item, results)}
+            item["status"] = "settled"
+            item["results"] = results
+            print(f"football archive settled: issue {item['issue']}")
+
+
+def _reviews_payload(items: list[dict]) -> dict:
+    """Public settled-review history (newest first, at most 10)."""
+    settled = [
+        item
+        for item in items
+        if (item.get("review") or {}).get("status") == "completed"
+    ]
+    settled.sort(key=lambda item: item["issue"], reverse=True)
+    reviews = []
+    for item in settled[:10]:
+        results = item.get("results") or []
+        rows = []
+        for row in item["matches"]:
+            result = results[row["order"] - 1] if len(results) == 14 else None
+            rows.append(
+                {
+                    "order": row["order"],
+                    "home": row["home"],
+                    "away": row["away"],
+                    "result": result,
+                    "primary": row["primary"],
+                    "sfc_choices": row["sfc_choices"],
+                    "sfc_hit": bool(result) and result in row["sfc_choices"],
+                }
+            )
+        reviews.append(
+            {
+                "issue": item["issue"],
+                "draw_date": item.get("draw_date"),
+                "sfc_hits": item["review"]["sfc_hits"],
+                "ren9_hits": item["review"]["ren9_hits"],
+                "matches": rows,
+            }
+        )
+    return {"reviews": reviews}
+
+
 def main() -> None:
     issue = _refresh_issue_from_source() or _read(SOURCE)
     if issue:
@@ -266,9 +356,15 @@ def main() -> None:
     plan = build_plan(issue)
     existing = _read(OUTPUT, {})
     plan = freeze_existing_recommendation(plan, existing)
-    if issue.get("results"):
-        review = {"status": "completed", **settle(plan, issue["results"])}
+    results = issue.get("results")
+    if not results and _matches_finished(issue):
+        # The results input was never wired up historically: finished
+        # issue pages carry the final scores, so fetch them directly.
+        results = _fetch_results_for_issue(issue["issue"])
+    if results:
+        review = {"status": "completed", **settle(plan, results)}
         plan["status"] = "settled"
+        plan["results"] = results
     else:
         review = {"status": "pending"}
     same_analysis = (
@@ -285,7 +381,9 @@ def main() -> None:
     archive = _read(ARCHIVE, {"items": []})
     items = [item for item in archive["items"] if item.get("issue") != plan["issue"]]
     items.append(plan)
+    _settle_archive_items(items, plan["issue"])
     _atomic_write(ARCHIVE, {"items": items[-100:]})
+    _atomic_write(REVIEWS_OUT, _reviews_payload(items))
 
     # Public artifact intentionally excludes runtime metadata and internal identity hashes.
     public_plan = json.loads(json.dumps(plan, ensure_ascii=False))

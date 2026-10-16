@@ -151,6 +151,33 @@ _SALE_END_RE = re.compile(
 _TAB_RE = re.compile(r'href="/zucai/(\d{5})/"')
 
 
+_COLON_SCORE_RE = re.compile(r"(\d{1,2})\s*:\s*(\d{1,2})")
+
+
+def parse_issue_results(html: str) -> list[str] | None:
+    """Final outcomes (3/1/0 per match, row order) from a finished page.
+
+    A finished okooo issue row carries the full-time score as the
+    LAST colon pair in the row text (the kickoff time is the first);
+    rows without a second pair have not finished. Returns the 14
+    outcomes only when every match row has a score, else None.
+    """
+    soup = BeautifulSoup(html, "html.parser")
+    outcomes: list[str] = []
+    for row in soup.find_all("tr"):
+        text = row.get_text(" ", strip=True)
+        if not _TIME_RE.search(text) or not _ROW_RE.search(text):
+            continue
+        pairs = _COLON_SCORE_RE.findall(text)
+        if len(pairs) < 2:
+            return None
+        home_goals, away_goals = (int(v) for v in pairs[-1])
+        outcomes.append(
+            "3" if home_goals > away_goals else "1" if home_goals == away_goals else "0"
+        )
+    return outcomes if len(outcomes) == 14 else None
+
+
 def tabulated_issues(html: str) -> list[int]:
     """All issue numbers linked as tabs on an okooo issue page."""
     return sorted({int(n) for n in _TAB_RE.findall(html)})
