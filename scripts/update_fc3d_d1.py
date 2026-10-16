@@ -148,6 +148,89 @@ def _plans_analysis_sql(history: list[dict]) -> list[str]:
     return lines
 
 
+
+
+def _cwl_fc3d_details() -> dict[str, dict]:
+    """Winner counts from the official 福彩 notice API (best-effort).
+
+    The API is bot-walled from some networks; any failure returns {}
+    and the 500 datachart sales figures still land on their own.
+    Counts are classified by their fixed prize money (1040/346/173),
+    which is unambiguous for 3D.
+    """
+    try:
+        import urllib.request
+
+        url = (
+            "https://www.cwl.gov.cn/cwl_admin/kjxx/findDrawNotice"
+            "?name=3d&issueCount=10&pageNo=1&pageSize=10&systemType=PC"
+        )
+        req = urllib.request.Request(
+            url,
+            headers={
+                "User-Agent": (
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                    "AppleWebKit/537.36 (KHTML, like Gecko) "
+                    "Chrome/126.0.0.0 Safari/537.36"
+                ),
+                "Referer": "https://www.cwl.gov.cn/kjxx/fc3d/",
+            },
+        )
+        with urllib.request.urlopen(req, timeout=20) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+        by_money = {1040: "direct_count", 346: "group3_count", 173: "group6_count"}
+        out: dict[str, dict] = {}
+        for item in data.get("result", []) or []:
+            issue = str(item.get("code") or "")
+            grades: dict[str, int] = {}
+            for grade in item.get("prizegrades", []) or []:
+                try:
+                    money = int(str(grade.get("typemoney", "")).replace(",", ""))
+                    count = int(str(grade.get("typenumber", "")).replace(",", ""))
+                except (TypeError, ValueError):
+                    continue
+                key = by_money.get(money)
+                if key and count:
+                    grades[key] = count
+            if issue and grades:
+                out[issue] = grades
+        return out
+    except Exception:
+        return {}
+
+
+def _notice_sql(history: list[dict]) -> list[str]:
+    """Enrich recent fc3d_details with announcement figures.
+
+    Merges the 500 datachart notice (sales; counts when published)
+    and the official-API counts into the stored payload, keeping
+    the feed's trycode. REPLACE so enrichment can land after the
+    draw row itself was first written.
+    """
+    try:
+        from src.lottery.notice500 import fetch_notice
+
+        latest = int(history[-1]["issue"])
+        notices = fetch_notice("fc3d", latest - 11, latest)
+    except Exception as exc:
+        print(f"fc3d_notice_skipped: {type(exc).__name__}: {str(exc)[:120]}")
+        return []
+    counts = _cwl_fc3d_details()
+    trycode = {r["issue"]: r.get("trycode") for r in history}
+    lines = []
+    for issue, notice in notices.items():
+        payload: dict = {}
+        if trycode.get(issue):
+            payload["trycode"] = trycode[issue]
+        payload.update(notice)
+        payload.update(counts.get(issue, {}))
+        lines.append(
+            "INSERT OR REPLACE INTO fc3d_details (issue, payload) VALUES ("
+            f"{_sql_text(issue)}, {_sql_text(payload)});"
+        )
+    return lines
+
+
 def _recommendation_sql(history: list[dict]) -> list[str]:
     latest = history[-1]
     target = stats.next_target(latest)
@@ -190,6 +273,7 @@ def append_fc3d_updates(out_path: str) -> None:
         lines = list(SCHEMA)
         lines.extend(_draw_sql(rows))
         lines.extend(_details_sql(rows))
+        lines.extend(_notice_sql(history))
         # One-time trycode backfill for the existing history (the feed
         # is fetched whole every run, so this costs nothing extra).
         try:
