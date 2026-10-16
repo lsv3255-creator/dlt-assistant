@@ -21,7 +21,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from src.pl5 import scraper, stats  # noqa: E402
+from src.pl5 import analysis, scraper, stats  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_JSON = os.path.join(ROOT, "data", "pl5_history.json")
@@ -41,6 +41,13 @@ SCHEMA = [
     "id INTEGER PRIMARY KEY AUTOINCREMENT, target_issue TEXT NOT NULL, "
     "target_date TEXT NOT NULL, strategy TEXT NOT NULL, digits TEXT NOT NULL, "
     "date TEXT NOT NULL, UNIQUE(target_issue, strategy));",
+    "CREATE TABLE IF NOT EXISTS pl5_plans ("
+    "id INTEGER PRIMARY KEY AUTOINCREMENT, target_issue TEXT NOT NULL, "
+    "target_date TEXT NOT NULL, kind TEXT NOT NULL, payload TEXT NOT NULL, "
+    "date TEXT NOT NULL, UNIQUE(target_issue, kind));",
+    "CREATE TABLE IF NOT EXISTS pl5_analysis ("
+    "target_issue TEXT NOT NULL UNIQUE, payload TEXT NOT NULL, "
+    "date TEXT NOT NULL);",
 ]
 
 
@@ -104,6 +111,29 @@ def _draw_sql(rows: list[dict]) -> list[str]:
     return lines
 
 
+
+def _plans_analysis_sql(history: list[dict]) -> list[str]:
+    latest = history[-1]
+    target = stats.next_target(latest)
+    picks = stats.generate_picks(target["issue"], history)
+    today = datetime.datetime.now(BJ).date().isoformat()
+    lines = []
+    for plan in stats.generate_plans(target["issue"], history, picks):
+        lines.append(
+            "INSERT OR IGNORE INTO pl5_plans "
+            "(target_issue, target_date, kind, payload, date) VALUES ("
+            f"{_sql_text(target['issue'])}, {_sql_text(target['date'])}, "
+            f"{_sql_text(plan['kind'])}, {_sql_text(plan['payload'])}, "
+            f"{_sql_text(today)});"
+        )
+    report = analysis.build_analysis(history, picks, target)
+    lines.append(
+        "INSERT OR IGNORE INTO pl5_analysis (target_issue, payload, date) VALUES ("
+        f"{_sql_text(target['issue'])}, {_sql_text(report)}, {_sql_text(today)});"
+    )
+    return lines
+
+
 def _recommendation_sql(history: list[dict]) -> list[str]:
     latest = history[-1]
     target = stats.next_target(latest)
@@ -147,6 +177,7 @@ def append_pl5_updates(out_path: str) -> None:
         lines.extend(_draw_sql(rows))
         if len(history) >= 100:
             lines.extend(_recommendation_sql(history))
+            lines.extend(_plans_analysis_sql(history))
         os.makedirs(os.path.dirname(out_path), exist_ok=True)
         with open(out_path, "a", encoding="utf-8") as fh:
             fh.write(f"-- 排列五{mode}（新增 {len(rows)} 期）\n")
