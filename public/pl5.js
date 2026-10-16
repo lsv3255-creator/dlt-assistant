@@ -68,14 +68,130 @@
       $('pl5-stats').innerHTML = '<p class="hint">统计数据暂时不可用。</p>';
     }
 
-    $('pl5-history').innerHTML =
-      `<div class="match-list">${data.draws.slice(0, 50).map(d =>
-        `<article class="match-row"><div class="match-order">${safe(d.issue.slice(-3))}</div><div><div class="match-name">${d.digits.join(' ')}</div><div class="match-meta">第 ${safe(d.issue)} 期 · ${safe(d.date)} · 和值 ${d.digits.reduce((a, b) => a + b, 0)}</div></div></article>`).join('')}</div>`;
+    initHistory(data);
     const source = data.source || {};
     $('pl5-sources').innerHTML = source.url
       ? `<a class="source-link" href="${safe(source.url)}" target="_blank" rel="noopener noreferrer">${safe(source.name)}</a>`
       : '';
     $('pl5-content').hidden = false;
+  }
+
+
+  // ---- 历史开奖：默认收起 + 期号搜索 + 分页展开 + 点开看单期详情 ----
+  const HIST_INIT = 10, HIST_PAGE = 50;
+  function initHistory(data) {
+    const all = data.draws || [];
+    const box = $('pl5-history');
+    if (!box) return;
+    let shown = HIST_INIT, query = '', openIssue = null;
+    const cache = new Map();
+    box.innerHTML =
+      '<div class="hist-tools">' +
+        '<input class="hist-q" type="search" inputmode="numeric" placeholder="按期号搜索，如 26274" aria-label="按期号搜索">' +
+        '<button class="hist-btn hist-search" type="button">搜索</button>' +
+        '<button class="hist-btn hist-clear" type="button" hidden>清除</button>' +
+      '</div>' +
+      '<div class="match-list hist-list"></div>' +
+      '<div class="hist-tools">' +
+        '<button class="hist-btn hist-more" type="button">展开历史</button>' +
+        '<button class="hist-btn hist-collapse" type="button" hidden>收起</button>' +
+        '<span class="hist-count hint"></span>' +
+      '</div>';
+    const listEl = box.querySelector('.hist-list');
+    const qEl = box.querySelector('.hist-q');
+    const moreBtn = box.querySelector('.hist-more');
+    const collapseBtn = box.querySelector('.hist-collapse');
+    const clearBtn = box.querySelector('.hist-clear');
+    const countEl = box.querySelector('.hist-count');
+    const filtered = () => query ? all.filter(dr => String(dr.issue).includes(query)) : all;
+    function rowHtml(dr) {
+      return '<article class="match-row hist-row" data-issue="' + safe(dr.issue) + '" role="button" tabindex="0" aria-expanded="false">' +
+        '<div class="match-order">' + safe(String(dr.issue).slice(-3)) + '</div>' +
+        '<div><div class="match-name">' + dr.digits.join(' ') + '</div>' +
+        '<div class="match-meta">第 ' + safe(dr.issue) + ' 期 · ' + safe(dr.date) + ' · 点开看详情 ›</div></div></article>' +
+        '<div class="hist-detail" data-detail="' + safe(dr.issue) + '" hidden></div>';
+    }
+    function drawList() {
+      const rows = filtered();
+      listEl.innerHTML = rows.slice(0, shown).map(rowHtml).join('') || '<p class="hint">没有找到对应期号，换个期号试试。</p>';
+      countEl.textContent = '共 ' + rows.length + ' 期 · 已显示 ' + Math.min(shown, rows.length) + ' 期';
+      moreBtn.hidden = shown >= rows.length;
+      moreBtn.textContent = shown <= HIST_INIT ? '展开历史（更多）' : '加载更多';
+      collapseBtn.hidden = !(shown > HIST_INIT || query);
+      clearBtn.hidden = !query;
+      if (openIssue) {
+        const row = listEl.querySelector('.hist-row[data-issue="' + openIssue + '"]');
+        const panel = listEl.querySelector('[data-detail="' + openIssue + '"]');
+        if (row && panel) { row.setAttribute('aria-expanded', 'true'); panel.hidden = false; panel.innerHTML = detailHtml(cache.get(openIssue), byIssue(openIssue)); }
+      }
+    }
+    const byIssue = issue => all.find(dr => String(dr.issue) === String(issue));
+    async function toggle(issue) {
+      if (openIssue === issue) { openIssue = null; drawList(); return; }
+      openIssue = issue;
+      drawList();
+      if (!cache.has(issue)) {
+        const panel = listEl.querySelector('[data-detail="' + issue + '"]');
+        if (panel) panel.innerHTML = '<p class="hint">详情加载中…</p>';
+        try {
+          const r = await fetch('/api/pl5?issue=' + encodeURIComponent(issue), { cache: 'no-store' });
+          if (!r.ok) throw new Error('bad');
+          cache.set(issue, await r.json());
+        } catch { cache.set(issue, null); }
+        if (openIssue === issue) drawList();
+      }
+    }
+    listEl.addEventListener('click', e => {
+      const row = e.target.closest('.hist-row');
+      if (row) toggle(row.dataset.issue);
+    });
+    listEl.addEventListener('keydown', e => {
+      if ((e.key === 'Enter' || e.key === ' ') && e.target.classList.contains('hist-row')) {
+        e.preventDefault(); toggle(e.target.dataset.issue);
+      }
+    });
+    moreBtn.addEventListener('click', () => { shown += HIST_PAGE; drawList(); });
+    collapseBtn.addEventListener('click', () => { shown = HIST_INIT; drawList(); });
+    const doSearch = () => { query = qEl.value.trim(); shown = HIST_PAGE; drawList(); };
+    box.querySelector('.hist-search').addEventListener('click', doSearch);
+    qEl.addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+    clearBtn.addEventListener('click', () => { qEl.value = ''; query = ''; shown = HIST_INIT; drawList(); });
+
+    function digitForm(digits) {
+      const counts = {};
+      digits.forEach(d => { counts[d] = (counts[d] || 0) + 1; });
+      const sizes = Object.values(counts).sort((a, b) => b - a);
+      if (digits.length === 3) return sizes[0] === 3 ? '豹子' : sizes[0] === 2 ? '组三' : '组六';
+      return ({ '5': '五同', '4,1': '四同', '3,2': '三带二', '3,1,1': '三同', '2,2,1': '两对', '2,1,1,1': '一对', '1,1,1,1,1': '全不同' })[sizes.join(',')] || '其他';
+    }
+    function detailHtml(d, dr) {
+      if (!dr) return '<p class="hint">详情暂不可用。</p>';
+      const digits = dr.digits;
+      const c = (d && d.computed) || {
+        sum: digits.reduce((a, b) => a + b, 0),
+        span: Math.max(...digits) - Math.min(...digits),
+        form: digitForm(digits),
+        odd_count: digits.filter(x => x % 2 === 1).length,
+        big_count: digits.filter(x => x >= 5).length,
+      };
+      let html = '<div class="match-name">' + digits.join(' ') + '</div>' +
+        '<div class="match-meta">和值 ' + c.sum + ' · 跨度 ' + c.span + ' · 形态 ' + safe(c.form) + ' · 奇偶 ' + c.odd_count + ':' + (digits.length - c.odd_count) + ' · 大小（≥5）' + c.big_count + ':' + (digits.length - c.big_count) + '</div>';
+
+      if (d && d.recommendations) {
+        html += '<div class="match-meta"><strong>本站当期锁定推荐复盘</strong></div>' + d.recommendations.map(r =>
+          '<div class="match-meta"><strong>' + safe(r.strategy) + '</strong>：' + r.digits.join(' ') +
+          ' → 同位命中 ' + r.position_hits + ' 位' + (r.direct_hit ? ' · 直选全中 ✔' : '') +
+          (r.group_hit ? ' · 组选命中 ✔' : '') + '</div>').join('');
+      }
+      if (d && d.plans) {
+        if (d.plans.single) html += '<div class="match-meta"><strong>当期唯一推荐</strong>：' + d.plans.single.digits.join(' ') + '</div>';
+        if (d.plans.combo) html += '<div class="match-meta"><strong>当期组合推荐</strong>：各位池 ' + d.plans.combo.pools.map(p => p.join('/')).join(' · ') + '（' + safe(d.plans.combo.bets) + ' 注 · ' + safe(d.plans.combo.cost_yuan) + ' 元）</div>';
+      }
+      if (!d) html += '<p class="hint">（离线数据模式：仅展示号码与结构统计）</p>';
+      return html;
+    }
+
+    drawList();
   }
 
   const load = url => fetch(url, { cache: 'no-store' }).then(r => {
