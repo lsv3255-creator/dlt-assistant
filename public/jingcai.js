@@ -9,8 +9,9 @@
     const probs = market.probabilities;
     const star = market.value_edge > 0.03 ? ' ⭐' : '';
     const model = market.margin_model ? ` · 净胜球模型 胜${pct(market.margin_model['3'])}/平${pct(market.margin_model['1'])}/负${pct(market.margin_model['0'])}` : '';
+    const xg = market.xg ? ` · 预期进球 ${market.xg.home}:${market.xg.away}` : '';
     const note = market.pick_note ? `<div class="match-meta">↻ ${safe(market.pick_note)}</div>` : '';
-    return `<div class="match-meta">${label}${handicap ? `(${handicap > 0 ? '+' : ''}${handicap})` : ''} · 概率 胜${pct(probs['3'])}/平${pct(probs['1'])}/负${pct(probs['0'])}${model} · 奖金 ${safe(market.odds[market.pick])} · <strong>推荐 ${safe(market.pick_label)}${star}</strong></div>${note}`;
+    return `<div class="match-meta">${label}${handicap ? `(${handicap > 0 ? '+' : ''}${handicap})` : ''} · 概率 胜${pct(probs['3'])}/平${pct(probs['1'])}/负${pct(probs['0'])}${model}${xg} · 奖金 ${safe(market.odds[market.pick])} · <strong>推荐 ${safe(market.pick_label)}${star}</strong></div>${note}`;
   }
 
   function render(data) {
