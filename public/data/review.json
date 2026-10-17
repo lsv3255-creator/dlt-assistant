@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-10-14 18:10:40",
+  "updated_at": "2026-10-17 00:10:13",
   "empty": false,
   "issue": "26117",
   "snapshot_status": "ok",
@@ -82,6 +82,10 @@
     "back": 1,
     "total": 2,
     "level": 1
+  },
+  "prize": {
+    "tier": null,
+    "amount": 0
   },
   "analysis": {
     "sum_diff": 6,
