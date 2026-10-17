@@ -202,10 +202,11 @@ export const onRequestGet = async ({ env, request }: { env: Env; request: Reques
           };
         });
         const improvement: string[] = [];
-        for (let pos = 0; pos < actualDigits.length; pos++) {
-          if (internals.every(i => i.missed.includes(pos)))
-            improvement.push(`${POS[pos]}三组全错，下期该位扩大候选池`);
-        }
+        const deadPositions = POS.filter((_, pos) => internals.every(i => i.missed.includes(pos)));
+        if (deadPositions.length === actualDigits.length)
+          improvement.push("各位数字三组全错，下期各位均扩大候选池");
+        else
+          for (const name of deadPositions) improvement.push(`${name}三组全错，下期该位扩大候选池`);
         if (internals.filter(i => i.groupOnly).length >= 2)
           improvement.push("组选命中而位置错位多发，下期增加位置轮换与组选覆盖");
         if (internals.every(i => i.sumDelta <= -6)) improvement.push("三组推荐和值均低于开奖，下期和值中枢上移");
