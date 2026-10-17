@@ -236,6 +236,11 @@
           ? '<div style="margin-top:8px;font-size:13px;">和值偏差：<strong>' + ana.sum_diff +
             "</strong>　距一等奖理论距离：" + (ana.distance_score == null ? "—" : ana.distance_score) + "</div>"
           : "") +
+        (review.prize && review.prize.tier
+          ? '<div style="margin-top:8px;font-size:13px;">中奖等级：<strong style="color:#f59e0b">' +
+            esc(review.prize.tier) + "</strong>　单注奖金：" +
+            (review.prize.amount ? "¥" + Number(review.prize.amount).toLocaleString("zh-CN") : "浮动奖金（以官方公告为准）") + "</div>"
+          : '<div style="margin-top:8px;font-size:13px;color:var(--muted,#94a3b8);">本期推荐未中奖</div>') +
         fr +
         '<div style="margin-top:10px;font-size:11px;color:var(--muted,#94a3b8);">' +
           esc(review.disclaimer || "复盘仅为娱乐回顾，不代表预测中奖") + "</div>" +
