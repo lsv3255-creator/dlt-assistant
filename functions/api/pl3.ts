@@ -157,28 +157,61 @@ export const onRequestGet = async ({ env, request }: { env: Env; request: Reques
       ).first<{ payload: string }>();
       if (row) analysis = JSON.parse(row.payload);
     } catch { /* table may not exist yet */ }
+    // Review enriched with prize tier, deterministic miss attribution
+    // and next-issue improvement directions (statistics, not AI text).
     let review: unknown = null;
     try {
       const past = await env.DB.prepare(
         "SELECT strategy, digits FROM pl3_recommendations WHERE target_issue = ? ORDER BY strategy",
       ).bind(draws[0].issue).all<RecRow>();
       if (past.results.length) {
-        review = {
-          issue: draws[0].issue,
-          actual: draws[0],
-          results: past.results.map(r => {
-            const digits = JSON.parse(r.digits) as number[];
-            return {
-              strategy: r.strategy,
-              digits,
-              position_hits: digits.filter((d, i) => d === draws[0].digits[i]).length,
-              direct_hit: digits.join() === draws[0].digits.join(),
-              group_hit: digits.length === 3
-                ? [...digits].sort().join() === [...draws[0].digits].sort().join()
-                : false,
-            };
-          }),
-        };
+        const actual = draws[0];
+        const actualDigits = actual.digits;
+        const actualSum = actualDigits.reduce((a, b) => a + b, 0);
+        const form = new Set(actualDigits).size;
+        const POS = ["百位", "十位", "个位"];
+        const internals: { sumDelta: number; missed: number[]; groupOnly: boolean }[] = [];
+        const results = past.results.map(r => {
+          const digits = JSON.parse(r.digits) as number[];
+          const positionHits = digits.filter((d, i) => d === actualDigits[i]).length;
+          const directHit = digits.join() === actualDigits.join();
+          const groupHit = digits.length === 3
+            ? [...digits].sort().join() === [...actualDigits].sort().join()
+            : false;
+          let prize: { tier: string | null; amount: number } = { tier: null, amount: 0 };
+          if (directHit) prize = { tier: "直选", amount: 1040 };
+          else if (groupHit && form === 2) prize = { tier: "组三", amount: 346 };
+          else if (groupHit && form === 3) prize = { tier: "组六", amount: 173 };
+          const missed = digits.map((d, i) => (d === actualDigits[i] ? -1 : i)).filter(i => i >= 0);
+          const sumDelta = digits.reduce((a, b) => a + b, 0) - actualSum;
+          internals.push({ sumDelta, missed, groupOnly: groupHit && !directHit });
+          const notes: string[] = [];
+          if (groupHit && !directHit) notes.push("组选号码全对但位置错位，直选落空");
+          if (missed.length === 1) notes.push(`仅差${POS[missed[0]]}一位即直选（荐 ${digits[missed[0]]} vs 开 ${actualDigits[missed[0]]}）`);
+          const near = missed.filter(i => Math.abs(digits[i] - actualDigits[i]) === 1);
+          if (near.length >= 2) notes.push(`${near.length} 位数字均为 ±1 擦过`);
+          if (Math.abs(sumDelta) >= 4) notes.push(`和值偏${sumDelta > 0 ? "高" : "低"} ${Math.abs(sumDelta)} 点`);
+          return {
+            strategy: r.strategy,
+            digits,
+            position_hits: positionHits,
+            direct_hit: directHit,
+            group_hit: groupHit,
+            prize,
+            notes: notes.slice(0, 3),
+          };
+        });
+        const improvement: string[] = [];
+        for (let pos = 0; pos < actualDigits.length; pos++) {
+          if (internals.every(i => i.missed.includes(pos)))
+            improvement.push(`${POS[pos]}三组全错，下期该位扩大候选池`);
+        }
+        if (internals.filter(i => i.groupOnly).length >= 2)
+          improvement.push("组选命中而位置错位多发，下期增加位置轮换与组选覆盖");
+        if (internals.every(i => i.sumDelta <= -4)) improvement.push("三组推荐和值均低于开奖，下期和值中枢上移");
+        if (internals.every(i => i.sumDelta >= 4)) improvement.push("三组推荐和值均高于开奖，下期和值中枢下移");
+        if (!improvement.length) improvement.push("本期偏差未见系统性模式，下期维持现有策略参数");
+        review = { issue: actual.issue, actual, results, improvement: improvement.slice(0, 3) };
       }
     } catch { /* ignore */ }
 

@@ -332,7 +332,51 @@ def _build_next_adjustment(analysis: dict[str, Any]) -> list[dict[str, Any]]:
         })
     return suggestions
 
-def build_review(reflection: Any, published_by_issue: dict[str, Any] | None = None) -> dict[str, Any]:
+
+
+_DLT_FIXED_PRIZES = {
+    "三等奖": 10000,
+    "四等奖": 3000,
+    "五等奖": 300,
+    "六等奖": 200,
+    "七等奖": 100,
+    "八等奖": 15,
+    "九等奖": 5,
+}
+
+
+def _dlt_prize(front_hits: int, back_hits: int, amounts: dict | None = None) -> dict:
+    """Official DLT prize tier for a hit pattern.
+
+    一等奖/二等奖 are floating (amounts come from the draw notice
+    when available); the rest are fixed by the game rules.
+    """
+    amounts = amounts or {}
+    if front_hits == 5 and back_hits == 2:
+        return {"tier": "一等奖", "amount": amounts.get("一等奖")}
+    if front_hits == 5 and back_hits == 1:
+        return {"tier": "二等奖", "amount": amounts.get("二等奖")}
+    tier = None
+    if front_hits == 5 and back_hits == 0:
+        tier = "三等奖"
+    elif front_hits == 4 and back_hits == 2:
+        tier = "四等奖"
+    elif front_hits == 4 and back_hits == 1:
+        tier = "五等奖"
+    elif front_hits == 3 and back_hits == 2:
+        tier = "六等奖"
+    elif front_hits == 4 and back_hits == 0:
+        tier = "七等奖"
+    elif (front_hits, back_hits) in ((3, 1), (2, 2)):
+        tier = "八等奖"
+    elif (front_hits, back_hits) in ((3, 0), (2, 1), (1, 2), (0, 2)):
+        tier = "九等奖"
+    if tier is None:
+        return {"tier": None, "amount": 0}
+    return {"tier": tier, "amount": _DLT_FIXED_PRIZES[tier]}
+
+
+def build_review(reflection: Any, published_by_issue: dict[str, Any] | None = None, prize_amounts_by_issue: dict[str, Any] | None = None) -> dict[str, Any]:
     """生成复盘 → review.json 结构（P0-1 快照驱动）。
 
     权威来源 = published_by_issue 中该 issue 的不可变发布快照：
@@ -390,6 +434,7 @@ def build_review(reflection: Any, published_by_issue: dict[str, Any] | None = No
             "explanation": snap.get("explanation"),  # P1-2：复盘读取冻结 explanation，绝不重算
             "actual_result": {"front": actual_front, "back": actual_back},
             "hit_count": hits,
+            "prize": _dlt_prize(hits["front"], hits["back"], (prize_amounts_by_issue or {}).get(target_issue)),
             "analysis": {"sum_diff": sum_diff, "factor_review": factor_review},
             "next_adjustment": _build_next_adjustment(
                 {"factor_review": factor_review, "sum_diff": sum_diff}),
@@ -423,6 +468,7 @@ def build_review(reflection: Any, published_by_issue: dict[str, Any] | None = No
         },
         "actual_result": {"front": actual_front, "back": actual_back},
         "hit_count": hits,
+        "prize": _dlt_prize(hits["front"], hits["back"], (prize_amounts_by_issue or {}).get(target_issue)),
         "analysis": {"factor_review": (p.get("factor_review") or {})},
         "next_adjustment": _build_next_adjustment({"factor_review": (p.get("factor_review") or {})}),
         "disclaimer": "该期无不可变发布快照，复盘为 legacy 兼容（非权威，不代表当时实际发布内容）",
@@ -699,7 +745,19 @@ def publish(*, rec_path: str = "reports/recommendations.json",
 
     # P0-1 复盘：读不可变快照索引（含历史已发布 + 本期新写），按 issue 查询
     published_by_issue = load_published_by_issue(snapshot_path)
-    review = build_review(reflection, published_by_issue)
+    prize_amounts_by_issue: dict[str, dict[str, int]] = {}
+    details_doc = _load_json(os.path.join(out_dir, "draw_details.json"))
+    if isinstance(details_doc, dict):
+        for entry in details_doc.get("issues", []) or []:
+            prizes = entry.get("prizes") or {}
+            amounts = {}
+            for tier in ("一等奖", "二等奖"):
+                per = ((prizes.get(tier) or {}).get("basic") or {}).get("per_ticket_yuan")
+                if isinstance(per, (int, float)):
+                    amounts[tier] = int(per)
+            if amounts:
+                prize_amounts_by_issue[str(entry.get("issue"))] = amounts
+    review = build_review(reflection, published_by_issue, prize_amounts_by_issue)
 
     rec_out = os.path.join(out_dir, "recommendations.json")
     review_out = os.path.join(out_dir, "review.json")

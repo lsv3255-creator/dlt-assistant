@@ -47,7 +47,9 @@
     const rv = data.review;
     $('ssq-review').innerHTML = rv
       ? `<div class="match-meta">第 ${safe(rv.issue)} 期实际开奖 ${rv.actual.red.map(pad).join(' ')} + ${pad(rv.actual.blue)}，当期锁定推荐的命中情况：</div>` +
-        rv.results.map(r => `<div class="match-meta"><strong>${safe(r.strategy)}</strong>：红球命中 ${r.red_hits.length} 个${r.red_hits.length ? '（' + r.red_hits.map(pad).join('、') + '）' : ''} · 蓝球${r.blue_hit ? '命中 ✔' : '未中'}</div>`).join('')
+        rv.results.map(r => `<div class="match-meta"><strong>${safe(r.strategy)}</strong>：红球命中 ${r.red_hits.length} 个${r.red_hits.length ? '（' + r.red_hits.map(pad).join('、') + '）' : ''} · 蓝球${r.blue_hit ? '命中 ✔' : '未中'}${r.prize && r.prize.tier ? ' · 中' + safe(r.prize.tier) + ' ' + money(r.prize.amount) : ''}</div>` +
+          (r.notes && r.notes.length ? `<div class="match-meta">归因：${r.notes.map(safe).join('；')}</div>` : '')).join('') +
+        (rv.improvement ? `<div class="match-meta"><strong>下期改进（统计复盘）</strong>：${rv.improvement.map(safe).join('；')}</div>` : '')
       : '<p class="hint">暂无可复盘的上期推荐（推荐自本期起锁定，下一期开奖后生成复盘）。</p>';
 
     const s = data.stats;
