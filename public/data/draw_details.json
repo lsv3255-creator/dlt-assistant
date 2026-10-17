@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-14T18:10:27.688143+00:00",
+  "updated_at": "2026-10-17T16:39:43.164937+00:00",
   "issues": [
     {
       "issue": "26105",
@@ -923,6 +923,77 @@
         }
       },
       "source_url": "https://www.js-lottery.com/cms/post-148054.html",
+      "source_name": "江苏省体育彩票管理中心"
+    },
+    {
+      "issue": "26118",
+      "date": "2026-10-17",
+      "front": [
+        2,
+        9,
+        21,
+        26,
+        32
+      ],
+      "back": [
+        6,
+        12
+      ],
+      "sales_yuan": 316189166,
+      "jackpot_yuan": "796,723,787.40",
+      "claim_deadline": "2026-12-16",
+      "prizes": {
+        "一等奖": {
+          "basic": {
+            "winners": 2,
+            "per_ticket_yuan": 10000000,
+            "total_yuan": 20000000
+          },
+          "additional": {
+            "winners": 0,
+            "per_ticket_yuan": null,
+            "total_yuan": 0
+          }
+        },
+        "二等奖": {
+          "basic": {
+            "winners": 96,
+            "per_ticket_yuan": 185066,
+            "total_yuan": 17766336
+          },
+          "additional": {
+            "winners": 14,
+            "per_ticket_yuan": 148053,
+            "total_yuan": 2072742
+          }
+        },
+        "三等奖": {
+          "winners": 1003,
+          "per_ticket_yuan": 5000,
+          "total_yuan": 5015000
+        },
+        "四等奖": {
+          "winners": 15916,
+          "per_ticket_yuan": 300,
+          "total_yuan": 4774800
+        },
+        "五等奖": {
+          "winners": 64167,
+          "per_ticket_yuan": 150,
+          "total_yuan": 9625050
+        },
+        "六等奖": {
+          "winners": 654488,
+          "per_ticket_yuan": 15,
+          "total_yuan": 9817320
+        },
+        "七等奖": {
+          "winners": 7104517,
+          "per_ticket_yuan": 5,
+          "total_yuan": 35522585
+        }
+      },
+      "source_url": "https://www.js-lottery.com/cms/post-148074.html",
       "source_name": "江苏省体育彩票管理中心"
     }
   ]
