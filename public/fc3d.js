@@ -53,7 +53,9 @@
     const rv = data.review;
     $('fc3d-review').innerHTML = rv
       ? `<div class="match-meta">第 ${safe(rv.issue)} 期实际开奖 ${rv.actual.digits.join(' ')}，当期锁定推荐的命中情况：</div>` +
-        rv.results.map(r => `<div class="match-meta"><strong>${safe(r.strategy)}</strong>（${r.digits.join(' ')}）：同位命中 ${r.position_hits}/${r.digits.length}${r.direct_hit ? ' · 直选全中 ✔' : ''}${r.group_hit ? ' · 组选命中 ✔' : ''}</div>`).join('')
+        rv.results.map(r => `<div class="match-meta"><strong>${safe(r.strategy)}</strong>（${r.digits.join(' ')}）：同位命中 ${r.position_hits}/${r.digits.length}${r.direct_hit ? ' · 直选全中 ✔' : ''}${r.group_hit ? ' · 组选命中 ✔' : ''}${r.prize && r.prize.tier ? ' · 中' + safe(r.prize.tier) + ' ' + money(r.prize.amount) : ''}</div>` +
+          (r.notes && r.notes.length ? `<div class="match-meta">归因：${r.notes.map(safe).join('；')}</div>` : '')).join('') +
+        (rv.improvement ? `<div class="match-meta"><strong>下期改进（统计复盘）</strong>：${rv.improvement.map(safe).join('；')}</div>` : '')
       : '<p class="hint">暂无可复盘的上期推荐（推荐自本期起锁定，下一期开奖后生成复盘）。</p>';
 
     const s = data.stats;
