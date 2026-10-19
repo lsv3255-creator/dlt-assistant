@@ -1,85 +1,42 @@
 {
-  "updated_at": "2026-10-17 16:39:43",
+  "updated_at": "2026-10-19 19:29:55",
   "empty": false,
-  "issue": "26118",
-  "snapshot_status": "ok",
-  "authoritative": true,
-  "snapshot_hash": "1d9ff734e6a4a93537b1f52ffd07dfe04a45bad6bfc6f6aa18d31a2aae746330",
+  "issue": "26119",
+  "snapshot_status": "missing",
+  "authoritative": false,
+  "legacy": true,
+  "snapshot_hash": null,
   "recommendation": {
-    "strategy": "C-纯随机娱乐型",
+    "strategy": "D-综合评分型",
     "front": [
-      4,
-      16,
-      29,
-      32,
-      35
+      14,
+      7,
+      23,
+      27,
+      16
     ],
     "back": [
-      1,
-      3
+      4,
+      8
     ],
-    "score_total": 43.2,
-    "model_version": null
-  },
-  "reason": "本期候选由随机基线策略在合法规则下随机生成，作为与统计型策略对比的对照候选，不代表任何统计倾向或走势判断。",
-  "explanation": {
-    "explanation_version": "1.1",
-    "strategy_type": "random_baseline",
-    "strategy": "C-纯随机娱乐型",
-    "target_issue": "26118",
-    "summary": "本期候选由随机基线策略在合法规则下随机生成，作为与统计型策略对比的对照候选，不代表任何统计倾向或走势判断。",
-    "factors": [
-      {
-        "type": "random",
-        "label": "随机基线",
-        "detail": "该组合为合法规则内随机抽取，非基于热冷/遗漏/趋势的统计构造。",
-        "evidence": {
-          "is_random": true
-        }
-      },
-      {
-        "type": "structure",
-        "label": "结构分布（仅描述）",
-        "detail": "前区 奇偶比 2:3、大小比 3:2、和值 116、跨度 31。",
-        "evidence": {
-          "front_odd_even": [
-            2,
-            3
-          ],
-          "front_big_small": [
-            3,
-            2
-          ],
-          "front_sum": 116,
-          "front_span": 31
-        }
-      }
-    ],
-    "generated_from": [
-      "dlt_history.json",
-      "window=50",
-      "strategy_type=random_baseline"
-    ],
-    "reason_status": "ok",
-    "disclaimer": "本解释仅描述内部算法如何构造候选组合，不代表任何号码会中奖，亦不构成预测。",
-    "explanation_hash": "d174384305a76e65"
+    "score_total": 41.61
   },
   "actual_result": {
     "front": [
-      2,
-      9,
-      21,
-      26,
+      3,
+      6,
+      20,
+      24,
       32
     ],
     "back": [
-      6,
-      12
+      4,
+      7
     ]
   },
   "hit_count": {
-    "front": 1,
-    "back": 0,
+    "front": 0,
+    "back": 1,
     "total": 1,
     "level": 1
   },
@@ -88,15 +45,55 @@
     "amount": 0
   },
   "analysis": {
-    "sum_diff": 26,
-    "factor_review": {}
+    "factor_review": {
+      "inherit": {
+        "value": 0.0,
+        "median": 0.0,
+        "status": "positive"
+      },
+      "heat": {
+        "value": 15.0,
+        "median": 15.86,
+        "status": "negative"
+      },
+      "missing": {
+        "value": 81.14,
+        "median": 80.0,
+        "status": "positive"
+      },
+      "trend": {
+        "value": 49.64,
+        "median": 49.22,
+        "status": "positive"
+      },
+      "structure": {
+        "value": 42.43,
+        "median": 42.44,
+        "status": "negative"
+      }
+    }
   },
   "next_adjustment": [
     {
       "type": "reduce",
-      "text": "收缩和值区间",
-      "reason": "上期和值偏差较大（差 26）"
+      "text": "降低热号关注权重",
+      "reason": "热号因子指向偏差（相对历史中位数偏低）"
+    },
+    {
+      "type": "keep",
+      "text": "维持遗漏补偿关注",
+      "reason": "遗漏回补正常（方向判断合理）"
+    },
+    {
+      "type": "keep",
+      "text": "维持趋势因子",
+      "reason": "趋势判断正常（方向判断合理）"
+    },
+    {
+      "type": "reduce",
+      "text": "降低结构贴合权重",
+      "reason": "组合结构判断偏差（相对历史中位数偏低）"
     }
   ],
-  "disclaimer": "复盘读取当期已发布不可变快照，仅为娱乐回顾，不代表预测中奖"
+  "disclaimer": "该期无不可变发布快照，复盘为 legacy 兼容（非权威，不代表当时实际发布内容）"
 }

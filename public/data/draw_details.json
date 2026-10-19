@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-17T16:39:43.164937+00:00",
+  "updated_at": "2026-10-19T19:29:55.501691+00:00",
   "issues": [
     {
       "issue": "26105",
@@ -994,6 +994,77 @@
         }
       },
       "source_url": "https://www.js-lottery.com/cms/post-148074.html",
+      "source_name": "江苏省体育彩票管理中心"
+    },
+    {
+      "issue": "26119",
+      "date": "2026-10-19",
+      "front": [
+        3,
+        6,
+        20,
+        24,
+        32
+      ],
+      "back": [
+        4,
+        7
+      ],
+      "sales_yuan": 304050337,
+      "jackpot_yuan": "824,436,634.68",
+      "claim_deadline": "2026-12-18",
+      "prizes": {
+        "一等奖": {
+          "basic": {
+            "winners": 3,
+            "per_ticket_yuan": 9909522,
+            "total_yuan": 29728566
+          },
+          "additional": {
+            "winners": 0,
+            "per_ticket_yuan": null,
+            "total_yuan": 0
+          }
+        },
+        "二等奖": {
+          "basic": {
+            "winners": 82,
+            "per_ticket_yuan": 162664,
+            "total_yuan": 13338448
+          },
+          "additional": {
+            "winners": 22,
+            "per_ticket_yuan": 130131,
+            "total_yuan": 2862882
+          }
+        },
+        "三等奖": {
+          "winners": 1240,
+          "per_ticket_yuan": 5000,
+          "total_yuan": 6200000
+        },
+        "四等奖": {
+          "winners": 15517,
+          "per_ticket_yuan": 300,
+          "total_yuan": 4655100
+        },
+        "五等奖": {
+          "winners": 63915,
+          "per_ticket_yuan": 150,
+          "total_yuan": 9587250
+        },
+        "六等奖": {
+          "winners": 817669,
+          "per_ticket_yuan": 15,
+          "total_yuan": 12265035
+        },
+        "七等奖": {
+          "winners": 8526888,
+          "per_ticket_yuan": 5,
+          "total_yuan": 42634440
+        }
+      },
+      "source_url": "https://www.js-lottery.com/cms/post-148095.html",
       "source_name": "江苏省体育彩票管理中心"
     }
   ]
