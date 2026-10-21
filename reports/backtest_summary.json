@@ -1,122 +1,122 @@
 {
-  "update_time": "2026-10-21 07:11:03",
-  "total_periods": 27,
+  "update_time": "2026-10-21 18:16:06",
+  "total_periods": 28,
   "strategies": {
     "A": {
-      "count": 27,
-      "avg_front_hit": 0.667,
-      "avg_back_hit": 0.407,
-      "avg_total_hit": 1.074,
+      "count": 28,
+      "avg_front_hit": 0.679,
+      "avg_back_hit": 0.393,
+      "avg_total_hit": 1.071,
       "max_total_hit": 3,
       "avg_distance_score": 5.93,
       "hit_level_dist": {
-        "1": 19,
+        "1": 20,
         "0": 6,
         "2": 2
       },
       "front_hit_dist": {
         "0": 14,
-        "1": 9,
+        "1": 10,
         "2": 3,
         "3": 1
       },
       "back_hit_dist": {
         "1": 9,
         "2": 1,
-        "0": 17
+        "0": 18
       }
     },
     "B": {
-      "count": 27,
-      "avg_front_hit": 0.407,
-      "avg_back_hit": 0.222,
-      "avg_total_hit": 0.63,
+      "count": 28,
+      "avg_front_hit": 0.464,
+      "avg_back_hit": 0.214,
+      "avg_total_hit": 0.679,
       "max_total_hit": 2,
-      "avg_distance_score": 6.37,
+      "avg_distance_score": 6.32,
       "hit_level_dist": {
         "0": 15,
-        "1": 12
+        "1": 13
       },
       "front_hit_dist": {
         "0": 18,
         "1": 7,
-        "2": 2
+        "2": 3
       },
       "back_hit_dist": {
-        "0": 21,
+        "0": 22,
         "1": 6
       }
     },
     "C": {
-      "count": 27,
-      "avg_front_hit": 0.667,
-      "avg_back_hit": 0.556,
-      "avg_total_hit": 1.222,
+      "count": 28,
+      "avg_front_hit": 0.679,
+      "avg_back_hit": 0.536,
+      "avg_total_hit": 1.214,
       "max_total_hit": 3,
-      "avg_distance_score": 5.78,
+      "avg_distance_score": 5.79,
       "hit_level_dist": {
-        "1": 18,
+        "1": 19,
         "0": 7,
         "2": 2
       },
       "front_hit_dist": {
-        "1": 14,
+        "1": 15,
         "0": 11,
         "2": 2
       },
       "back_hit_dist": {
-        "0": 15,
+        "0": 16,
         "1": 9,
         "2": 3
       }
     },
     "D": {
-      "count": 26,
-      "avg_front_hit": 0.692,
-      "avg_back_hit": 0.308,
-      "avg_total_hit": 1.0,
+      "count": 27,
+      "avg_front_hit": 0.667,
+      "avg_back_hit": 0.296,
+      "avg_total_hit": 0.963,
       "max_total_hit": 2,
-      "avg_distance_score": 6.0,
+      "avg_distance_score": 6.04,
       "hit_level_dist": {
-        "0": 7,
+        "0": 8,
         "1": 19
       },
       "front_hit_dist": {
-        "0": 11,
+        "0": 12,
         "1": 12,
         "2": 3
       },
       "back_hit_dist": {
-        "0": 18,
+        "0": 19,
         "1": 8
       }
     }
   },
   "factor_analysis": {
     "D": {
-      "count": 26,
-      "median_score": 41.51,
+      "count": 27,
+      "median_score": 41.49,
       "high_score": {
-        "count": 13,
-        "avg_front_hit": 0.538,
-        "avg_back_hit": 0.462,
+        "count": 14,
+        "avg_front_hit": 0.571,
+        "avg_back_hit": 0.429,
         "avg_total_hit": 1.0
       },
       "low_score": {
         "count": 13,
-        "avg_front_hit": 0.846,
+        "avg_front_hit": 0.769,
         "avg_back_hit": 0.154,
-        "avg_total_hit": 1.0
+        "avg_total_hit": 0.923
       },
       "note": "高/低评分组平均命中对比（娱乐参考），用于后续评估评分有效性"
     }
   },
   "recommendation_quality": {
-    "total_groups": 107,
-    "validated_periods": 27,
-    "avg_front_hit": 0.607,
-    "avg_back_hit": 0.374,
-    "avg_total_hit": 0.981,
+    "total_groups": 111,
+    "validated_periods": 28,
+    "avg_front_hit": 0.622,
+    "avg_back_hit": 0.36,
+    "avg_total_hit": 0.982,
     "best": {
       "issue": "26102",
       "strategy": "C-纯随机娱乐型",

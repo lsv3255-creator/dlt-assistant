@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-19T19:29:55.501691+00:00",
+  "updated_at": "2026-10-21T18:16:08.723529+00:00",
   "issues": [
     {
       "issue": "26105",
@@ -1065,6 +1065,77 @@
         }
       },
       "source_url": "https://www.js-lottery.com/cms/post-148095.html",
+      "source_name": "江苏省体育彩票管理中心"
+    },
+    {
+      "issue": "26120",
+      "date": "2026-10-21",
+      "front": [
+        1,
+        6,
+        10,
+        15,
+        32
+      ],
+      "back": [
+        3,
+        4
+      ],
+      "sales_yuan": 314954142,
+      "jackpot_yuan": "825,893,883.63",
+      "claim_deadline": "2026-12-21",
+      "prizes": {
+        "一等奖": {
+          "basic": {
+            "winners": 3,
+            "per_ticket_yuan": 10000000,
+            "total_yuan": 30000000
+          },
+          "additional": {
+            "winners": 1,
+            "per_ticket_yuan": 8000000,
+            "total_yuan": 8000000
+          }
+        },
+        "二等奖": {
+          "basic": {
+            "winners": 73,
+            "per_ticket_yuan": 303750,
+            "total_yuan": 22173750
+          },
+          "additional": {
+            "winners": 17,
+            "per_ticket_yuan": 243000,
+            "total_yuan": 4131000
+          }
+        },
+        "三等奖": {
+          "winners": 865,
+          "per_ticket_yuan": 6666,
+          "total_yuan": 5766090
+        },
+        "四等奖": {
+          "winners": 13667,
+          "per_ticket_yuan": 380,
+          "total_yuan": 5193460
+        },
+        "五等奖": {
+          "winners": 54552,
+          "per_ticket_yuan": 200,
+          "total_yuan": 10910400
+        },
+        "六等奖": {
+          "winners": 700977,
+          "per_ticket_yuan": 18,
+          "total_yuan": 12617586
+        },
+        "七等奖": {
+          "winners": 7725416,
+          "per_ticket_yuan": 7,
+          "total_yuan": 54077912
+        }
+      },
+      "source_url": "https://www.js-lottery.com/cms/post-148104.html",
       "source_name": "江苏省体育彩票管理中心"
     }
   ]
