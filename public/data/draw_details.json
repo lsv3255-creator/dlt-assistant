@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-21T18:16:08.723529+00:00",
+  "updated_at": "2026-10-24T16:59:21.333174+00:00",
   "issues": [
     {
       "issue": "26105",
@@ -1136,6 +1136,77 @@
         }
       },
       "source_url": "https://www.js-lottery.com/cms/post-148104.html",
+      "source_name": "江苏省体育彩票管理中心"
+    },
+    {
+      "issue": "26121",
+      "date": "2026-10-24",
+      "front": [
+        6,
+        8,
+        19,
+        24,
+        25
+      ],
+      "back": [
+        1,
+        8
+      ],
+      "sales_yuan": 337292145,
+      "jackpot_yuan": "804,119,354.24",
+      "claim_deadline": "2026-12-23",
+      "prizes": {
+        "一等奖": {
+          "basic": {
+            "winners": 6,
+            "per_ticket_yuan": 7741823,
+            "total_yuan": 46450938
+          },
+          "additional": {
+            "winners": 0,
+            "per_ticket_yuan": null,
+            "total_yuan": 0
+          }
+        },
+        "二等奖": {
+          "basic": {
+            "winners": 150,
+            "per_ticket_yuan": 96316,
+            "total_yuan": 14447400
+          },
+          "additional": {
+            "winners": 26,
+            "per_ticket_yuan": 77053,
+            "total_yuan": 2003378
+          }
+        },
+        "三等奖": {
+          "winners": 1643,
+          "per_ticket_yuan": 6666,
+          "total_yuan": 10952238
+        },
+        "四等奖": {
+          "winners": 25511,
+          "per_ticket_yuan": 380,
+          "total_yuan": 9694180
+        },
+        "五等奖": {
+          "winners": 92604,
+          "per_ticket_yuan": 200,
+          "total_yuan": 18520800
+        },
+        "六等奖": {
+          "winners": 997103,
+          "per_ticket_yuan": 18,
+          "total_yuan": 17947854
+        },
+        "七等奖": {
+          "winners": 9575818,
+          "per_ticket_yuan": 7,
+          "total_yuan": 67030726
+        }
+      },
+      "source_url": "https://www.js-lottery.com/cms/post-148123.html",
       "source_name": "江苏省体育彩票管理中心"
     }
   ]

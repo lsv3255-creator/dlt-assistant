@@ -1,7 +1,7 @@
 {
-  "updated_at": "2026-10-21 18:16:08",
+  "updated_at": "2026-10-24 16:59:22",
   "empty": false,
-  "issue": "26120",
+  "issue": "26121",
   "snapshot_status": "missing",
   "authoritative": false,
   "legacy": true,
@@ -10,35 +10,35 @@
     "strategy": "D-综合评分型",
     "front": [
       14,
-      17,
       11,
       7,
+      17,
       28
     ],
     "back": [
-      8,
-      5
+      9,
+      8
     ],
-    "score_total": 41.44
+    "score_total": 41.74
   },
   "actual_result": {
     "front": [
-      1,
       6,
-      10,
-      15,
-      32
+      8,
+      19,
+      24,
+      25
     ],
     "back": [
-      3,
-      4
+      1,
+      8
     ]
   },
   "hit_count": {
     "front": 0,
-    "back": 0,
-    "total": 0,
-    "level": 0
+    "back": 1,
+    "total": 1,
+    "level": 1
   },
   "prize": {
     "tier": null,
@@ -49,27 +49,27 @@
       "inherit": {
         "value": 0.0,
         "median": 0.0,
-        "status": "neutral"
+        "status": "positive"
       },
       "heat": {
-        "value": 15.29,
+        "value": 15.43,
         "median": 15.71,
         "status": "negative"
       },
       "missing": {
         "value": 80.0,
         "median": 80.0,
-        "status": "neutral"
+        "status": "positive"
       },
       "trend": {
-        "value": 49.74,
-        "median": 49.22,
-        "status": "neutral"
+        "value": 51.33,
+        "median": 49.36,
+        "status": "positive"
       },
       "structure": {
-        "value": 42.44,
+        "value": 42.41,
         "median": 42.44,
-        "status": "neutral"
+        "status": "negative"
       }
     }
   },
@@ -78,6 +78,21 @@
       "type": "reduce",
       "text": "降低热号关注权重",
       "reason": "热号因子指向偏差（相对历史中位数偏低）"
+    },
+    {
+      "type": "keep",
+      "text": "维持遗漏补偿关注",
+      "reason": "遗漏回补正常（方向判断合理）"
+    },
+    {
+      "type": "keep",
+      "text": "维持趋势因子",
+      "reason": "趋势判断正常（方向判断合理）"
+    },
+    {
+      "type": "reduce",
+      "text": "降低结构贴合权重",
+      "reason": "组合结构判断偏差（相对历史中位数偏低）"
     }
   ],
   "disclaimer": "该期无不可变发布快照，复盘为 legacy 兼容（非权威，不代表当时实际发布内容）"
