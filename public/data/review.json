@@ -1,7 +1,7 @@
 {
-  "updated_at": "2026-10-24 16:59:22",
+  "updated_at": "2026-10-26 19:34:42",
   "empty": false,
-  "issue": "26121",
+  "issue": "26122",
   "snapshot_status": "missing",
   "authoritative": false,
   "legacy": true,
@@ -11,32 +11,32 @@
     "front": [
       14,
       11,
-      7,
       17,
+      7,
       28
     ],
     "back": [
       9,
-      8
+      5
     ],
-    "score_total": 41.74
+    "score_total": 41.51
   },
   "actual_result": {
     "front": [
-      6,
-      8,
-      19,
-      24,
-      25
+      2,
+      14,
+      21,
+      22,
+      24
     ],
     "back": [
-      1,
-      8
+      2,
+      12
     ]
   },
   "hit_count": {
-    "front": 0,
-    "back": 1,
+    "front": 1,
+    "back": 0,
     "total": 1,
     "level": 1
   },
@@ -52,7 +52,7 @@
         "status": "positive"
       },
       "heat": {
-        "value": 15.43,
+        "value": 14.86,
         "median": 15.71,
         "status": "negative"
       },
@@ -62,13 +62,13 @@
         "status": "positive"
       },
       "trend": {
-        "value": 51.33,
+        "value": 50.67,
         "median": 49.36,
         "status": "positive"
       },
       "structure": {
         "value": 42.41,
-        "median": 42.44,
+        "median": 42.43,
         "status": "negative"
       }
     }
