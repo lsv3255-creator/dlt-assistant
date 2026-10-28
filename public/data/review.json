@@ -1,7 +1,7 @@
 {
-  "updated_at": "2026-10-26 19:34:42",
+  "updated_at": "2026-10-28 19:07:42",
   "empty": false,
-  "issue": "26122",
+  "issue": "26123",
   "snapshot_status": "missing",
   "authoritative": false,
   "legacy": true,
@@ -9,7 +9,7 @@
   "recommendation": {
     "strategy": "D-综合评分型",
     "front": [
-      14,
+      12,
       11,
       17,
       7,
@@ -19,25 +19,25 @@
       9,
       5
     ],
-    "score_total": 41.51
+    "score_total": 41.57
   },
   "actual_result": {
     "front": [
-      2,
-      14,
-      21,
-      22,
-      24
+      13,
+      18,
+      19,
+      20,
+      28
     ],
     "back": [
-      2,
-      12
+      9,
+      11
     ]
   },
   "hit_count": {
     "front": 1,
-    "back": 0,
-    "total": 1,
+    "back": 1,
+    "total": 2,
     "level": 1
   },
   "prize": {
@@ -52,22 +52,22 @@
         "status": "positive"
       },
       "heat": {
-        "value": 14.86,
+        "value": 14.71,
         "median": 15.71,
         "status": "negative"
       },
       "missing": {
-        "value": 80.0,
+        "value": 81.14,
         "median": 80.0,
         "status": "positive"
       },
       "trend": {
-        "value": 50.67,
-        "median": 49.36,
+        "value": 49.79,
+        "median": 49.47,
         "status": "positive"
       },
       "structure": {
-        "value": 42.41,
+        "value": 42.43,
         "median": 42.43,
         "status": "negative"
       }
