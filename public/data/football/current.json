@@ -1,166 +1,107 @@
 {
-  "issue": "26151",
-  "sale_start": "2026-10-25T20:00:00+08:00",
-  "sale_end": "2026-10-27T17:30:00+08:00",
-  "draw_date": "2026-10-28",
-  "status": "on_sale",
+  "issue": "26143",
+  "sale_start": "2026-10-15T22:00:00+08:00",
+  "sale_end": "2026-10-16T22:00:00+08:00",
+  "draw_date": "2026-10-17",
+  "status": "settled",
   "matches": [
     {
       "order": 1,
-      "league": "亚冠精英",
-      "home": "大田",
-      "away": "神户",
-      "kickoff": "2026-10-27T18:00:00+08:00",
+      "league": "英冠",
+      "home": "伯恩利",
+      "away": "伍尔弗汉普顿",
+      "kickoff": "2026-10-17T03:00:00+08:00",
       "odds": {
-        "3": 2.33,
-        "1": 3.36,
-        "0": 2.78
+        "3": 2.88,
+        "1": 3.45,
+        "0": 2.3
       },
-      "home_rank": 3,
-      "away_rank": 5,
+      "home_rank": 21,
+      "away_rank": 10,
       "probabilities": {
-        "3": 0.384,
-        "1": 0.2835,
-        "0": 0.3325
+        "3": 0.2807,
+        "1": 0.2778,
+        "0": 0.4415
       },
       "factors": {
         "available": [
           "market",
           "home_away",
-          "ranking",
-          "recent_form",
-          "rest_days"
+          "ranking"
         ],
         "unavailable": [
+          "recent_form",
           "injuries",
+          "rest_days",
           "head_to_head"
         ],
-        "uncertainty": 0.9685,
-        "data_completeness": 0.7143
+        "uncertainty": 0.8392,
+        "data_completeness": 0.4286
       },
-      "primary": "3",
-      "secondary": "0",
-      "confidence": 0.0515,
-      "dynamics": {
-        "home": {
-          "form_last10": {
-            "played": 10,
-            "w": 6,
-            "d": 3,
-            "l": 1,
-            "points": 21,
-            "gf": 21,
-            "ga": 13
-          },
-          "rest_days": 3,
-          "last_match_date": "2026-10-24"
-        },
-        "away": {
-          "form_last10": {
-            "played": 10,
-            "w": 7,
-            "d": 1,
-            "l": 2,
-            "points": 22,
-            "gf": 17,
-            "ga": 9
-          },
-          "rest_days": 3,
-          "last_match_date": "2026-10-24"
-        },
-        "head_to_head": null
-      },
+      "primary": "0",
+      "secondary": "3",
+      "confidence": 0.1608,
       "sfc_choices": [
-        "3",
         "0"
       ]
     },
     {
       "order": 2,
-      "league": "亚冠精英",
-      "home": "京都",
-      "away": "喷射机",
-      "kickoff": "2026-10-27T18:00:00+08:00",
+      "league": "德甲",
+      "home": "法兰克福",
+      "away": "科隆",
+      "kickoff": "2026-10-17T02:30:00+08:00",
       "odds": {
-        "3": 1.39,
-        "1": 4.93,
-        "0": 6.27
+        "3": 1.92,
+        "1": 4.05,
+        "0": 3.43
       },
-      "home_rank": 16,
-      "away_rank": 7,
+      "home_rank": 14,
+      "away_rank": 10,
       "probabilities": {
-        "3": 0.5311,
-        "1": 0.2289,
-        "0": 0.24
+        "3": 0.4348,
+        "1": 0.2498,
+        "0": 0.3154
       },
       "factors": {
         "available": [
           "market",
           "home_away",
-          "ranking",
-          "recent_form",
-          "rest_days"
+          "ranking"
         ],
         "unavailable": [
+          "recent_form",
           "injuries",
+          "rest_days",
           "head_to_head"
         ],
-        "uncertainty": 0.7289,
-        "data_completeness": 0.7143
+        "uncertainty": 0.8806,
+        "data_completeness": 0.4286
       },
       "primary": "3",
       "secondary": "0",
-      "confidence": 0.2911,
-      "dynamics": {
-        "home": {
-          "form_last10": {
-            "played": 10,
-            "w": 3,
-            "d": 3,
-            "l": 4,
-            "points": 12,
-            "gf": 10,
-            "ga": 13
-          },
-          "rest_days": 3,
-          "last_match_date": "2026-10-24"
-        },
-        "away": {
-          "form_last10": {
-            "played": 10,
-            "w": 1,
-            "d": 6,
-            "l": 3,
-            "points": 9,
-            "gf": 16,
-            "ga": 21
-          },
-          "rest_days": 3,
-          "last_match_date": "2026-10-24"
-        },
-        "head_to_head": null
-      },
+      "confidence": 0.1194,
       "sfc_choices": [
         "3"
       ]
     },
     {
       "order": 3,
-      "league": "亚冠精英",
-      "home": "国安",
-      "away": "全北",
-      "kickoff": "2026-10-27T20:15:00+08:00",
+      "league": "德乙",
+      "home": "科特布斯",
+      "away": "纽伦堡",
+      "kickoff": "2026-10-17T00:30:00+08:00",
       "odds": {
-        "3": 2.28,
-        "1": 3.46,
-        "0": 2.78
+        "3": 3.07,
+        "1": 3.98,
+        "0": 2.01
       },
-      "home_rank": 3,
-      "away_rank": 4,
+      "home_rank": 8,
+      "away_rank": 2,
       "probabilities": {
-        "3": 0.3969,
-        "1": 0.2743,
-        "0": 0.3288
+        "3": 0.2835,
+        "1": 0.2504,
+        "0": 0.4661
       },
       "factors": {
         "available": [
@@ -174,103 +115,73 @@
           "rest_days",
           "head_to_head"
         ],
-        "uncertainty": 0.9319,
+        "uncertainty": 0.8174,
         "data_completeness": 0.4286
       },
-      "primary": "3",
-      "secondary": "0",
-      "confidence": 0.0681,
+      "primary": "0",
+      "secondary": "3",
+      "confidence": 0.1826,
       "sfc_choices": [
-        "3",
         "0"
       ]
     },
     {
       "order": 4,
-      "league": "亚冠精英",
-      "home": "叻武里",
-      "away": "太阳神",
-      "kickoff": "2026-10-27T20:15:00+08:00",
+      "league": "德乙",
+      "home": "基尔",
+      "away": "柏林赫塔",
+      "kickoff": "2026-10-17T00:30:00+08:00",
       "odds": {
-        "3": 6.03,
-        "1": 4.87,
-        "0": 1.4
+        "3": 2.76,
+        "1": 3.86,
+        "0": 2.21
       },
-      "home_rank": 4,
-      "away_rank": 4,
+      "home_rank": 18,
+      "away_rank": 1,
       "probabilities": {
-        "3": 0.1992,
-        "1": 0.23,
-        "0": 0.5708
+        "3": 0.2793,
+        "1": 0.2559,
+        "0": 0.4648
       },
       "factors": {
         "available": [
           "market",
           "home_away",
-          "ranking",
-          "recent_form",
-          "rest_days"
+          "ranking"
         ],
         "unavailable": [
+          "recent_form",
           "injuries",
+          "rest_days",
           "head_to_head"
         ],
-        "uncertainty": 0.6792,
-        "data_completeness": 0.7143
+        "uncertainty": 0.8145,
+        "data_completeness": 0.4286
       },
       "primary": "0",
-      "secondary": "1",
-      "confidence": 0.3408,
-      "dynamics": {
-        "home": {
-          "form_last10": {
-            "played": 10,
-            "w": 5,
-            "d": 0,
-            "l": 5,
-            "points": 15,
-            "gf": 22,
-            "ga": 16
-          },
-          "rest_days": 3,
-          "last_match_date": "2026-10-24"
-        },
-        "away": {
-          "form_last10": {
-            "played": 10,
-            "w": 6,
-            "d": 2,
-            "l": 2,
-            "points": 20,
-            "gf": 28,
-            "ga": 17
-          },
-          "rest_days": 3,
-          "last_match_date": "2026-10-24"
-        },
-        "head_to_head": null
-      },
+      "secondary": "3",
+      "confidence": 0.1855,
       "sfc_choices": [
         "0"
       ]
     },
     {
       "order": 5,
-      "league": "德国杯",
-      "home": "波鸿",
-      "away": "美因茨",
-      "kickoff": "2026-10-28T01:00:00+08:00",
+      "league": "意甲",
+      "home": "弗洛西诺内",
+      "away": "萨索洛",
+      "kickoff": "2026-10-17T02:45:00+08:00",
       "odds": {
-        "3": 4.46,
-        "1": 3.97,
-        "0": 1.66
+        "3": 2.48,
+        "1": 3.65,
+        "0": 2.61
       },
-      "home_rank": 14,
-      "away_rank": 7,
+      "home_rank": 9,
+      "away_rank": 11,
       "probabilities": {
-        "3": 0.2076,
-        "1": 0.2502,
-        "0": 0.5422
+        "3": 0.3853,
+        "1": 0.2688,
+        "0": 0.3459
       },
       "factors": {
         "available": [
@@ -284,330 +195,115 @@
           "rest_days",
           "head_to_head"
         ],
-        "uncertainty": 0.708,
+        "uncertainty": 0.9606,
         "data_completeness": 0.4286
       },
-      "primary": "0",
-      "secondary": "1",
-      "confidence": 0.292,
+      "primary": "3",
+      "secondary": "0",
+      "confidence": 0.0394,
       "sfc_choices": [
+        "3",
         "0"
       ]
     },
     {
       "order": 6,
-      "league": "德国杯",
-      "home": "汉堡",
-      "away": "法兰克福",
-      "kickoff": "2026-10-28T01:00:00+08:00",
+      "league": "西甲",
+      "home": "拉科鲁尼亚",
+      "away": "莱万特",
+      "kickoff": "2026-10-17T03:00:00+08:00",
       "odds": {
-        "3": 2.93,
-        "1": 3.69,
-        "0": 2.15
+        "3": 2.08,
+        "1": 3.43,
+        "0": 3.5
       },
-      "home_rank": 11,
-      "away_rank": 14,
+      "home_rank": 8,
+      "away_rank": 17,
       "probabilities": {
-        "3": 0.3664,
-        "1": 0.2709,
-        "0": 0.3627
+        "3": 0.4738,
+        "1": 0.2817,
+        "0": 0.2445
       },
       "factors": {
         "available": [
           "market",
           "home_away",
-          "ranking",
-          "recent_form",
-          "head_to_head",
-          "rest_days"
+          "ranking"
         ],
         "unavailable": [
-          "injuries"
+          "recent_form",
+          "injuries",
+          "rest_days",
+          "head_to_head"
         ],
-        "uncertainty": 1.0,
-        "data_completeness": 0.8571
+        "uncertainty": 0.8079,
+        "data_completeness": 0.4286
+      },
+      "primary": "3",
+      "secondary": "1",
+      "confidence": 0.1921,
+      "sfc_choices": [
+        "3"
+      ]
+    },
+    {
+      "order": 7,
+      "league": "法甲",
+      "home": "勒芒",
+      "away": "图卢兹",
+      "kickoff": "2026-10-17T02:45:00+08:00",
+      "odds": {
+        "3": 2.92,
+        "1": 3.5,
+        "0": 2.31
+      },
+      "home_rank": 14,
+      "away_rank": 15,
+      "probabilities": {
+        "3": 0.3364,
+        "1": 0.277,
+        "0": 0.3866
+      },
+      "factors": {
+        "available": [
+          "market",
+          "home_away",
+          "ranking"
+        ],
+        "unavailable": [
+          "recent_form",
+          "injuries",
+          "rest_days",
+          "head_to_head"
+        ],
+        "uncertainty": 0.9498,
+        "data_completeness": 0.4286
       },
       "primary": "0",
       "secondary": "3",
-      "confidence": 0.0037,
-      "dynamics": {
-        "home": {
-          "form_last10": {
-            "played": 10,
-            "w": 6,
-            "d": 0,
-            "l": 4,
-            "points": 18,
-            "gf": 13,
-            "ga": 17
-          },
-          "rest_days": 4,
-          "last_match_date": "2026-10-24"
-        },
-        "away": {
-          "form_last10": {
-            "played": 10,
-            "w": 4,
-            "d": 2,
-            "l": 4,
-            "points": 14,
-            "gf": 17,
-            "ga": 25
-          },
-          "rest_days": 3,
-          "last_match_date": "2026-10-25"
-        },
-        "head_to_head": {
-          "meetings": 33,
-          "home_wins": 12,
-          "draws": 11,
-          "away_wins": 10
-        }
-      },
+      "confidence": 0.0502,
       "sfc_choices": [
         "0",
         "3"
       ]
     },
     {
-      "order": 7,
-      "league": "德国杯",
-      "home": "科隆",
-      "away": "柏林联合",
-      "kickoff": "2026-10-28T03:45:00+08:00",
-      "odds": {
-        "3": 1.81,
-        "1": 3.73,
-        "0": 3.89
-      },
-      "home_rank": 12,
-      "away_rank": 17,
-      "probabilities": {
-        "3": 0.4901,
-        "1": 0.2693,
-        "0": 0.2406
-      },
-      "factors": {
-        "available": [
-          "market",
-          "home_away",
-          "ranking",
-          "recent_form",
-          "head_to_head",
-          "rest_days"
-        ],
-        "unavailable": [
-          "injuries"
-        ],
-        "uncertainty": 0.7792,
-        "data_completeness": 0.8571
-      },
-      "primary": "3",
-      "secondary": "1",
-      "confidence": 0.2208,
-      "dynamics": {
-        "home": {
-          "form_last10": {
-            "played": 10,
-            "w": 4,
-            "d": 3,
-            "l": 3,
-            "points": 15,
-            "gf": 14,
-            "ga": 15
-          },
-          "rest_days": 4,
-          "last_match_date": "2026-10-24"
-        },
-        "away": {
-          "form_last10": {
-            "played": 10,
-            "w": 3,
-            "d": 3,
-            "l": 4,
-            "points": 12,
-            "gf": 13,
-            "ga": 24
-          },
-          "rest_days": 4,
-          "last_match_date": "2026-10-24"
-        },
-        "head_to_head": {
-          "meetings": 20,
-          "home_wins": 6,
-          "draws": 4,
-          "away_wins": 10
-        }
-      },
-      "sfc_choices": [
-        "3"
-      ]
-    },
-    {
       "order": 8,
-      "league": "德国杯",
-      "home": "多特蒙德",
-      "away": "不来梅",
-      "kickoff": "2026-10-28T03:45:00+08:00",
+      "league": "法乙",
+      "home": "阿纳西",
+      "away": "南锡",
+      "kickoff": "2026-10-17T02:00:00+08:00",
       "odds": {
-        "3": 1.36,
-        "1": 5.0,
-        "0": 6.96
+        "3": 2.53,
+        "1": 3.24,
+        "0": 2.65
       },
-      "home_rank": 2,
-      "away_rank": 6,
+      "home_rank": 6,
+      "away_rank": 5,
       "probabilities": {
-        "3": 0.6118,
-        "1": 0.2312,
-        "0": 0.157
-      },
-      "factors": {
-        "available": [
-          "market",
-          "home_away",
-          "ranking",
-          "recent_form",
-          "head_to_head",
-          "rest_days"
-        ],
-        "unavailable": [
-          "injuries"
-        ],
-        "uncertainty": 0.6394,
-        "data_completeness": 0.8571
-      },
-      "primary": "3",
-      "secondary": "1",
-      "confidence": 0.3806,
-      "dynamics": {
-        "home": {
-          "form_last10": {
-            "played": 10,
-            "w": 7,
-            "d": 2,
-            "l": 1,
-            "points": 23,
-            "gf": 17,
-            "ga": 8
-          },
-          "rest_days": 3,
-          "last_match_date": "2026-10-25"
-        },
-        "away": {
-          "form_last10": {
-            "played": 10,
-            "w": 4,
-            "d": 3,
-            "l": 3,
-            "points": 15,
-            "gf": 18,
-            "ga": 22
-          },
-          "rest_days": 4,
-          "last_match_date": "2026-10-24"
-        },
-        "head_to_head": {
-          "meetings": 57,
-          "home_wins": 31,
-          "draws": 12,
-          "away_wins": 14
-        }
-      },
-      "sfc_choices": [
-        "3"
-      ]
-    },
-    {
-      "order": 9,
-      "league": "德国杯",
-      "home": "艾禾斯堡",
-      "away": "达姆施",
-      "kickoff": "2026-10-28T03:45:00+08:00",
-      "odds": {
-        "3": 1.41,
-        "1": 4.75,
-        "0": 6.32
-      },
-      "home_rank": 8,
-      "away_rank": 18,
-      "probabilities": {
-        "3": 0.597,
-        "1": 0.2372,
-        "0": 0.1658
-      },
-      "factors": {
-        "available": [
-          "market",
-          "home_away",
-          "ranking",
-          "recent_form",
-          "head_to_head",
-          "rest_days"
-        ],
-        "unavailable": [
-          "injuries"
-        ],
-        "uncertainty": 0.6402,
-        "data_completeness": 0.8571
-      },
-      "primary": "3",
-      "secondary": "1",
-      "confidence": 0.3598,
-      "dynamics": {
-        "home": {
-          "form_last10": {
-            "played": 10,
-            "w": 5,
-            "d": 2,
-            "l": 3,
-            "points": 17,
-            "gf": 20,
-            "ga": 18
-          },
-          "rest_days": 4,
-          "last_match_date": "2026-10-24"
-        },
-        "away": {
-          "form_last10": {
-            "played": 10,
-            "w": 4,
-            "d": 1,
-            "l": 5,
-            "points": 13,
-            "gf": 15,
-            "ga": 17
-          },
-          "rest_days": 4,
-          "last_match_date": "2026-10-24"
-        },
-        "head_to_head": {
-          "meetings": 13,
-          "home_wins": 5,
-          "draws": 6,
-          "away_wins": 2
-        }
-      },
-      "sfc_choices": [
-        "3"
-      ]
-    },
-    {
-      "order": 10,
-      "league": "德国杯",
-      "home": "门兴格拉德巴赫",
-      "away": "卡尔斯",
-      "kickoff": "2026-10-28T03:45:00+08:00",
-      "odds": {
-        "3": 1.34,
-        "1": 5.15,
-        "0": 7.13
-      },
-      "home_rank": 18,
-      "away_rank": 17,
-      "probabilities": {
-        "3": 0.6006,
-        "1": 0.2098,
-        "0": 0.1896
+        "3": 0.3569,
+        "1": 0.289,
+        "0": 0.3541
       },
       "factors": {
         "available": [
@@ -621,235 +317,215 @@
           "rest_days",
           "head_to_head"
         ],
-        "uncertainty": 0.6092,
+        "uncertainty": 0.9972,
         "data_completeness": 0.4286
       },
       "primary": "3",
-      "secondary": "1",
-      "confidence": 0.3908,
+      "secondary": "0",
+      "confidence": 0.0028,
+      "sfc_choices": [
+        "3",
+        "0"
+      ]
+    },
+    {
+      "order": 9,
+      "league": "法乙",
+      "home": "甘冈",
+      "away": "波城FC",
+      "kickoff": "2026-10-17T02:00:00+08:00",
+      "odds": {
+        "3": 2.07,
+        "1": 3.41,
+        "0": 3.27
+      },
+      "home_rank": 11,
+      "away_rank": 8,
+      "probabilities": {
+        "3": 0.4062,
+        "1": 0.2782,
+        "0": 0.3156
+      },
+      "factors": {
+        "available": [
+          "market",
+          "home_away",
+          "ranking"
+        ],
+        "unavailable": [
+          "recent_form",
+          "injuries",
+          "rest_days",
+          "head_to_head"
+        ],
+        "uncertainty": 0.9094,
+        "data_completeness": 0.4286
+      },
+      "primary": "3",
+      "secondary": "0",
+      "confidence": 0.0906,
+      "sfc_choices": [
+        "3",
+        "0"
+      ]
+    },
+    {
+      "order": 10,
+      "league": "法乙",
+      "home": "拉瓦勒",
+      "away": "克莱蒙",
+      "kickoff": "2026-10-17T02:00:00+08:00",
+      "odds": {
+        "3": 2.11,
+        "1": 3.21,
+        "0": 3.37
+      },
+      "home_rank": 18,
+      "away_rank": 17,
+      "probabilities": {
+        "3": 0.4111,
+        "1": 0.2909,
+        "0": 0.298
+      },
+      "factors": {
+        "available": [
+          "market",
+          "home_away",
+          "ranking"
+        ],
+        "unavailable": [
+          "recent_form",
+          "injuries",
+          "rest_days",
+          "head_to_head"
+        ],
+        "uncertainty": 0.8869,
+        "data_completeness": 0.4286
+      },
+      "primary": "3",
+      "secondary": "0",
+      "confidence": 0.1131,
       "sfc_choices": [
         "3"
       ]
     },
     {
       "order": 11,
-      "league": "意甲",
-      "home": "萨索洛",
-      "away": "拉齐奥",
-      "kickoff": "2026-10-28T01:30:00+08:00",
+      "league": "法乙",
+      "home": "兰斯",
+      "away": "第戎",
+      "kickoff": "2026-10-17T02:00:00+08:00",
       "odds": {
-        "3": 3.21,
-        "1": 3.56,
-        "0": 2.14
+        "3": 1.71,
+        "1": 3.77,
+        "0": 4.32
       },
-      "home_rank": 14,
-      "away_rank": 2,
+      "home_rank": 4,
+      "away_rank": 7,
       "probabilities": {
-        "3": 0.2286,
-        "1": 0.279,
-        "0": 0.4924
+        "3": 0.5112,
+        "1": 0.259,
+        "0": 0.2298
       },
       "factors": {
         "available": [
           "market",
           "home_away",
-          "ranking",
-          "recent_form",
-          "head_to_head",
-          "rest_days"
+          "ranking"
         ],
         "unavailable": [
-          "injuries"
+          "recent_form",
+          "injuries",
+          "rest_days",
+          "head_to_head"
         ],
-        "uncertainty": 0.8066,
-        "data_completeness": 0.8571
+        "uncertainty": 0.7478,
+        "data_completeness": 0.4286
       },
-      "primary": "0",
+      "primary": "3",
       "secondary": "1",
-      "confidence": 0.2134,
-      "dynamics": {
-        "home": {
-          "form_last10": {
-            "played": 10,
-            "w": 3,
-            "d": 3,
-            "l": 4,
-            "points": 12,
-            "gf": 16,
-            "ga": 17
-          },
-          "rest_days": 4,
-          "last_match_date": "2026-10-24"
-        },
-        "away": {
-          "form_last10": {
-            "played": 10,
-            "w": 7,
-            "d": 2,
-            "l": 1,
-            "points": 23,
-            "gf": 19,
-            "ga": 10
-          },
-          "rest_days": 3,
-          "last_match_date": "2026-10-25"
-        },
-        "head_to_head": {
-          "meetings": 25,
-          "home_wins": 6,
-          "draws": 5,
-          "away_wins": 14
-        }
-      },
+      "confidence": 0.2522,
       "sfc_choices": [
-        "0",
-        "1"
+        "3"
       ]
     },
     {
       "order": 12,
-      "league": "意甲",
-      "home": "都灵",
-      "away": "科莫",
-      "kickoff": "2026-10-28T03:45:00+08:00",
+      "league": "法乙",
+      "home": "格勒诺布尔",
+      "away": "布洛涅",
+      "kickoff": "2026-10-17T02:00:00+08:00",
       "odds": {
-        "3": 4.66,
-        "1": 3.8,
-        "0": 1.72
+        "3": 2.65,
+        "1": 3.04,
+        "0": 2.66
       },
-      "home_rank": 8,
-      "away_rank": 5,
+      "home_rank": 14,
+      "away_rank": 16,
       "probabilities": {
-        "3": 0.2142,
-        "1": 0.2691,
-        "0": 0.5167
+        "3": 0.3616,
+        "1": 0.3029,
+        "0": 0.3355
       },
       "factors": {
         "available": [
           "market",
           "home_away",
-          "ranking",
-          "recent_form",
-          "head_to_head",
-          "rest_days"
+          "ranking"
         ],
         "unavailable": [
-          "injuries"
+          "recent_form",
+          "injuries",
+          "rest_days",
+          "head_to_head"
         ],
-        "uncertainty": 0.7524,
-        "data_completeness": 0.8571
+        "uncertainty": 0.9739,
+        "data_completeness": 0.4286
       },
-      "primary": "0",
-      "secondary": "1",
-      "confidence": 0.2476,
-      "dynamics": {
-        "home": {
-          "form_last10": {
-            "played": 10,
-            "w": 5,
-            "d": 1,
-            "l": 4,
-            "points": 16,
-            "gf": 14,
-            "ga": 12
-          },
-          "rest_days": 4,
-          "last_match_date": "2026-10-24"
-        },
-        "away": {
-          "form_last10": {
-            "played": 10,
-            "w": 7,
-            "d": 1,
-            "l": 2,
-            "points": 22,
-            "gf": 23,
-            "ga": 11
-          },
-          "rest_days": 4,
-          "last_match_date": "2026-10-24"
-        },
-        "head_to_head": {
-          "meetings": 8,
-          "home_wins": 3,
-          "draws": 1,
-          "away_wins": 4
-        }
-      },
+      "primary": "3",
+      "secondary": "0",
+      "confidence": 0.0261,
       "sfc_choices": [
+        "3",
         "0"
       ]
     },
     {
       "order": 13,
-      "league": "意甲",
-      "home": "罗马",
-      "away": "卡利亚",
-      "kickoff": "2026-10-28T03:45:00+08:00",
+      "league": "荷甲",
+      "home": "海伦芬",
+      "away": "SBV精英",
+      "kickoff": "2026-10-17T02:00:00+08:00",
       "odds": {
-        "3": 1.33,
-        "1": 5.08,
-        "0": 9.03
+        "3": 1.63,
+        "1": 4.18,
+        "0": 4.59
       },
-      "home_rank": 3,
+      "home_rank": 10,
       "away_rank": 9,
       "probabilities": {
-        "3": 0.626,
-        "1": 0.2315,
-        "0": 0.1425
+        "3": 0.5124,
+        "1": 0.2426,
+        "0": 0.245
       },
       "factors": {
         "available": [
           "market",
           "home_away",
-          "ranking",
-          "recent_form",
-          "head_to_head",
-          "rest_days"
+          "ranking"
         ],
         "unavailable": [
-          "injuries"
+          "recent_form",
+          "injuries",
+          "rest_days",
+          "head_to_head"
         ],
-        "uncertainty": 0.6255,
-        "data_completeness": 0.8571
+        "uncertainty": 0.7326,
+        "data_completeness": 0.4286
       },
       "primary": "3",
-      "secondary": "1",
-      "confidence": 0.3945,
-      "dynamics": {
-        "home": {
-          "form_last10": {
-            "played": 10,
-            "w": 5,
-            "d": 4,
-            "l": 1,
-            "points": 19,
-            "gf": 23,
-            "ga": 11
-          },
-          "rest_days": 3,
-          "last_match_date": "2026-10-25"
-        },
-        "away": {
-          "form_last10": {
-            "played": 10,
-            "w": 5,
-            "d": 1,
-            "l": 4,
-            "points": 16,
-            "gf": 8,
-            "ga": 11
-          },
-          "rest_days": 4,
-          "last_match_date": "2026-10-24"
-        },
-        "head_to_head": {
-          "meetings": 42,
-          "home_wins": 23,
-          "draws": 10,
-          "away_wins": 9
-        }
-      },
+      "secondary": "0",
+      "confidence": 0.2674,
       "sfc_choices": [
         "3"
       ]
@@ -857,20 +533,20 @@
     {
       "order": 14,
       "league": "瑞超",
-      "home": "索尔纳",
-      "away": "埃尔夫",
-      "kickoff": "2026-10-28T02:00:00+08:00",
+      "home": "布鲁马波卡纳",
+      "away": "佐加顿斯",
+      "kickoff": "2026-10-17T01:00:00+08:00",
       "odds": {
-        "3": 2.96,
-        "1": 3.51,
-        "0": 2.18
+        "3": 5.74,
+        "1": 4.48,
+        "0": 1.47
       },
-      "home_rank": 8,
-      "away_rank": 5,
+      "home_rank": 11,
+      "away_rank": 2,
       "probabilities": {
-        "3": 0.2944,
-        "1": 0.278,
-        "0": 0.4276
+        "3": 0.1591,
+        "1": 0.2443,
+        "0": 0.5966
       },
       "factors": {
         "available": [
@@ -884,49 +560,48 @@
         "unavailable": [
           "injuries"
         ],
-        "uncertainty": 0.8668,
+        "uncertainty": 0.6477,
         "data_completeness": 0.8571
       },
       "primary": "0",
-      "secondary": "3",
-      "confidence": 0.1332,
+      "secondary": "1",
+      "confidence": 0.3523,
       "dynamics": {
         "home": {
           "form_last10": {
             "played": 10,
             "w": 4,
-            "d": 3,
-            "l": 3,
-            "points": 15,
-            "gf": 21,
-            "ga": 19
+            "d": 1,
+            "l": 5,
+            "points": 13,
+            "gf": 18,
+            "ga": 21
           },
-          "rest_days": 4,
-          "last_match_date": "2026-10-24"
+          "rest_days": 7,
+          "last_match_date": "2026-10-10"
         },
         "away": {
           "form_last10": {
             "played": 10,
-            "w": 5,
-            "d": 3,
-            "l": 2,
-            "points": 18,
-            "gf": 17,
+            "w": 7,
+            "d": 0,
+            "l": 3,
+            "points": 21,
+            "gf": 22,
             "ga": 7
           },
-          "rest_days": 4,
-          "last_match_date": "2026-10-24"
+          "rest_days": 6,
+          "last_match_date": "2026-10-11"
         },
         "head_to_head": {
-          "meetings": 56,
-          "home_wins": 21,
-          "draws": 17,
-          "away_wins": 18
+          "meetings": 27,
+          "home_wins": 9,
+          "draws": 4,
+          "away_wins": 14
         }
       },
       "sfc_choices": [
-        "0",
-        "3"
+        "0"
       ]
     }
   ],
@@ -937,15 +612,15 @@
     },
     "ren9": {
       "orders": [
+        1,
         2,
+        3,
         4,
-        5,
-        7,
-        8,
-        9,
+        6,
         10,
-        12,
-        13
+        11,
+        13,
+        14
       ],
       "lines": 1,
       "cost_yuan": 2
@@ -954,24 +629,45 @@
   "sources": {
     "schedule": {
       "name": "澳客网足彩赛程（与官方公告同步）",
-      "url": "https://www.okooo.com/zucai/26151/"
+      "url": "https://www.okooo.com/zucai/26143/"
     },
     "market": {
       "name": "澳客平均欧指及页面联赛排名",
-      "url": "https://www.okooo.com/zucai/26151/"
+      "url": "https://www.okooo.com/zucai/26143/"
     }
   },
+  "results": [
+    "0",
+    "3",
+    "1",
+    "1",
+    "3",
+    "1",
+    "0",
+    "0",
+    "0",
+    "1",
+    "3",
+    "0",
+    "3",
+    "0"
+  ],
   "ai": {
     "status": "pending",
     "title": "AI 深度解读将在在线分析完成后更新",
     "sections": {
       "overview": "当前先展示已核验赛程和程序化概率换算结果，在线 AI 尚未完成本期综合解读。",
-      "sfc_reason": "14场方案对分歧最大的5场采用双选，其余采用单选；共展开32注，基本金额64元。重点防范场次：1场大田vs神户、3场国安vs全北、6场汉堡vs法兰克福、11场萨索洛vs拉齐奥、14场索尔纳vs埃尔夫。",
-      "r9_reason": "任选九只保留相对置信差更清晰的9场：2、4、5、7、8、9、10、12、13场。程序先综合市场相对概率、同联赛排名差和主客场保守先验，再用结果差距衡量分歧；这些是辅助比较，不是真实胜率。",
-      "risk": "足球赛果受阵容、临场状态和突发事件影响；指数会变化，任何方案均不保证中奖，停售前应复核官方场次调整。"
+      "sfc_reason": "14场方案对分歧最大的5场采用双选，其余采用单选；共展开32注，基本金额64元。重点防范场次：5场弗洛西诺内vs萨索洛、7场勒芒vs图卢兹、8场阿纳西vs南锡、9场甘冈vs波城FC、12场格勒诺布尔vs布洛涅。",
+      "r9_reason": "任选九只保留相对置信差更清晰的9场：1、2、3、4、6、10、11、13、14场。程序先综合市场相对概率、同联赛排名差和主客场保守先验，再用结果差距衡量分歧；这些是辅助比较，不是真实胜率。",
+      "risk": "足球赛果受阵容、临场状态和突发事件影响；指数会变化，任何方案均不保证中奖，停售前应复核官方场次调整。",
+      "review": "赛果已录入，AI复盘将在在线分析完成后更新。"
     }
   },
   "review": {
-    "status": "pending"
+    "status": "completed",
+    "sfc_hits": 10,
+    "sfc_total": 14,
+    "ren9_hits": 5,
+    "ren9_total": 9
   }
 }
