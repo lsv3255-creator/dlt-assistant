@@ -1,7 +1,7 @@
 {
-  "updated_at": "2026-10-28 19:07:42",
+  "updated_at": "2026-10-31 17:56:47",
   "empty": false,
-  "issue": "26123",
+  "issue": "26124",
   "snapshot_status": "missing",
   "authoritative": false,
   "legacy": true,
@@ -9,35 +9,35 @@
   "recommendation": {
     "strategy": "D-综合评分型",
     "front": [
+      33,
       12,
       11,
-      17,
       7,
-      28
+      34
     ],
     "back": [
-      9,
-      5
+      5,
+      10
     ],
-    "score_total": 41.57
+    "score_total": 41.32
   },
   "actual_result": {
     "front": [
-      13,
+      12,
+      14,
       18,
-      19,
-      20,
-      28
+      22,
+      27
     ],
     "back": [
-      9,
-      11
+      1,
+      9
     ]
   },
   "hit_count": {
     "front": 1,
-    "back": 1,
-    "total": 2,
+    "back": 0,
+    "total": 1,
     "level": 1
   },
   "prize": {
@@ -52,7 +52,7 @@
         "status": "positive"
       },
       "heat": {
-        "value": 14.71,
+        "value": 14.86,
         "median": 15.71,
         "status": "negative"
       },
@@ -62,12 +62,12 @@
         "status": "positive"
       },
       "trend": {
-        "value": 49.79,
-        "median": 49.47,
-        "status": "positive"
+        "value": 48.29,
+        "median": 49.36,
+        "status": "negative"
       },
       "structure": {
-        "value": 42.43,
+        "value": 42.37,
         "median": 42.43,
         "status": "negative"
       }
@@ -85,9 +85,9 @@
       "reason": "遗漏回补正常（方向判断合理）"
     },
     {
-      "type": "keep",
-      "text": "维持趋势因子",
-      "reason": "趋势判断正常（方向判断合理）"
+      "type": "reduce",
+      "text": "降低趋势因子权重",
+      "reason": "趋势判断偏差（相对历史中位数偏低）"
     },
     {
       "type": "reduce",
