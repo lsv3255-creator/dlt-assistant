@@ -1,27 +1,27 @@
 {
-  "updated_at": "2026-10-31 17:56:47",
+  "updated_at": "2026-11-02 22:28:50",
   "empty": false,
   "strategies": [
     {
       "strategy": "C",
       "label": "纯随机娱乐型",
-      "total_count": 32,
-      "hit_rate": 0.165,
-      "recent_score": 1.156,
+      "total_count": 33,
+      "hit_rate": 0.169,
+      "recent_score": 1.182,
       "rank": 1
     },
     {
       "strategy": "A",
       "label": "均衡统计型",
-      "total_count": 32,
+      "total_count": 33,
       "hit_rate": 0.152,
-      "recent_score": 1.062,
+      "recent_score": 1.061,
       "rank": 2
     },
     {
       "strategy": "D",
       "label": "综合评分型",
-      "total_count": 31,
+      "total_count": 32,
       "hit_rate": 0.143,
       "recent_score": 1.0,
       "rank": 3
@@ -29,9 +29,9 @@
     {
       "strategy": "B",
       "label": "冷热组合型",
-      "total_count": 32,
-      "hit_rate": 0.107,
-      "recent_score": 0.75,
+      "total_count": 33,
+      "hit_rate": 0.104,
+      "recent_score": 0.727,
       "rank": 4
     }
   ],
