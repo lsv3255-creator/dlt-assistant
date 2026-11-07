@@ -1,7 +1,7 @@
 {
-  "updated_at": "2026-11-04 20:33:27",
+  "updated_at": "2026-11-07 18:19:34",
   "empty": false,
-  "issue": "26126",
+  "issue": "26127",
   "snapshot_status": "missing",
   "authoritative": false,
   "legacy": true,
@@ -10,35 +10,35 @@
     "strategy": "D-综合评分型",
     "front": [
       26,
+      3,
       33,
-      11,
-      9,
+      7,
       4
     ],
     "back": [
       5,
-      6
+      9
     ],
-    "score_total": 41.41
+    "score_total": 41.14
   },
   "actual_result": {
     "front": [
       5,
-      11,
+      6,
       17,
-      25,
-      34
+      18,
+      27
     ],
     "back": [
-      4,
-      6
+      3,
+      12
     ]
   },
   "hit_count": {
-    "front": 1,
-    "back": 1,
-    "total": 2,
-    "level": 1
+    "front": 0,
+    "back": 0,
+    "total": 0,
+    "level": 0
   },
   "prize": {
     "tier": null,
@@ -49,50 +49,35 @@
       "inherit": {
         "value": 0.0,
         "median": 0.0,
-        "status": "positive"
+        "status": "neutral"
       },
       "heat": {
-        "value": 15.29,
-        "median": 15.57,
-        "status": "negative"
+        "value": 16.57,
+        "median": 15.71,
+        "status": "neutral"
       },
       "missing": {
-        "value": 81.14,
+        "value": 77.57,
         "median": 80.0,
-        "status": "positive"
+        "status": "negative"
       },
       "trend": {
-        "value": 48.31,
-        "median": 49.22,
-        "status": "negative"
+        "value": 49.34,
+        "median": 49.34,
+        "status": "neutral"
       },
       "structure": {
-        "value": 42.37,
-        "median": 42.42,
-        "status": "negative"
+        "value": 42.46,
+        "median": 42.43,
+        "status": "neutral"
       }
     }
   },
   "next_adjustment": [
     {
       "type": "reduce",
-      "text": "降低热号关注权重",
-      "reason": "热号因子指向偏差（相对历史中位数偏低）"
-    },
-    {
-      "type": "keep",
-      "text": "维持遗漏补偿关注",
-      "reason": "遗漏回补正常（方向判断合理）"
-    },
-    {
-      "type": "reduce",
-      "text": "降低趋势因子权重",
-      "reason": "趋势判断偏差（相对历史中位数偏低）"
-    },
-    {
-      "type": "reduce",
-      "text": "降低结构贴合权重",
-      "reason": "组合结构判断偏差（相对历史中位数偏低）"
+      "text": "降低遗漏补偿关注权重",
+      "reason": "遗漏回补偏差（相对历史中位数偏低）"
     }
   ],
   "disclaimer": "该期无不可变发布快照，复盘为 legacy 兼容（非权威，不代表当时实际发布内容）"

@@ -1,5 +1,5 @@
 {
-  "update_time": "2026-11-07 08:27:10",
+  "update_time": "2026-11-07 18:19:32",
   "periods": [
     {
       "issue": "26093",
@@ -273,7 +273,7 @@
         },
         "heat": {
           "value": 17.86,
-          "median": 15.57,
+          "median": 15.71,
           "status": "neutral"
         },
         "missing": {
@@ -283,12 +283,12 @@
         },
         "trend": {
           "value": 48.93,
-          "median": 49.22,
+          "median": 49.34,
           "status": "negative"
         },
         "structure": {
           "value": 42.51,
-          "median": 42.42,
+          "median": 42.43,
           "status": "neutral"
         }
       }
@@ -451,7 +451,7 @@
         },
         "heat": {
           "value": 17.0,
-          "median": 15.57,
+          "median": 15.71,
           "status": "positive"
         },
         "missing": {
@@ -461,12 +461,12 @@
         },
         "trend": {
           "value": 49.36,
-          "median": 49.22,
+          "median": 49.34,
           "status": "positive"
         },
         "structure": {
           "value": 42.49,
-          "median": 42.42,
+          "median": 42.43,
           "status": "positive"
         }
       }
@@ -629,7 +629,7 @@
         },
         "heat": {
           "value": 16.86,
-          "median": 15.57,
+          "median": 15.71,
           "status": "positive"
         },
         "missing": {
@@ -639,12 +639,12 @@
         },
         "trend": {
           "value": 49.19,
-          "median": 49.22,
+          "median": 49.34,
           "status": "negative"
         },
         "structure": {
           "value": 42.42,
-          "median": 42.42,
+          "median": 42.43,
           "status": "negative"
         }
       }
@@ -807,7 +807,7 @@
         },
         "heat": {
           "value": 16.29,
-          "median": 15.57,
+          "median": 15.71,
           "status": "neutral"
         },
         "missing": {
@@ -817,12 +817,12 @@
         },
         "trend": {
           "value": 49.47,
-          "median": 49.22,
+          "median": 49.34,
           "status": "neutral"
         },
         "structure": {
           "value": 42.42,
-          "median": 42.42,
+          "median": 42.43,
           "status": "negative"
         }
       }
@@ -985,7 +985,7 @@
         },
         "heat": {
           "value": 16.14,
-          "median": 15.57,
+          "median": 15.71,
           "status": "positive"
         },
         "missing": {
@@ -995,12 +995,12 @@
         },
         "trend": {
           "value": 48.83,
-          "median": 49.22,
+          "median": 49.34,
           "status": "negative"
         },
         "structure": {
           "value": 42.41,
-          "median": 42.42,
+          "median": 42.43,
           "status": "negative"
         }
       }
@@ -1163,7 +1163,7 @@
         },
         "heat": {
           "value": 15.71,
-          "median": 15.57,
+          "median": 15.71,
           "status": "positive"
         },
         "missing": {
@@ -1173,12 +1173,12 @@
         },
         "trend": {
           "value": 48.81,
-          "median": 49.22,
+          "median": 49.34,
           "status": "negative"
         },
         "structure": {
           "value": 42.47,
-          "median": 42.42,
+          "median": 42.43,
           "status": "positive"
         }
       }
@@ -1341,7 +1341,7 @@
         },
         "heat": {
           "value": 16.14,
-          "median": 15.57,
+          "median": 15.71,
           "status": "positive"
         },
         "missing": {
@@ -1351,12 +1351,12 @@
         },
         "trend": {
           "value": 50.98,
-          "median": 49.22,
+          "median": 49.34,
           "status": "positive"
         },
         "structure": {
           "value": 42.41,
-          "median": 42.42,
+          "median": 42.43,
           "status": "negative"
         }
       }
@@ -1519,7 +1519,7 @@
         },
         "heat": {
           "value": 16.57,
-          "median": 15.57,
+          "median": 15.71,
           "status": "positive"
         },
         "missing": {
@@ -1529,12 +1529,12 @@
         },
         "trend": {
           "value": 49.81,
-          "median": 49.22,
+          "median": 49.34,
           "status": "positive"
         },
         "structure": {
           "value": 42.47,
-          "median": 42.42,
+          "median": 42.43,
           "status": "positive"
         }
       }
@@ -1697,7 +1697,7 @@
         },
         "heat": {
           "value": 15.71,
-          "median": 15.57,
+          "median": 15.71,
           "status": "positive"
         },
         "missing": {
@@ -1707,12 +1707,12 @@
         },
         "trend": {
           "value": 50.24,
-          "median": 49.22,
+          "median": 49.34,
           "status": "positive"
         },
         "structure": {
           "value": 42.4,
-          "median": 42.42,
+          "median": 42.43,
           "status": "negative"
         }
       }
@@ -1875,7 +1875,7 @@
         },
         "heat": {
           "value": 15.86,
-          "median": 15.57,
+          "median": 15.71,
           "status": "positive"
         },
         "missing": {
@@ -1885,12 +1885,12 @@
         },
         "trend": {
           "value": 49.22,
-          "median": 49.22,
-          "status": "positive"
+          "median": 49.34,
+          "status": "negative"
         },
         "structure": {
           "value": 42.48,
-          "median": 42.42,
+          "median": 42.43,
           "status": "positive"
         }
       }
@@ -2053,7 +2053,7 @@
         },
         "heat": {
           "value": 16.29,
-          "median": 15.57,
+          "median": 15.71,
           "status": "positive"
         },
         "missing": {
@@ -2063,12 +2063,12 @@
         },
         "trend": {
           "value": 49.48,
-          "median": 49.22,
+          "median": 49.34,
           "status": "positive"
         },
         "structure": {
           "value": 42.5,
-          "median": 42.42,
+          "median": 42.43,
           "status": "positive"
         }
       }
@@ -2231,7 +2231,7 @@
         },
         "heat": {
           "value": 16.29,
-          "median": 15.57,
+          "median": 15.71,
           "status": "neutral"
         },
         "missing": {
@@ -2241,12 +2241,12 @@
         },
         "trend": {
           "value": 48.52,
-          "median": 49.22,
+          "median": 49.34,
           "status": "negative"
         },
         "structure": {
           "value": 42.5,
-          "median": 42.42,
+          "median": 42.43,
           "status": "neutral"
         }
       }
@@ -2409,7 +2409,7 @@
         },
         "heat": {
           "value": 16.71,
-          "median": 15.57,
+          "median": 15.71,
           "status": "neutral"
         },
         "missing": {
@@ -2419,12 +2419,12 @@
         },
         "trend": {
           "value": 48.07,
-          "median": 49.22,
+          "median": 49.34,
           "status": "negative"
         },
         "structure": {
           "value": 42.44,
-          "median": 42.42,
+          "median": 42.43,
           "status": "neutral"
         }
       }
@@ -2587,7 +2587,7 @@
         },
         "heat": {
           "value": 16.43,
-          "median": 15.57,
+          "median": 15.71,
           "status": "neutral"
         },
         "missing": {
@@ -2597,12 +2597,12 @@
         },
         "trend": {
           "value": 48.22,
-          "median": 49.22,
+          "median": 49.34,
           "status": "negative"
         },
         "structure": {
           "value": 42.45,
-          "median": 42.42,
+          "median": 42.43,
           "status": "neutral"
         }
       }
@@ -2765,7 +2765,7 @@
         },
         "heat": {
           "value": 16.29,
-          "median": 15.57,
+          "median": 15.71,
           "status": "neutral"
         },
         "missing": {
@@ -2775,13 +2775,13 @@
         },
         "trend": {
           "value": 49.48,
-          "median": 49.22,
+          "median": 49.34,
           "status": "neutral"
         },
         "structure": {
           "value": 42.42,
-          "median": 42.42,
-          "status": "neutral"
+          "median": 42.43,
+          "status": "negative"
         }
       }
     },
@@ -2943,7 +2943,7 @@
         },
         "heat": {
           "value": 15.71,
-          "median": 15.57,
+          "median": 15.71,
           "status": "positive"
         },
         "missing": {
@@ -2953,12 +2953,12 @@
         },
         "trend": {
           "value": 50.24,
-          "median": 49.22,
+          "median": 49.34,
           "status": "positive"
         },
         "structure": {
           "value": 42.42,
-          "median": 42.42,
+          "median": 42.43,
           "status": "negative"
         }
       }
@@ -3121,7 +3121,7 @@
         },
         "heat": {
           "value": 15.0,
-          "median": 15.57,
+          "median": 15.71,
           "status": "negative"
         },
         "missing": {
@@ -3131,12 +3131,12 @@
         },
         "trend": {
           "value": 50.36,
-          "median": 49.22,
+          "median": 49.34,
           "status": "positive"
         },
         "structure": {
           "value": 42.37,
-          "median": 42.42,
+          "median": 42.43,
           "status": "negative"
         }
       }
@@ -3299,7 +3299,7 @@
         },
         "heat": {
           "value": 14.57,
-          "median": 15.57,
+          "median": 15.71,
           "status": "negative"
         },
         "missing": {
@@ -3309,12 +3309,12 @@
         },
         "trend": {
           "value": 50.1,
-          "median": 49.22,
+          "median": 49.34,
           "status": "positive"
         },
         "structure": {
           "value": 42.4,
-          "median": 42.42,
+          "median": 42.43,
           "status": "negative"
         }
       }
@@ -3477,7 +3477,7 @@
         },
         "heat": {
           "value": 14.71,
-          "median": 15.57,
+          "median": 15.71,
           "status": "negative"
         },
         "missing": {
@@ -3487,12 +3487,12 @@
         },
         "trend": {
           "value": 48.59,
-          "median": 49.22,
+          "median": 49.34,
           "status": "negative"
         },
         "structure": {
           "value": 42.44,
-          "median": 42.42,
+          "median": 42.43,
           "status": "neutral"
         }
       }
@@ -3655,7 +3655,7 @@
         },
         "heat": {
           "value": 14.86,
-          "median": 15.57,
+          "median": 15.71,
           "status": "negative"
         },
         "missing": {
@@ -3665,12 +3665,12 @@
         },
         "trend": {
           "value": 49.0,
-          "median": 49.22,
+          "median": 49.34,
           "status": "negative"
         },
         "structure": {
           "value": 42.42,
-          "median": 42.42,
+          "median": 42.43,
           "status": "negative"
         }
       }
@@ -3833,8 +3833,8 @@
         },
         "heat": {
           "value": 15.57,
-          "median": 15.57,
-          "status": "positive"
+          "median": 15.71,
+          "status": "negative"
         },
         "missing": {
           "value": 80.0,
@@ -3843,12 +3843,12 @@
         },
         "trend": {
           "value": 49.12,
-          "median": 49.22,
+          "median": 49.34,
           "status": "negative"
         },
         "structure": {
           "value": 42.37,
-          "median": 42.42,
+          "median": 42.43,
           "status": "negative"
         }
       }
@@ -4011,7 +4011,7 @@
         },
         "heat": {
           "value": 15.29,
-          "median": 15.57,
+          "median": 15.71,
           "status": "negative"
         },
         "missing": {
@@ -4021,12 +4021,12 @@
         },
         "trend": {
           "value": 48.07,
-          "median": 49.22,
+          "median": 49.34,
           "status": "negative"
         },
         "structure": {
           "value": 42.37,
-          "median": 42.42,
+          "median": 42.43,
           "status": "negative"
         }
       }
@@ -4189,7 +4189,7 @@
         },
         "heat": {
           "value": 14.0,
-          "median": 15.57,
+          "median": 15.71,
           "status": "negative"
         },
         "missing": {
@@ -4199,12 +4199,12 @@
         },
         "trend": {
           "value": 48.48,
-          "median": 49.22,
+          "median": 49.34,
           "status": "negative"
         },
         "structure": {
           "value": 42.44,
-          "median": 42.42,
+          "median": 42.43,
           "status": "positive"
         }
       }
@@ -4367,7 +4367,7 @@
         },
         "heat": {
           "value": 14.57,
-          "median": 15.57,
+          "median": 15.71,
           "status": "negative"
         },
         "missing": {
@@ -4377,12 +4377,12 @@
         },
         "trend": {
           "value": 48.19,
-          "median": 49.22,
+          "median": 49.34,
           "status": "negative"
         },
         "structure": {
           "value": 42.46,
-          "median": 42.42,
+          "median": 42.43,
           "status": "positive"
         }
       }
@@ -4545,7 +4545,7 @@
         },
         "heat": {
           "value": 15.14,
-          "median": 15.57,
+          "median": 15.71,
           "status": "negative"
         },
         "missing": {
@@ -4555,12 +4555,12 @@
         },
         "trend": {
           "value": 49.81,
-          "median": 49.22,
+          "median": 49.34,
           "status": "positive"
         },
         "structure": {
           "value": 42.47,
-          "median": 42.42,
+          "median": 42.43,
           "status": "positive"
         }
       }
@@ -4723,7 +4723,7 @@
         },
         "heat": {
           "value": 15.0,
-          "median": 15.57,
+          "median": 15.71,
           "status": "negative"
         },
         "missing": {
@@ -4733,12 +4733,12 @@
         },
         "trend": {
           "value": 49.64,
-          "median": 49.22,
+          "median": 49.34,
           "status": "positive"
         },
         "structure": {
           "value": 42.43,
-          "median": 42.42,
+          "median": 42.43,
           "status": "positive"
         }
       }
@@ -4901,7 +4901,7 @@
         },
         "heat": {
           "value": 15.29,
-          "median": 15.57,
+          "median": 15.71,
           "status": "negative"
         },
         "missing": {
@@ -4911,12 +4911,12 @@
         },
         "trend": {
           "value": 49.74,
-          "median": 49.22,
+          "median": 49.34,
           "status": "neutral"
         },
         "structure": {
           "value": 42.44,
-          "median": 42.42,
+          "median": 42.43,
           "status": "neutral"
         }
       }
@@ -5079,7 +5079,7 @@
         },
         "heat": {
           "value": 15.43,
-          "median": 15.57,
+          "median": 15.71,
           "status": "negative"
         },
         "missing": {
@@ -5089,12 +5089,12 @@
         },
         "trend": {
           "value": 51.33,
-          "median": 49.22,
+          "median": 49.34,
           "status": "positive"
         },
         "structure": {
           "value": 42.41,
-          "median": 42.42,
+          "median": 42.43,
           "status": "negative"
         }
       }
@@ -5257,7 +5257,7 @@
         },
         "heat": {
           "value": 14.86,
-          "median": 15.57,
+          "median": 15.71,
           "status": "negative"
         },
         "missing": {
@@ -5267,12 +5267,12 @@
         },
         "trend": {
           "value": 50.67,
-          "median": 49.22,
+          "median": 49.34,
           "status": "positive"
         },
         "structure": {
           "value": 42.41,
-          "median": 42.42,
+          "median": 42.43,
           "status": "negative"
         }
       }
@@ -5435,7 +5435,7 @@
         },
         "heat": {
           "value": 14.71,
-          "median": 15.57,
+          "median": 15.71,
           "status": "negative"
         },
         "missing": {
@@ -5445,12 +5445,12 @@
         },
         "trend": {
           "value": 49.79,
-          "median": 49.22,
+          "median": 49.34,
           "status": "positive"
         },
         "structure": {
           "value": 42.43,
-          "median": 42.42,
+          "median": 42.43,
           "status": "positive"
         }
       }
@@ -5613,7 +5613,7 @@
         },
         "heat": {
           "value": 14.86,
-          "median": 15.57,
+          "median": 15.71,
           "status": "negative"
         },
         "missing": {
@@ -5623,12 +5623,12 @@
         },
         "trend": {
           "value": 48.29,
-          "median": 49.22,
+          "median": 49.34,
           "status": "negative"
         },
         "structure": {
           "value": 42.37,
-          "median": 42.42,
+          "median": 42.43,
           "status": "negative"
         }
       }
@@ -5791,7 +5791,7 @@
         },
         "heat": {
           "value": 15.0,
-          "median": 15.57,
+          "median": 15.71,
           "status": "negative"
         },
         "missing": {
@@ -5801,12 +5801,12 @@
         },
         "trend": {
           "value": 48.21,
-          "median": 49.22,
+          "median": 49.34,
           "status": "negative"
         },
         "structure": {
           "value": 42.41,
-          "median": 42.42,
+          "median": 42.43,
           "status": "negative"
         }
       }
@@ -5969,7 +5969,7 @@
         },
         "heat": {
           "value": 15.29,
-          "median": 15.57,
+          "median": 15.71,
           "status": "negative"
         },
         "missing": {
@@ -5979,86 +5979,267 @@
         },
         "trend": {
           "value": 48.31,
-          "median": 49.22,
+          "median": 49.34,
           "status": "negative"
         },
         "structure": {
           "value": 42.37,
-          "median": 42.42,
+          "median": 42.43,
           "status": "negative"
+        }
+      }
+    },
+    {
+      "issue": "26127",
+      "strategy": "A-均衡统计型",
+      "recommend": {
+        "front": [
+          3,
+          5,
+          10,
+          24,
+          35
+        ],
+        "back": [
+          2,
+          5
+        ],
+        "score_total": null
+      },
+      "actual": {
+        "front": [
+          5,
+          6,
+          17,
+          18,
+          27
+        ],
+        "back": [
+          3,
+          12
+        ]
+      },
+      "result": {
+        "front_hit": 1,
+        "back_hit": 0,
+        "total_hit": 1,
+        "distance_score": 6
+      },
+      "factor_review": {}
+    },
+    {
+      "issue": "26127",
+      "strategy": "B-冷热组合型",
+      "recommend": {
+        "front": [
+          4,
+          11,
+          24,
+          26,
+          28
+        ],
+        "back": [
+          1,
+          8
+        ],
+        "score_total": null
+      },
+      "actual": {
+        "front": [
+          5,
+          6,
+          17,
+          18,
+          27
+        ],
+        "back": [
+          3,
+          12
+        ]
+      },
+      "result": {
+        "front_hit": 0,
+        "back_hit": 0,
+        "total_hit": 0,
+        "distance_score": 7
+      },
+      "factor_review": {}
+    },
+    {
+      "issue": "26127",
+      "strategy": "C-纯随机娱乐型",
+      "recommend": {
+        "front": [
+          10,
+          18,
+          21,
+          27,
+          29
+        ],
+        "back": [
+          1,
+          9
+        ],
+        "score_total": null
+      },
+      "actual": {
+        "front": [
+          5,
+          6,
+          17,
+          18,
+          27
+        ],
+        "back": [
+          3,
+          12
+        ]
+      },
+      "result": {
+        "front_hit": 2,
+        "back_hit": 0,
+        "total_hit": 2,
+        "distance_score": 5
+      },
+      "factor_review": {}
+    },
+    {
+      "issue": "26127",
+      "strategy": "D-综合评分型",
+      "recommend": {
+        "front": [
+          26,
+          3,
+          33,
+          7,
+          4
+        ],
+        "back": [
+          5,
+          9
+        ],
+        "score_total": 41.14
+      },
+      "actual": {
+        "front": [
+          5,
+          6,
+          17,
+          18,
+          27
+        ],
+        "back": [
+          3,
+          12
+        ]
+      },
+      "result": {
+        "front_hit": 0,
+        "back_hit": 0,
+        "total_hit": 0,
+        "distance_score": 7
+      },
+      "factor_review": {
+        "inherit": {
+          "value": 0.0,
+          "median": 0.0,
+          "status": "neutral"
+        },
+        "heat": {
+          "value": 16.57,
+          "median": 15.71,
+          "status": "neutral"
+        },
+        "missing": {
+          "value": 77.57,
+          "median": 80.0,
+          "status": "negative"
+        },
+        "trend": {
+          "value": 49.34,
+          "median": 49.34,
+          "status": "neutral"
+        },
+        "structure": {
+          "value": 42.46,
+          "median": 42.43,
+          "status": "neutral"
         }
       }
     }
   ],
   "factor_performance": {
     "inherit": {
-      "times": 33,
+      "times": 34,
       "positive": 25,
-      "neutral": 8,
+      "neutral": 9,
       "negative": 0,
-      "score": 0.758
+      "score": 0.735
     },
     "heat": {
-      "times": 33,
-      "positive": 11,
-      "neutral": 6,
-      "negative": 16,
-      "score": 0.333
-    },
-    "missing": {
-      "times": 33,
-      "positive": 25,
-      "neutral": 8,
-      "negative": 0,
-      "score": 0.758
-    },
-    "trend": {
-      "times": 33,
-      "positive": 14,
-      "neutral": 3,
-      "negative": 16,
-      "score": 0.424
-    },
-    "structure": {
-      "times": 33,
+      "times": 34,
       "positive": 10,
       "neutral": 7,
-      "negative": 16,
-      "score": 0.303
+      "negative": 17,
+      "score": 0.294
+    },
+    "missing": {
+      "times": 34,
+      "positive": 25,
+      "neutral": 8,
+      "negative": 1,
+      "score": 0.735
+    },
+    "trend": {
+      "times": 34,
+      "positive": 13,
+      "neutral": 4,
+      "negative": 17,
+      "score": 0.382
+    },
+    "structure": {
+      "times": 34,
+      "positive": 10,
+      "neutral": 7,
+      "negative": 17,
+      "score": 0.294
     }
   },
   "strategy_rank": {
     "A": {
-      "avg_hit": 1.059,
+      "avg_hit": 1.057,
       "best_hit": 3,
-      "total_distance": 202,
-      "factor_score": 0.515
+      "total_distance": 208,
+      "factor_score": 0.488
     },
     "B": {
-      "avg_hit": 0.765,
+      "avg_hit": 0.743,
       "best_hit": 2,
-      "total_distance": 212,
-      "factor_score": 0.515
+      "total_distance": 219,
+      "factor_score": 0.488
     },
     "C": {
-      "avg_hit": 1.176,
+      "avg_hit": 1.2,
       "best_hit": 3,
-      "total_distance": 198,
-      "factor_score": 0.515
+      "total_distance": 203,
+      "factor_score": 0.488
     },
     "D": {
-      "avg_hit": 1.03,
+      "avg_hit": 1.0,
       "best_hit": 2,
-      "total_distance": 197,
-      "factor_score": 0.515
+      "total_distance": 204,
+      "factor_score": 0.488
     }
   },
   "conclusion": [
-    "inherit 因素表现正常（命中率 76%）",
-    "heat 因素表现正常（命中率 33%）",
-    "missing 因素表现正常（命中率 76%）",
-    "trend 因素表现正常（命中率 42%）",
-    "structure 因素表现正常（命中率 30%）"
+    "inherit 因素表现正常（命中率 74%）",
+    "heat 因素偏弱（命中率 29%）",
+    "missing 因素表现正常（命中率 74%）",
+    "trend 因素表现正常（命中率 38%）",
+    "structure 因素偏弱（命中率 29%）"
   ],
-  "next_review_points": []
+  "next_review_points": [
+    "关注 heat 因素指向的有效性",
+    "关注 structure 因素指向的有效性"
+  ]
 }
