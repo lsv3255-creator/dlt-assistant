@@ -504,62 +504,28 @@
       "home_rank": 10,
       "away_rank": 9,
       "probabilities": {
-        "3": 0.4712,
-        "1": 0.2541,
-        "0": 0.2747
+        "3": 0.5124,
+        "1": 0.2426,
+        "0": 0.245
       },
       "factors": {
         "available": [
           "market",
           "home_away",
-          "ranking",
-          "recent_form",
-          "head_to_head",
-          "rest_days"
+          "ranking"
         ],
         "unavailable": [
-          "injuries"
+          "recent_form",
+          "injuries",
+          "rest_days",
+          "head_to_head"
         ],
-        "uncertainty": 0.8035,
-        "data_completeness": 0.8571
+        "uncertainty": 0.7326,
+        "data_completeness": 0.4286
       },
       "primary": "3",
       "secondary": "0",
-      "confidence": 0.1965,
-      "dynamics": {
-        "home": {
-          "form_last10": {
-            "played": 10,
-            "w": 4,
-            "d": 3,
-            "l": 3,
-            "points": 15,
-            "gf": 17,
-            "ga": 15
-          },
-          "rest_days": 7,
-          "last_match_date": "2026-10-10"
-        },
-        "away": {
-          "form_last10": {
-            "played": 10,
-            "w": 5,
-            "d": 2,
-            "l": 3,
-            "points": 17,
-            "gf": 24,
-            "ga": 17
-          },
-          "rest_days": 6,
-          "last_match_date": "2026-10-11"
-        },
-        "head_to_head": {
-          "meetings": 28,
-          "home_wins": 17,
-          "draws": 3,
-          "away_wins": 8
-        }
-      },
+      "confidence": 0.2674,
       "sfc_choices": [
         "3"
       ]
