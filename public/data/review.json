@@ -1,7 +1,7 @@
 {
-  "updated_at": "2026-11-07 18:19:34",
+  "updated_at": "2026-11-09 23:10:17",
   "empty": false,
-  "issue": "26127",
+  "issue": "26128",
   "snapshot_status": "missing",
   "authoritative": false,
   "legacy": true,
@@ -19,26 +19,26 @@
       5,
       9
     ],
-    "score_total": 41.14
+    "score_total": 41.06
   },
   "actual_result": {
     "front": [
-      5,
-      6,
-      17,
-      18,
-      27
+      3,
+      13,
+      20,
+      25,
+      34
     ],
     "back": [
-      3,
+      9,
       12
     ]
   },
   "hit_count": {
-    "front": 0,
-    "back": 0,
-    "total": 0,
-    "level": 0
+    "front": 1,
+    "back": 1,
+    "total": 2,
+    "level": 1
   },
   "prize": {
     "tier": null,
@@ -49,12 +49,12 @@
       "inherit": {
         "value": 0.0,
         "median": 0.0,
-        "status": "neutral"
+        "status": "positive"
       },
       "heat": {
         "value": 16.57,
         "median": 15.71,
-        "status": "neutral"
+        "status": "positive"
       },
       "missing": {
         "value": 77.57,
@@ -62,22 +62,37 @@
         "status": "negative"
       },
       "trend": {
-        "value": 49.34,
-        "median": 49.34,
-        "status": "neutral"
+        "value": 48.86,
+        "median": 49.22,
+        "status": "negative"
       },
       "structure": {
-        "value": 42.46,
+        "value": 42.47,
         "median": 42.43,
-        "status": "neutral"
+        "status": "positive"
       }
     }
   },
   "next_adjustment": [
     {
+      "type": "keep",
+      "text": "维持热号关注",
+      "reason": "热号因子指向正常（方向判断合理）"
+    },
+    {
       "type": "reduce",
       "text": "降低遗漏补偿关注权重",
       "reason": "遗漏回补偏差（相对历史中位数偏低）"
+    },
+    {
+      "type": "reduce",
+      "text": "降低趋势因子权重",
+      "reason": "趋势判断偏差（相对历史中位数偏低）"
+    },
+    {
+      "type": "keep",
+      "text": "维持结构贴合",
+      "reason": "组合结构判断正常（方向判断合理）"
     }
   ],
   "disclaimer": "该期无不可变发布快照，复盘为 legacy 兼容（非权威，不代表当时实际发布内容）"

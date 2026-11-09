@@ -2954,5 +2954,88 @@
         "sum_span_match": 100.0
       }
     }
+  },
+  {
+    "date": "2026-11-09",
+    "target_issue": "26129",
+    "strategy": "A-均衡统计型",
+    "idx": 0,
+    "front": [
+      6,
+      7,
+      13,
+      19,
+      24
+    ],
+    "back": [
+      6,
+      8
+    ]
+  },
+  {
+    "date": "2026-11-09",
+    "target_issue": "26129",
+    "strategy": "B-冷热组合型",
+    "idx": 0,
+    "front": [
+      3,
+      8,
+      24,
+      28,
+      29
+    ],
+    "back": [
+      1,
+      7
+    ]
+  },
+  {
+    "date": "2026-11-09",
+    "target_issue": "26129",
+    "strategy": "C-纯随机娱乐型",
+    "idx": 0,
+    "front": [
+      2,
+      3,
+      11,
+      15,
+      33
+    ],
+    "back": [
+      7,
+      12
+    ]
+  },
+  {
+    "date": "2026-11-09",
+    "target_issue": "26129",
+    "strategy": "D-综合评分型",
+    "idx": 0,
+    "front": [
+      26,
+      10,
+      33,
+      15,
+      1
+    ],
+    "back": [
+      8,
+      5
+    ],
+    "model_version": "C-2-D-v1",
+    "score_total": 41.67,
+    "basis": {
+      "heat": 16.29,
+      "missing": 81.14,
+      "trend": 48.53,
+      "inherit": 0.0,
+      "structure": {
+        "inherit_match": 56.06,
+        "odd_even_match": 36.0,
+        "big_small_match": 0.0,
+        "zone_match": 20.0,
+        "sum_span_match": 100.0
+      }
+    }
   }
 ]
