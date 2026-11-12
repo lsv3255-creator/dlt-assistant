@@ -1,7 +1,7 @@
 {
-  "updated_at": "2026-11-09 23:10:17",
+  "updated_at": "2026-11-12 09:24:16",
   "empty": false,
-  "issue": "26128",
+  "issue": "26129",
   "snapshot_status": "missing",
   "authoritative": false,
   "legacy": true,
@@ -10,28 +10,28 @@
     "strategy": "D-综合评分型",
     "front": [
       26,
-      3,
+      10,
       33,
-      7,
-      4
+      15,
+      1
     ],
     "back": [
-      5,
-      9
+      8,
+      5
     ],
-    "score_total": 41.06
+    "score_total": 41.67
   },
   "actual_result": {
     "front": [
-      3,
-      13,
-      20,
-      25,
-      34
+      2,
+      12,
+      14,
+      17,
+      33
     ],
     "back": [
-      9,
-      12
+      7,
+      8
     ]
   },
   "hit_count": {
@@ -52,24 +52,24 @@
         "status": "positive"
       },
       "heat": {
-        "value": 16.57,
+        "value": 16.29,
         "median": 15.71,
         "status": "positive"
       },
       "missing": {
-        "value": 77.57,
+        "value": 81.14,
         "median": 80.0,
-        "status": "negative"
+        "status": "positive"
       },
       "trend": {
-        "value": 48.86,
+        "value": 48.53,
         "median": 49.22,
         "status": "negative"
       },
       "structure": {
-        "value": 42.47,
+        "value": 42.41,
         "median": 42.43,
-        "status": "positive"
+        "status": "negative"
       }
     }
   },
@@ -80,9 +80,9 @@
       "reason": "热号因子指向正常（方向判断合理）"
     },
     {
-      "type": "reduce",
-      "text": "降低遗漏补偿关注权重",
-      "reason": "遗漏回补偏差（相对历史中位数偏低）"
+      "type": "keep",
+      "text": "维持遗漏补偿关注",
+      "reason": "遗漏回补正常（方向判断合理）"
     },
     {
       "type": "reduce",
@@ -90,9 +90,9 @@
       "reason": "趋势判断偏差（相对历史中位数偏低）"
     },
     {
-      "type": "keep",
-      "text": "维持结构贴合",
-      "reason": "组合结构判断正常（方向判断合理）"
+      "type": "reduce",
+      "text": "降低结构贴合权重",
+      "reason": "组合结构判断偏差（相对历史中位数偏低）"
     }
   ],
   "disclaimer": "该期无不可变发布快照，复盘为 legacy 兼容（非权威，不代表当时实际发布内容）"
