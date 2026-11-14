@@ -1,7 +1,7 @@
 {
-  "updated_at": "2026-11-12 09:24:16",
+  "updated_at": "2026-11-14 18:52:16",
   "empty": false,
-  "issue": "26129",
+  "issue": "26130",
   "snapshot_status": "missing",
   "authoritative": false,
   "legacy": true,
@@ -11,27 +11,27 @@
     "front": [
       26,
       10,
-      33,
+      21,
       15,
       1
     ],
     "back": [
-      8,
-      5
+      5,
+      2
     ],
-    "score_total": 41.67
+    "score_total": 41.58
   },
   "actual_result": {
     "front": [
-      2,
-      12,
-      14,
-      17,
-      33
+      1,
+      7,
+      11,
+      27,
+      29
     ],
     "back": [
-      7,
-      8
+      2,
+      6
     ]
   },
   "hit_count": {
@@ -52,7 +52,7 @@
         "status": "positive"
       },
       "heat": {
-        "value": 16.29,
+        "value": 16.14,
         "median": 15.71,
         "status": "positive"
       },
@@ -62,14 +62,14 @@
         "status": "positive"
       },
       "trend": {
-        "value": 48.53,
-        "median": 49.22,
+        "value": 48.12,
+        "median": 49.19,
         "status": "negative"
       },
       "structure": {
-        "value": 42.41,
+        "value": 42.43,
         "median": 42.43,
-        "status": "negative"
+        "status": "positive"
       }
     }
   },
@@ -90,9 +90,9 @@
       "reason": "趋势判断偏差（相对历史中位数偏低）"
     },
     {
-      "type": "reduce",
-      "text": "降低结构贴合权重",
-      "reason": "组合结构判断偏差（相对历史中位数偏低）"
+      "type": "keep",
+      "text": "维持结构贴合",
+      "reason": "组合结构判断正常（方向判断合理）"
     }
   ],
   "disclaimer": "该期无不可变发布快照，复盘为 legacy 兼容（非权威，不代表当时实际发布内容）"
