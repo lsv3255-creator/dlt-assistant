@@ -1,7 +1,7 @@
 {
-  "updated_at": "2026-11-14 18:52:16",
+  "updated_at": "2026-11-16 23:02:15",
   "empty": false,
-  "issue": "26130",
+  "issue": "26131",
   "snapshot_status": "missing",
   "authoritative": false,
   "legacy": true,
@@ -13,31 +13,31 @@
       10,
       21,
       15,
-      1
+      19
     ],
     "back": [
       5,
-      2
+      11
     ],
-    "score_total": 41.58
+    "score_total": 41.37
   },
   "actual_result": {
     "front": [
-      1,
-      7,
+      2,
       11,
-      27,
+      18,
+      19,
       29
     ],
     "back": [
-      2,
-      6
+      4,
+      7
     ]
   },
   "hit_count": {
     "front": 1,
-    "back": 1,
-    "total": 2,
+    "back": 0,
+    "total": 1,
     "level": 1
   },
   "prize": {
@@ -52,7 +52,7 @@
         "status": "positive"
       },
       "heat": {
-        "value": 16.14,
+        "value": 16.0,
         "median": 15.71,
         "status": "positive"
       },
@@ -62,14 +62,14 @@
         "status": "positive"
       },
       "trend": {
-        "value": 48.12,
+        "value": 47.24,
         "median": 49.19,
         "status": "negative"
       },
       "structure": {
-        "value": 42.43,
+        "value": 42.36,
         "median": 42.43,
-        "status": "positive"
+        "status": "negative"
       }
     }
   },
@@ -90,9 +90,9 @@
       "reason": "趋势判断偏差（相对历史中位数偏低）"
     },
     {
-      "type": "keep",
-      "text": "维持结构贴合",
-      "reason": "组合结构判断正常（方向判断合理）"
+      "type": "reduce",
+      "text": "降低结构贴合权重",
+      "reason": "组合结构判断偏差（相对历史中位数偏低）"
     }
   ],
   "disclaimer": "该期无不可变发布快照，复盘为 legacy 兼容（非权威，不代表当时实际发布内容）"
