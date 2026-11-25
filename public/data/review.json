@@ -1,7 +1,7 @@
 {
-  "updated_at": "2026-11-24 01:13:57",
+  "updated_at": "2026-11-25 22:47:39",
   "empty": false,
-  "issue": "26134",
+  "issue": "26135",
   "snapshot_status": "missing",
   "authoritative": false,
   "legacy": true,
@@ -11,45 +11,45 @@
     "front": [
       22,
       21,
-      15,
-      4,
-      31
+      5,
+      28,
+      23
     ],
     "back": [
       1,
       5
     ],
-    "score_total": 40.95
+    "score_total": 41.05
   },
   "actual_result": {
     "front": [
-      4,
-      15,
-      17,
+      1,
+      8,
+      20,
       24,
-      31
+      33
     ],
     "back": [
-      6,
-      9
+      3,
+      4
     ]
   },
   "hit_count": {
-    "front": 3,
+    "front": 0,
     "back": 0,
-    "total": 3,
-    "level": 2
+    "total": 0,
+    "level": 0
   },
   "prize": {
-    "tier": "九等奖",
-    "amount": 5
+    "tier": null,
+    "amount": 0
   },
   "analysis": {
     "factor_review": {
       "inherit": {
         "value": 0.0,
         "median": 0.0,
-        "status": "positive"
+        "status": "neutral"
       },
       "heat": {
         "value": 12.86,
@@ -59,15 +59,15 @@
       "missing": {
         "value": 81.14,
         "median": 80.0,
-        "status": "positive"
+        "status": "neutral"
       },
       "trend": {
-        "value": 48.57,
-        "median": 49.0,
-        "status": "negative"
+        "value": 49.05,
+        "median": 49.05,
+        "status": "neutral"
       },
       "structure": {
-        "value": 42.36,
+        "value": 42.42,
         "median": 42.42,
         "status": "negative"
       }
@@ -78,16 +78,6 @@
       "type": "reduce",
       "text": "降低热号关注权重",
       "reason": "热号因子指向偏差（相对历史中位数偏低）"
-    },
-    {
-      "type": "keep",
-      "text": "维持遗漏补偿关注",
-      "reason": "遗漏回补正常（方向判断合理）"
-    },
-    {
-      "type": "reduce",
-      "text": "降低趋势因子权重",
-      "reason": "趋势判断偏差（相对历史中位数偏低）"
     },
     {
       "type": "reduce",
